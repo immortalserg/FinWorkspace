@@ -78,7 +78,7 @@ class Settings(BaseSettings):
 
     # Application
     APP_NAME: str = "Personal Finance API"
-    APP_VERSION: str = "1.3.3"
+    APP_VERSION: str = "1.3.4"
     DEBUG: bool = False
 
     # Service ports (compose / .env — also used for CORS localhost origins)
@@ -257,6 +257,11 @@ class Settings(BaseSettings):
     # Admin bootstrap — any EXISTING user whose email is in this list gets
     # is_admin=True at startup (see main.py lifespan). Does not create users.
     ADMIN_EMAILS: list[str] = Field(default_factory=list)
+
+    # Create an initial administrator only when no users exist.
+    INITIAL_ADMIN_EMAIL: str | None = None
+    INITIAL_ADMIN_NAME: str | None = None
+    INITIAL_ADMIN_PASSWORD: str | None = None
 
     # Operator identity shown on the public Privacy Policy and Terms pages
     # (served unauthenticated at GET /api/legal). Enable Banking requires these

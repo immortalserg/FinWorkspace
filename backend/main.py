@@ -7,6 +7,7 @@ from app.config import settings
 from app.database import SessionLocal, engine, init_db
 from app.logging_config import setup_logging
 from app.models import User
+from app.utils.security import get_password_hash
 from app.routers import (
     accounts,
     admin,
@@ -43,6 +44,51 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.responses import Response
 from starlette.routing import Match, Mount
 from starlette.types import Scope
+
+
+def _bootstrap_initial_admin(logger: logging.Logger) -> None:
+    """Create the configured initial admin only in an empty user database."""
+    email = (settings.INITIAL_ADMIN_EMAIL or "").strip().lower()
+    name = (settings.INITIAL_ADMIN_NAME or "").strip()
+    password = settings.INITIAL_ADMIN_PASSWORD or ""
+
+    if not email and not name and not password:
+        return
+    if not email or not name or not password:
+        logger.warning(
+            "Initial admin not created: configure email, name and password together."
+        )
+        return
+    if "@" not in email or len(email) > 255:
+        logger.error("Initial admin not created: invalid email.")
+        return
+    if len(password) < 8 or len(password.encode("utf-8")) > 72:
+        logger.error("Initial admin password must be 8-72 bytes for bcrypt.")
+        return
+
+    db = SessionLocal()
+    try:
+        if db.query(User).count() != 0:
+            logger.info("Initial admin bootstrap skipped: users already exist.")
+            return
+
+        user = User(
+            email=email,
+            full_name=name,
+            hashed_password=get_password_hash(password),
+            is_admin=True,
+            is_active=True,
+            email_verified=True,
+        )
+        db.add(user)
+        db.commit()
+        logger.info("Created initial administrator account: %s", email)
+    except Exception:
+        db.rollback()
+        logger.exception("Failed to create initial administrator account.")
+        raise
+    finally:
+        db.close()
 
 
 def _bootstrap_admins(logger: logging.Logger) -> None:
@@ -82,6 +128,7 @@ async def lifespan(app: FastAPI):
     logger.info("Initializing database...")
     init_db()
     logger.info("Database initialized successfully!")
+    _bootstrap_initial_admin(logger)
     _bootstrap_admins(logger)
     start_scheduler(settings, SessionLocal)
     yield
