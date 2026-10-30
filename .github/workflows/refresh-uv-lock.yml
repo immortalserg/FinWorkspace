@@ -1,6 +1,7 @@
 name: Refresh uv lock
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
