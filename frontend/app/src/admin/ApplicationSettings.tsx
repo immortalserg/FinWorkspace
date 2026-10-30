@@ -20,11 +20,10 @@ import * as adminApi from './adminApi'
 type Values = Record<string, unknown>
 type SecretInputs = Record<string, string>
 
-const SECRET_FIELDS = [
-  'OPENROUTER_API_KEY',
-  'SMTP_PASSWORD',
-  'VAPID_PRIVATE_KEY',
-] as const
+type SecretField =
+  | 'OPENROUTER_API_KEY'
+  | 'SMTP_PASSWORD'
+  | 'VAPID_PRIVATE_KEY'
 
 export function ApplicationSettings() {
   const { t } = useTranslation('admin')
@@ -176,7 +175,7 @@ export function ApplicationSettings() {
     </div>
   )
 
-  const renderSecret = (key: (typeof SECRET_FIELDS)[number]) => {
+  const renderSecret = (key: SecretField) => {
     const configured = settingsQuery.data?.secret_configured[key] ?? false
     const cleared = clearedSecrets.includes(key)
 
