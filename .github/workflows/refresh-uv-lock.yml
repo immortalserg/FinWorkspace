@@ -1,0 +1,43 @@
+name: Refresh uv lock
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "pyproject.toml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-uv-lock
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+      - name: Resolve and validate locked dependencies
+        run: |
+          uv lock
+          uv sync --group dev --locked
+      - name: Verify NumPy imports with the compatibility pin
+        run: |
+          uv run python -c "import numpy; print('NumPy', numpy.__version__); assert numpy.__version__ < '2.4'"
+      - name: Commit refreshed lockfile
+        run: |
+          if git diff --quiet -- uv.lock; then
+            echo "uv.lock is already up to date"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add uv.lock
+          git commit -m "chore: refresh uv.lock"
+          git push origin main

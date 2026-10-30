@@ -1,11 +1,13 @@
 [project]
 name = "personalfinance"
-version = "1.4.0"
+version = "1.4.1"
 description = "Self-hosted household finance: accounts, budgets, debts, goals, bank sync, investments and an AI advisor."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "apscheduler>=3.10",
+    # NumPy 2.4 raised the x86-64 baseline to X86_V2, breaking older CPUs/VMs.
+    "numpy>=2.0,<2.4",
     "cryptography>=50.0.1",
     "pywebpush>=2.5.0",
     "alembic>=1.20.0",

@@ -6,6 +6,14 @@ Releases that add database migrations or new `.env` settings say so, so you know
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-10-31
+
+No database migrations and no new `.env` settings.
+
+### Fixed
+- Pin NumPy below 2.4 to preserve compatibility with older x86 CPUs and virtual machines that do not provide the x86-64-v2 instruction set.
+
+
 ## [1.4.0] - 2026-10-30
 
 No database migrations and no new `.env` settings.
