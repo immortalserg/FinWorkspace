@@ -64,3 +64,53 @@ export function setUserActive(id: number, isActive: boolean): Promise<AdminUser>
 export function deleteInvite(id: number): Promise<void> {
   return apiFetch<void>(`/admin/invites/${id}`, { method: 'DELETE' })
 }
+
+export interface AdminSettingsResponse {
+  values: Record<string, unknown>
+  secret_configured: Record<string, boolean>
+  protected_configured: Record<string, boolean>
+  private_key_configured: boolean
+  restart_required_fields: string[]
+}
+
+export interface AdminSettingsUpdate {
+  values: Record<string, unknown>
+  secrets?: Record<string, string>
+  clear_secrets?: string[]
+}
+
+export function getAdminSettings(): Promise<AdminSettingsResponse> {
+  return apiFetch<AdminSettingsResponse>('/admin/settings')
+}
+
+export function updateAdminSettings(
+  input: AdminSettingsUpdate,
+): Promise<AdminSettingsResponse> {
+  return apiFetch<AdminSettingsResponse>('/admin/settings', {
+    method: 'PUT',
+    body: JSON.stringify(input),
+  })
+}
+
+export function uploadEnableBankingPrivateKey(file: File): Promise<{
+  uploaded: boolean
+  private_key_configured: boolean
+}> {
+  const body = new FormData()
+  body.append('file', file)
+
+  return apiFetch('/admin/settings/enable-banking/private-key', {
+    method: 'POST',
+    body,
+  })
+}
+
+
+export function deleteEnableBankingPrivateKey(): Promise<{
+  deleted: boolean
+  private_key_configured: boolean
+}> {
+  return apiFetch('/admin/settings/enable-banking/private-key', {
+    method: 'DELETE',
+  })
+}

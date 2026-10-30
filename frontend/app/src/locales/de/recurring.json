@@ -7,7 +7,7 @@
   "totals": {
     "due30": {
       "label": "Due in 30 days",
-      "hint": "{{count}} aktiv"
+      "hint": "Anstehende Zahlungen in den nächsten 30 Tagen"
     },
     "monthly": {
       "label": "Monatlich commitment",
@@ -17,6 +17,10 @@
       "label": "Overdue",
       "hintAttention": "Needs attention",
       "hintClear": "Alle löschen"
+    },
+    "income30": {
+      "label": "Einnahmen in 30 Tagen",
+      "hint": "Erwartete Zahlungseingänge"
     }
   },
   "tabs": {

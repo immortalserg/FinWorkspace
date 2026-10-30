@@ -1,0 +1,186 @@
+{
+  "page": {
+    "title": "Investitiounen"
+  },
+  "ticker": {
+    "today": "Haut",
+    "cash": "Bargeld"
+  },
+  "tiles": {
+    "portfolioReturn": "Portfoliorendement",
+    "activity": "Rezent Aktivitéit",
+    "cashFlow": "Cashflow"
+  },
+  "holding": {
+    "close": "Zoumaachen",
+    "research": {
+      "category": "Kategorie"
+    },
+    "breakdown": {
+      "todayTitle": "Haut"
+    },
+    "history": {
+      "openedMarker": "Opgemaach",
+      "viewValue": "Total",
+      "mapping": {
+        "resetAction": "Automatesch"
+      }
+    },
+    "list": {
+      "today": "Haut",
+      "total": "Total"
+    },
+    "actions": {
+      "research": "Recherche",
+      "technical": "Technesch"
+    }
+  },
+  "status": {
+    "pending": "Virleefeg"
+  },
+  "card": {
+    "edit": "Kont änneren",
+    "delete": "Verbindung trennen",
+    "cash": "Bargeld",
+    "today": "Haut",
+    "neverSynced": "Nach net synchroniséiert"
+  },
+  "connect": {
+    "nameLabel": "Kontnumm",
+    "currencyLabel": "Währung"
+  },
+  "detail": {
+    "neverSynced": "Nach net synchroniséiert",
+    "syncNow": "Elo synchroniséieren",
+    "syncing": "Gëtt synchroniséiert…",
+    "transactionsTitle": "Rezent Aktivitéit",
+    "ranges": {
+      "all": "All"
+    },
+    "summary": {
+      "today": "Haut",
+      "cash": "Bargeld"
+    },
+    "chart": {
+      "cash": "Bargeld"
+    },
+    "table": {
+      "total": "Total"
+    },
+    "txnTypes": {
+      "fx": "Währung",
+      "dividend": "Dividend",
+      "withdrawal": "Entnam",
+      "tax": "Steier"
+    }
+  },
+  "news": {
+    "title": "Maartneiegkeeten",
+    "searchAction": "Sichen",
+    "clearFilters": "Filter läschen",
+    "loading": "Gëtt gelueden…"
+  },
+  "search": {
+    "action": "Sichen",
+    "viewNews": "Neiegkeeten",
+    "viewResearch": "Recherche",
+    "emptyTitle": "Keng Treffer",
+    "table": {
+      "name": "Numm",
+      "type": "Typ"
+    },
+    "viewTechnical": "Technesch Analysen"
+  },
+  "research": {
+    "action": "Recherche",
+    "viewTechnical": "Technesch Analyse",
+    "category": "Kategorie",
+    "currency": "Währung",
+    "series": {
+      "close": "Zoumaachen"
+    },
+    "distributionDays": "Deeg",
+    "viewAllNews": "Alles weisen",
+    "assetClasses": {
+      "cash": "Bargeld",
+      "other": "Aneres"
+    }
+  },
+  "edit": {
+    "nameLabel": "Kontnumm",
+    "descriptionLabel": "Beschreiwung",
+    "descriptionPlaceholder": "Optional Notizen zu dësem Kont",
+    "saveChanges": "Ännerunge späicheren",
+    "saving": "Gëtt gespäichert…",
+    "toasts": {
+      "updated": "Kont aktualiséiert"
+    }
+  },
+  "compare": {
+    "title": "Vergläichen",
+    "saved": {
+      "title": "Gespäichert"
+    },
+    "saveDialog": {
+      "trigger": "Späicheren",
+      "nameLabel": "Numm",
+      "saving": "Gëtt gespäichert…"
+    },
+    "picker": {
+      "benchmarkNone": "Keng",
+      "period": "Period",
+      "currency": "Währung"
+    }
+  },
+  "backtest": {
+    "form": {
+      "amount": "Betrag",
+      "currency": "Währung",
+      "from": "Vun",
+      "to": "Bis",
+      "contributionFreq": {
+        "none": "Keng",
+        "weekly": "Wöchentlech",
+        "monthly": "Monatlech"
+      },
+      "saving": "Gëtt gespäichert…",
+      "saveName": "Numm"
+    },
+    "headline": {
+      "profit": "Gewënn"
+    },
+    "journey": {
+      "viewValue": "Wäert"
+    }
+  },
+  "scenarios": {
+    "status": {
+      "active": "Aktiv"
+    },
+    "filters": {
+      "kind": {
+        "all": "All"
+      },
+      "status": {
+        "all": "All",
+        "active": "Aktiv"
+      }
+    },
+    "detail": {
+      "close": "Zoumaachen",
+      "delete": "Läschen",
+      "table": {
+        "date": "Datum",
+        "value": "Wäert"
+      }
+    }
+  },
+  "technical": {
+    "panes": {
+      "currentLabel": "Aktuell"
+    },
+    "monteCarlo": {
+      "todayLabel": "Haut"
+    }
+  }
+}

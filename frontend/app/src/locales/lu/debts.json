@@ -1,0 +1,304 @@
+{
+  "types": {
+    "creditCard": "Kreditkaart",
+    "personalLoan": "Perséinleche Prêt",
+    "studentLoan": "Studenteprêt",
+    "mortgage": "Hypothéik",
+    "carLoan": "Autoprêt",
+    "informal": "Privat Schold",
+    "utilities": "Niewekäschten",
+    "subscription": "Abonnement",
+    "medical": "Medizinesch",
+    "tax": "Steier",
+    "legal": "Juristesch",
+    "other": "Aneres",
+    "custom": "Benotzerdefinéiert"
+  },
+  "page": {
+    "title": "Scholden",
+    "description": "Tippen op eng Schold, fir d’Zënsberechnung, de Bezuelungsplang an déi verlinkten Transaktiounen ze gesinn.",
+    "payoffStrategies": "Strategië fir d'Scholden zréckzebezuelen",
+    "addDebt": "Schold dobäisetzen",
+    "addFirstDebt": "Déi éischt Schold dobäisetzen",
+    "totalOwed": "Gesamtschold",
+    "overallPayoff": "Zréckbezuelung insgesamt",
+    "minMonthly": "Minimum pro Mount",
+    "projInterest": "Geschate Zënsen",
+    "allPaidOff": "All erfaasste Scholde si beglach.",
+    "paidOffCount": "Beglach · {{count}}",
+    "empty": {
+      "title": "Nach keng Scholden erfaasst",
+      "description": "Füügt e Prêt oder eng Kreditkaart mat Joreszënssaz (APR) a Mindestbezuelung dobäi, fir d’Zënsen an d’Zréckbezuelung ze berechnen."
+    },
+    "deleteDialog": {
+      "title": "{{name}} läschen?",
+      "description": "D’Schold an all dozou erfaasste Bezuelunge ginn ewechgeholl. Verlinkt Transaktioune bleiwen am Journal.",
+      "confirmLabel": "Schold läschen"
+    },
+    "toasts": {
+      "deleted": "Schold geläscht",
+      "deleteFailed": "D’Schold konnt net geläscht ginn. Probéier et nach eng Kéier."
+    }
+  },
+  "payoffBar": {
+    "ariaLabel": "{{paid}} bezuelt, {{remaining}} nach op, {{interest}} Zënsen nach ze bezuelen",
+    "paidOff": "Beglach",
+    "stillOwed": "Nach op",
+    "interestAhead": "Nach ausstoend Zënsen"
+  },
+  "tile": {
+    "ofOriginal": "vun {{amount}} am Ufank",
+    "cleared": "Beglach",
+    "paidOff": "Beglach",
+    "minPayment": "Mindestbezuelung",
+    "aprSuffix": " · {{apr}}% Joreszënssaz"
+  },
+  "detail": {
+    "addPayment": "Bezuelung dobäisetzen",
+    "payments": "Bezuelungen",
+    "edit": "Änneren",
+    "delete": "Läschen",
+    "amountDueInterestIncluded": "Fällege Betrag inklusiv Zënsen",
+    "currentBalance": "Aktuelle Kontostand",
+    "ofOriginal": "vun {{amount}} am Ufank",
+    "cleared": "Beglach",
+    "percentPaidOff": "{{percent}}% zeréckbezuelt",
+    "priority": "Prioritéit P{{priority}}",
+    "interestAndPayoff": {
+      "title": "Zënsen a Remboursement",
+      "description": "Berechent op Basis vum Joreszënssaz an der Mindestbezuelung, mat der Viraussetzung, datt s du nëmmen de Minimum bezils.",
+      "apr": "Joreszënssaz (APR)",
+      "aprHint": "Monatlech zesummegerechent",
+      "minPayment": "Mindestbezuelung",
+      "everyUnit": "All {{unit}}",
+      "everyIntervalUnit": "All {{interval}} {{unit}}",
+      "setOneToUnlock": "Gëff e Wäert an, fir d’Prognosen ze aktivéieren",
+      "monthsToPayoff": "Méint bis zur kompletter Zréckbezuelung",
+      "estDate": "Geschat: {{date}}",
+      "needsAprAndMinPayment": "Joreszënssaz a Mindestbezuelung sinn néideg",
+      "totalInterest": "Zënsen insgesamt",
+      "totalInterestHint": "D’Käschte wann s du nëmmen de Minimum bezils",
+      "recurrenceUnits": {
+        "days": "Deeg",
+        "weeks": "Wochen",
+        "months": "Méint",
+        "day": "Dag",
+        "week": "Woch",
+        "month": "Mount"
+      }
+    },
+    "opened": "Opgemaach",
+    "maturity": "Lafzäit bis",
+    "nextPayment": "Nächst Bezuelung",
+    "scheduleDay": "Bezuelungsdag",
+    "day": "Dag {{day}}",
+    "clearedOn": "Beglach den",
+    "notes": "Notizen"
+  },
+  "paymentsSheet": {
+    "title": "Bezuelungen an Transaktiounen",
+    "descriptionWithDebt": "Bezuelungshistorique fir {{name}}. Wann s du eng Bezuelung ännerst oder läschs, gëtt nëmmen d'Schold aktualiséiert — verlinkt Transaktioune bleiwen onverännert.",
+    "descriptionNoDebt": "Wiel eng Schold aus, fir d’Bezuelungen ze gesinn.",
+    "empty": {
+      "title": "Nach keng Bezuelungen",
+      "description": "Erfaass eng Bezuelung, fir de Scholdestand ze reduzéieren an optional eng Transaktioun ze erstellen."
+    },
+    "payment": "Bezuelung",
+    "transactionHash": "Transaktioun Nr. {{id}}",
+    "principal": "Kapital {{amount}}",
+    "interest": "Zënsen {{amount}}",
+    "edit": "Änneren",
+    "delete": "Läschen",
+    "deleteConfirm": {
+      "title": "Dës Bezuelung läschen?",
+      "description": "De Scholdestand klëmmt ëm dëse Betrag. Eng verlinkt Transaktioun am Journal bleift onverännert.",
+      "confirmLabel": "Bezuelung läschen"
+    },
+    "toasts": {
+      "deleted": "Bezuelung geläscht",
+      "deleteFailed": "D’Bezuelung konnt net geläscht ginn."
+    }
+  },
+  "strategies": {
+    "title": "Verglach vun de Remboursementsstrategien",
+    "loadError": "D’Remboursementsstrategie konnt net geluede ginn.",
+    "recommended": "Recommandéiert: {{strategy}}",
+    "debtAvalanche": "Zënssaz-Strategie",
+    "debtSnowball": "Kleng-Schold-Strategie",
+    "recommendAvalanche": "Spuer {{amount}} un Zënsen a komm {{months}} Mount(e) méi fréi fäerdeg.",
+    "recommendSnowball": "Begläich fir d’éischt déi klengst Scholden, fir séier Erfolleger ze gesinn an motivéiert ze bleiwen.",
+    "snowballSubtitle": "Fir d’éischt den niddregste Scholdestand",
+    "avalancheSubtitle": "Fir d’éischt den héchste Joreszënssaz",
+    "recommendedBadge": "Recommandéiert",
+    "totalMonths": "Méint insgesamt",
+    "totalInterest": "Zënsen insgesamt",
+    "totalPayments": "Bezuelungen insgesamt",
+    "scheduleTitle": "Virschau vum Remboursementsplang",
+    "scheduleSubtitle": "Déi éischt Méint vum Plang „{{strategy}}“",
+    "table": {
+      "month": "Mount",
+      "debt": "Schold",
+      "payment": "Bezuelung",
+      "remaining": "Iwwreg"
+    }
+  },
+  "form": {
+    "titleEdit": "Schold änneren",
+    "titleCreate": "Eng Schold dobäisetzen",
+    "description": "Gëff de Joreszënssaz an d’Mindestbezuelung an, da kann d’App d’Zënsen an den Datum vun der kompletter Zréckbezuelung berechnen.",
+    "newDebt": "Nei Schold",
+    "cancel": "Ofbriechen",
+    "saving": "Gëtt gespäichert…",
+    "saveChanges": "Ännerunge späicheren",
+    "addDebt": "Schold dobäisetzen",
+    "name": {
+      "label": "Numm vun der Schold",
+      "placeholder": "z. B. Kreditkaart, Autoprêt"
+    },
+    "creditor": {
+      "label": "Krediteur",
+      "placeholder": "z. B. Bank"
+    },
+    "type": {
+      "label": "Scholdentyp",
+      "placeholder": "Wiel en Typ",
+      "options": {
+        "creditCard": "Kreditkaart",
+        "personalLoan": "Perséinleche Prêt",
+        "studentLoan": "Studenteprêt",
+        "mortgage": "Hypothéik",
+        "carLoan": "Autoprêt",
+        "informal": "Privat / informell Schold",
+        "utilities": "Niewekäschten",
+        "subscription": "Abonnement",
+        "medical": "Medizinesch",
+        "tax": "Steier",
+        "legal": "Juristesch",
+        "other": "Aneres",
+        "custom": "Benotzerdefinéiert…"
+      }
+    },
+    "priority": {
+      "label": "Prioritéit"
+    },
+    "customType": {
+      "label": "Numm vum eegene Scholdentyp",
+      "placeholder": "z. B. Versécherung, Loyer, Gemeinschaftskäschten"
+    },
+    "originalBalance": {
+      "label": "Ufanksbetrag"
+    },
+    "currentBalance": {
+      "label": "Aktuelle Kontostand"
+    },
+    "interestRate": {
+      "label": "Joreszënssaz (APR %) ",
+      "placeholder": "z. B. 15,99",
+      "hint": "Joreszënssaz; d’Berechnung vun de Zënsen geschitt monatlech."
+    },
+    "minimumPayment": {
+      "label": "Mindestbezuelung",
+      "placeholder": "Néideg fir d’Zënsprognosen"
+    },
+    "openedDate": {
+      "label": "Datum vun der Ouverture"
+    },
+    "maturityDate": {
+      "label": "Datum vum Enn vun der Lafzäit"
+    },
+    "status": {
+      "title": "Status",
+      "markPaidOff": "Als beglach markéieren",
+      "paidOffDate": "Datum vun der kompletter Bezuelung"
+    },
+    "schedule": {
+      "title": "Bezuelungsplang",
+      "paymentEvery": "Bezuelung all",
+      "frequencyPlaceholder": "Heefegkeet",
+      "recurrence": {
+        "notRecurring": "Net widderhuelend",
+        "days": "Deeg",
+        "weeks": "Wochen",
+        "months": "Méint"
+      },
+      "dayOfMonth": "Dag am Mount",
+      "dayOfMonthPlaceholder": "Bei monatlecher Bezuelung"
+    },
+    "linkedAccount": {
+      "label": "Verbonne Kont",
+      "placeholder": "Kont auswielen…",
+      "none": "Kee verbonne Kont"
+    },
+    "nextPaymentDate": {
+      "label": "Datum vun der nächster Bezuelung"
+    },
+    "notify": {
+      "label": "Virum Fällegkeetsdatum informéieren",
+      "daysBefore": "Deeg virdrun",
+      "daysBeforePlaceholder": "Benotzt de Standardwäert, wann d’Feld eidel ass"
+    },
+    "notes": {
+      "label": "Notizen",
+      "placeholder": "Weider Notizen zu dëser Schold"
+    },
+    "toasts": {
+      "updated": "Schold aktualiséiert",
+      "created": "Schold erstallt",
+      "updateFailed": "Schold konnt net aktualiséiert ginn.",
+      "createFailed": "Schold konnt net erstallt ginn."
+    },
+    "validation": {
+      "nameRequired": "De Scholdennumm ass obligatoresch.",
+      "originalBalancePositive": "Den Ufanksbetrag muss méi grouss wéi 0 sinn.",
+      "currentBalanceNonNegative": "Den aktuelle Scholdestand kann net negativ sinn.",
+      "customTypeRequired": "Den Numm vum Scholdentyp ass obligatoresch."
+    }
+  },
+  "paymentDialog": {
+    "title": "Eng Bezuelung erfaassen",
+    "titleEdit": "Bezuelung änneren",
+    "descriptionWithDebt": "Reduzéiert de Scholdestand vu {{name}}. Trenn Kapital an Zënsen, wann se um Kontoauszuch separat ugewise ginn.",
+    "descriptionNoDebt": "Reduzéiert de Scholdestand vun dëser Schold.",
+    "descriptionEdit": "Aktualiséiert den Impakt vun dëser Bezuelung op d'Schold. Eng verlinkt Transaktioun am Journal gëtt hei ni geännert.",
+    "editLeavesTransaction": "All verlinkt Transaktioun bleift onverännert am Journal.",
+    "cancel": "Ofbriechen",
+    "saving": "Gëtt gespäichert…",
+    "recordPayment": "Bezuelung erfaassen",
+    "saveChanges": "Ännerunge späicheren",
+    "amount": {
+      "label": "Bezuelungsbetrag"
+    },
+    "principal": {
+      "label": "Kapitalbetrag",
+      "placeholder": "Optional"
+    },
+    "interest": {
+      "label": "Zënsbetrag",
+      "placeholder": "Optional"
+    },
+    "date": {
+      "label": "Bezuelungsdatum"
+    },
+    "account": {
+      "label": "Bezuelungskont",
+      "placeholder": "Kont auswielen…",
+      "none": "Kee Kont (nëmmen Bezuelung erfaassen)",
+      "hint": "Wann s du e Kont auswiels, kann eng verlinkt Transaktioun erstallt ginn."
+    },
+    "createTransaction": "Transaktioun erstellen",
+    "notes": {
+      "label": "Notizen",
+      "placeholder": "z. B. Monatlech Bezuelung"
+    },
+    "toasts": {
+      "recorded": "Bezuelung erfaasst",
+      "updated": "Bezuelung aktualiséiert",
+      "failed": "Bezuelung konnt net dobäigesat ginn.",
+      "updateFailed": "Bezuelung konnt net aktualiséiert ginn."
+    },
+    "validation": {
+      "amountRequired": "De Bezuelungsbetrag ass obligatoresch.",
+      "paymentDateRequired": "De Bezuelungsdatum ass obligatoresch."
+    }
+  }
+}

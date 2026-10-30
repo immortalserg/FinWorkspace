@@ -5,9 +5,23 @@
     "addAction": "Add"
   },
   "totals": {
-    "due30": { "label": "Due in 30 days", "hint": "{{count}} active" },
-    "monthly": { "label": "Monthly commitment", "hint": "All cadences normalised" },
-    "overdue": { "label": "Overdue", "hintAttention": "Needs attention", "hintClear": "All clear" }
+    "due30": {
+      "label": "Due in 30 days",
+      "hint": "Upcoming payments over the next 30 days"
+    },
+    "monthly": {
+      "label": "Monthly commitment",
+      "hint": "All cadences normalised"
+    },
+    "overdue": {
+      "label": "Overdue",
+      "hintAttention": "Needs attention",
+      "hintClear": "All clear"
+    },
+    "income30": {
+      "label": "Income in 30 days",
+      "hint": "Expected incoming payments"
+    }
   },
   "tabs": {
     "all": "All",

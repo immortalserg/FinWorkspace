@@ -1,0 +1,29 @@
+{
+  "actions": {
+    "save": "Späicheren",
+    "cancel": "Ofbriechen",
+    "delete": "Läschen",
+    "edit": "Änneren",
+    "add": "Dobäisetzen",
+    "close": "Zoumaachen",
+    "confirm": "Confirméieren",
+    "back": "Zréck"
+  },
+  "logout": "Ofmellen",
+  "settings": "Astellungen",
+  "language": "Sprooch",
+  "languages": {
+    "en": "Englesch",
+    "el": "Griichesch",
+    "ru": "Russesch",
+    "fr": "Franséisch",
+    "de": "Däitsch",
+    "it": "Italienesch",
+    "lu": "Lëtzebuergesch"
+  },
+  "theme": {
+    "light": "Liicht",
+    "dark": "Däischter",
+    "system": "System"
+  }
+}

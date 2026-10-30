@@ -1,0 +1,97 @@
+{
+  "brand": {
+    "tagline": "Perséinlech",
+    "madeBy": "Erstellt vun"
+  },
+  "workspace": "Aarbechtsberäich",
+  "items": {
+    "dashboard": "Iwwersiicht",
+    "transactions": "Transaktiounen",
+    "accounts": "Konten",
+    "investments": "Investitiounen",
+    "budgets": "Budgeten",
+    "notifications": "Notifikatiounen",
+    "categories": "Kategorien",
+    "debts": "Scholden",
+    "goals": "Ziler",
+    "recurring": "Widderhuelend",
+    "trackers": "Tracker",
+    "reports": "Rapporten",
+    "documents": "Dokumenter",
+    "import": "Importéieren",
+    "marketNews": "Maartneiegkeeten",
+    "companyResearch": "Recherche",
+    "tickerCompare": "Vergläichen",
+    "investmentsOverview": "Iwwersiicht",
+    "scenarioLibrary": "Szenarien",
+    "technicalAnalysis": "Technesch Analyse"
+  },
+  "groups": {
+    "overview": "Iwwersiicht",
+    "planning": "Planung",
+    "insights": "Analysen",
+    "portfolio": "Portfolio",
+    "market": "Maart",
+    "sandbox": "Testëmfeld"
+  },
+  "dock": {
+    "home": "Doheem",
+    "transactions": "Transaktiounen",
+    "portfolio": "Portfolio",
+    "news": "Neiegkeeten",
+    "research": "Recherche",
+    "compare": "Vergläichen",
+    "scenarios": "Szenarien",
+    "technical": "Technesch Analysen"
+  },
+  "investmentsSection": "Investitiounen",
+  "backToDashboard": "Zréck op d’Iwwersiicht",
+  "more": "Méi",
+  "moreSheet": {
+    "description": "Planung, Analysen a Kontfunktiounen"
+  },
+  "primaryNav": "Haaptmenü",
+  "moreNavigationAria": "Weider Navigatioun",
+  "sidebar": {
+    "collapse": "Säitepanel zesummeklappen",
+    "expand": "Säitepanel ausklappen"
+  },
+  "userMenu": {
+    "accountMenu": "Kontmenü",
+    "bankConnections": "Bankverbindungen",
+    "rules": "Kategoriséierungsreegelen",
+    "investorProfile": "Investisseursprofil",
+    "apiKeys": "API-Schlësselen",
+    "admin": "Administratioun",
+    "defaultAccountName": "Kont"
+  },
+  "speedDial": {
+    "label": "Schnellaktiounen",
+    "addTransaction": "Transaktioun dobäisetzen",
+    "aiAdvisor": "Finanzassistent"
+  },
+  "themeToggle": {
+    "changeTheme": "Design änneren"
+  },
+  "balanceToggle": {
+    "hide": "Kontostänn verstoppen",
+    "show": "Kontostänn weisen"
+  },
+  "languageToggle": {
+    "changeLanguage": "Sprooch änneren"
+  },
+  "notificationsPanel": {
+    "title": "Notifikatiounen",
+    "ariaLabel": "Notifikatiounen",
+    "inLastDay": "{{count}} an de leschten 24 Stonnen",
+    "nothingNew": "Näischt Neies",
+    "empty": "Nach keng Meldungen.",
+    "emptyHint": "Hei erschéngen Notifikatiounen, wann Budget- a Rechnungsreegelen ausgeléist ginn.",
+    "time": {
+      "justNow": "Grad elo",
+      "minutesAgo": "Virun {{count}} Min.",
+      "hoursAgo": "Virun {{count}} St.",
+      "daysAgo": "Virun {{count}} Deeg"
+    }
+  }
+}

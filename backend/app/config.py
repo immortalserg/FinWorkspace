@@ -78,7 +78,7 @@ class Settings(BaseSettings):
 
     # Application
     APP_NAME: str = "Personal Finance API"
-    APP_VERSION: str = "1.3.4"
+    APP_VERSION: str = "1.4.0"
     DEBUG: bool = False
 
     # Service ports (compose / .env — also used for CORS localhost origins)
@@ -406,8 +406,11 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
-    """Get cached settings instance."""
-    return Settings()
+    """Load environment settings, then apply persistent UI overrides."""
+    from app.settings_store import load_persisted_settings
 
+    # Pydantic still reads environment variables; explicit persisted values
+    # take precedence and are validated together with the environment.
+    return Settings(**load_persisted_settings())
 
 settings = get_settings()

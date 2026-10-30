@@ -1,0 +1,230 @@
+{
+  "page": {
+    "title": "Transaktiounen",
+    "description": "All Euro, deen erakënnt, erausgeet oder tëscht dengen Konten transferéiert gëtt.",
+    "actions": {
+      "import": "Importéieren",
+      "add": "Transaktioun dobäisetzen"
+    },
+    "count_one": "{{count}} Transaktioun",
+    "count_other": "{{count}} Transaktiounen",
+    "empty": {
+      "title": "Nach näischt erfaasst",
+      "description": "Füügt eng Transaktioun manuell dobäi oder importéier e Bankexport iwwer d’Importsäit.",
+      "addAction": "Transaktioun dobäisetzen",
+      "importAction": "Bankexport importéieren",
+      "filteredMessage": "Keng Transaktioune passen op dës Filteren. Erweider d’Period oder läsch ee vun de Filteren.",
+      "noneMessage": "Nach keng Transaktiounen"
+    },
+    "footer": {
+      "onThisPage": "Op dëser Säit",
+      "in": "Erakomm",
+      "out": "Erausgaang",
+      "net": "Netto"
+    },
+    "deleteConfirm": {
+      "title": "Dës Transaktioun läschen?",
+      "confirmLabel": "Transaktioun läschen"
+    },
+    "deleteLinkedConfirm": {
+      "title": "Dës Transaktioun ass verbonnen",
+      "descriptionDebt": "Si ass als Bezuelung fir „{{name}}“ erfaasst.",
+      "descriptionRecurring": "Si ass als Bezuelung fir „{{name}}“ erfaasst.",
+      "descriptionBoth": "Si ass mat der Schold „{{debt}}“ an der widderhuelender Ausgab „{{recurring}}“ verbonnen.",
+      "question": "Soll d’Läsche och de Bezuelungsfortschrëtt réckgängeg maachen?",
+      "keepProgress": "Nëmmen d’Transaktioun läschen",
+      "keepProgressHint": "D’Schold-/Widderhuelungsbezuelung bleift bestoen; nëmmen d’Journalzeil gëtt geläscht.",
+      "undoProgress": "Och de Bezuelungsfortschrëtt réckgängeg maachen",
+      "undoProgressHint": "Setzt de Scholdestand zeréck oder setzt de Fällegkeetsdatum vun der widderhuelender Bezuelung zeréck an hëlt de Bezuelungsbeleg ewech.",
+      "cancel": "Ofbriechen"
+    },
+    "toast": {
+      "deleted": "Transaktioun geläscht",
+      "deleteError": "D’Transaktioun konnt net geläscht ginn. Probéier et nach eng Kéier."
+    }
+  },
+  "datePresets": {
+    "thisMonth": "Dëse Mount",
+    "lastMonth": "Leschte Mount",
+    "last90Days": "Déi lescht 90 Deeg",
+    "thisYear": "Dëst Joer"
+  },
+  "filterBar": {
+    "search": {
+      "placeholder": "Beschreiwunge sichen…",
+      "ariaLabel": "Transaktioune sichen",
+      "clear": "Sich läschen"
+    },
+    "typeTabs": {
+      "all": "All",
+      "income": "Erakomm",
+      "expense": "Erausgaang"
+    },
+    "period": {
+      "label": "Period",
+      "from": "Vun",
+      "to": "Bis",
+      "clear": "Period läschen"
+    },
+    "account": {
+      "label": "Kont",
+      "allLabel": "All Konten",
+      "searchPlaceholder": "E Kont sichen…"
+    },
+    "category": {
+      "label": "Kategorie",
+      "allLabel": "All Kategorien",
+      "searchPlaceholder": "Eng Kategorie sichen…"
+    },
+    "nothingMatches": "Näischt passt dozou.",
+    "removeFilter": "Filter ewechhuelen",
+    "chips": {
+      "matching": "Treffer",
+      "type": "Typ",
+      "account": "Kont",
+      "category": "Kategorie"
+    },
+    "filtering": "Filtere…",
+    "clearAll": "Alles läschen"
+  },
+  "form": {
+    "title": {
+      "add": "Transaktioun dobäisetzen",
+      "edit": "Transaktioun änneren"
+    },
+    "description": {
+      "transfer": "Iwwerweis Geld tëscht zwee vun dengen eegene Konten. Béid Kontostänn ginn ugepasst, d’Budgete bleiwen onverännert.",
+      "income": "Akommes op engem Kont erfaassen.",
+      "expense": "Eng Ausgab op engem Kont mat enger Ausgabekategorie erfaassen."
+    },
+    "fields": {
+      "direction": "Richtung",
+      "expense": "Ausgab",
+      "income": "Akommes",
+      "transfer": "Iwwerweisung",
+      "amount": "Betrag",
+      "currency": "EUR",
+      "description": "Beschreiwung",
+      "descriptionPlaceholder": "Wofir war et?",
+      "account": "Kont",
+      "fromAccount": "Vum Kont",
+      "toAccount": "Op de Kont",
+      "accountPlaceholder": "Wiel e Kont",
+      "destinationPlaceholder": "Wiel en Zilkont",
+      "category": "Kategorie",
+      "categoryPlaceholder": "Wiel eng Kategorie",
+      "date": "Datum",
+      "notes": "Notizen",
+      "notesPlaceholder": "Eppes, wat s du spéider nach wësse wëlls"
+    },
+    "actions": {
+      "save": "Ännerunge späicheren",
+      "add": "Transaktioun dobäisetzen"
+    },
+    "toast": {
+      "updated": "Transaktioun aktualiséiert",
+      "created": "Transaktioun erstallt",
+      "updateError": "Transaktioun konnt net aktualiséiert ginn.",
+      "createError": "Transaktioun konnt net erstallt ginn.",
+      "debtLinked": "Scholdbezuelung erfaasst",
+      "debtLinkFailed": "Transaktioun gespäichert, mee d’Bezuelung konnt net mat der Schold verbonne ginn.",
+      "recurringLinked": "Widderhuelend Ausgab bezilt an erfaasst",
+      "recurringLinkFailed": "Transaktioun gespäichert, mee d’Verbindung mat der widderhuelender Ausgab ass feelgeschloen.",
+      "trackersFailed": "Transaktioun gespäichert, mee d’Tracker konnten net aktualiséiert ginn."
+    },
+    "links": {
+      "debt": "Dëst ass eng Scholdbezuelung",
+      "debtHint": "Erfaasst eng Bezuelung fir déi ausgewielte Schold, ouni eng zweet Transaktioun ze erstellen.",
+      "debtSelect": "Schold auswielen",
+      "debtPlaceholder": "Wiel eng Schold…",
+      "debtAlreadyLinked": "Schonn mat {{name}} verbonnen",
+      "recurring": "Mat widderhuelender Ausgab verbannen",
+      "recurringHint": "Markéiert dëst als Bezuelung fir déi ausgewielte Rechnung oder den Abonnement.",
+      "recurringSelect": "Widderhuelend Ausgab auswielen",
+      "recurringPlaceholder": "Wiel eng widderhuelend Ausgab…",
+      "recurringAlreadyLinked": "Schonn mat {{name}} verbonnen"
+    },
+    "trackers": {
+      "label": "Tracker",
+      "hint": "Dës Transaktioun engem oder méi Trackeren zouuerdnen."
+    },
+    "split": {
+      "start": "Dës Transaktioun opdeelen",
+      "lockedHint": "De Betrag gëtt vun denger Bank virgi a kann net geännert ginn.",
+      "help": "De Betrag vun {{total}} {{currency}} op verschidde Kategorien opdeelen. D’Deeler mussen zesummen de Gesamtbetrag erginn.",
+      "amount": "Betrag",
+      "category": "Kategorie",
+      "uncategorised": "Ouni Kategorie",
+      "addPart": "Deel dobäisetzen",
+      "remove": "Deel ewechhuelen",
+      "balanced": "Geet op",
+      "remaining": "{{amount}} {{currency}} nach ze verdeelen",
+      "cancel": "Opdeelung ofbriechen",
+      "confirm": "Transaktioun opdeelen",
+      "done": "A {{count}} Transaktiounen opgedeelt"
+    }
+  },
+  "markTransfer": {
+    "action": "Als Iwwerweisung markéieren",
+    "undo": "Iwwerweisungsmarkéierung réckgängeg maachen",
+    "title": "Als Iwwerweisung markéieren",
+    "counterpartLabel": "Aneren Kont",
+    "counterpartPlaceholder": "Wiel deen anere Kont",
+    "candidateLabel": "Passend Transaktioun",
+    "candidatesLoading": "Sich no passende Transaktiounen…",
+    "noCandidates": "Op dësem Kont gouf keng passend Transaktioun mat dësem Betrag fonnt.",
+    "confirm": "Als Iwwerweisung markéieren",
+    "toast": {
+      "success": "Als Iwwerweisung markéiert",
+      "unmarked": "Iwwerweisungsmarkéierung ewechgeholl",
+      "error": "Dës Transaktioun konnt net aktualiséiert ginn. Probéier et nach eng Kéier."
+    }
+  },
+  "detail": {
+    "flowTitle": {
+      "in": "Geld erakomm",
+      "out": "Geld erausgaang",
+      "move": "Tëscht Konten transferéiert"
+    },
+    "rows": {
+      "route": "Wee",
+      "account": "Kont",
+      "category": "Kategorie",
+      "paysDown": "Reduzéiert",
+      "recurringPayment": "Widderhuelend Bezuelung",
+      "source": "Quell",
+      "imported": "Importéiert",
+      "notes": "Notizen"
+    }
+  },
+  "columns": {
+    "date": "Datum",
+    "description": "Beschreiwung",
+    "category": "Kategorie",
+    "account": "Kont",
+    "amount": "Betrag",
+    "betweenAccounts": "Tëscht Konten",
+    "actions": "Aktiounen",
+    "flowLabel": {
+      "in": "Akommes",
+      "out": "Ausgab",
+      "move": "Iwwerweisung"
+    },
+    "imported": "Importéiert",
+    "menu": {
+      "view": "Detailer weisen"
+    },
+    "pending": "Virleefeg",
+    "pendingHint": "Vun denger Bank nach net definitiv gebucht. De Betrag kann nach änneren oder verschwannen."
+  },
+  "reimbursement": {
+    "header": {
+      "total": "Betrag"
+    },
+    "candidateRemaining": "{{amount}} iwwreg",
+    "done": "Fäerdeg",
+    "toast": {
+      "linked": "Verbonnen"
+    }
+  }
+}

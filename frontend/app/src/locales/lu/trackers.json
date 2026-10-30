@@ -1,0 +1,154 @@
+{
+  "page": {
+    "title": "Tracker",
+    "description": "Fass Transaktiounen zesummen, z. B. fir eng Rees oder eng Renovatioun, a verfolleg de Gesamtbetrag.",
+    "addTracker": "Neie Tracker",
+    "createFirst": "Erstell däin éischte Tracker",
+    "yourTrackers": "Deng Tracker",
+    "empty": {
+      "title": "Nach keng Tracker",
+      "description": "E Tracker sammelt Transaktiounen ënner engem Numm — z. B. „Rees an Italien“ oder „Kichenrenovatioun“ — fir de Gesamtbetrag ze gesinn. Füügt Transaktiounen iwwer den Transaktiounseditor oder direkt hei dobäi."
+    },
+    "tabs": {
+      "active": "Aktiv",
+      "inactive": "Inaktiv",
+      "all": "All"
+    },
+    "noneInView": {
+      "active": "Keng aktiv Tracker.",
+      "inactive": "Keng inaktiv Tracker.",
+      "all": "Keng Tracker."
+    },
+    "deleteDialog": {
+      "description": "De Tracker gëtt geläscht. D’Transaktiounen doranner bleiwen onverännert bestoen.",
+      "confirmLabel": "Tracker läschen"
+    },
+    "toasts": {
+      "deleted": "Tracker geläscht",
+      "deleteFailed": "De Tracker konnt net geläscht ginn.",
+      "activated": "Tracker aktivéiert",
+      "deactivated": "Tracker deaktivéiert",
+      "updateFailed": "De Tracker konnt net aktualiséiert ginn."
+    }
+  },
+  "card": {
+    "entries_one": "{{count}} Transaktioun",
+    "entries_other": "{{count}} Transaktiounen",
+    "inactive": "Inaktiv",
+    "ofTarget": "vun {{amount}}",
+    "addTransaction": "Dobäisetzen",
+    "actionsFor": "Aktioune fir {{name}}",
+    "menu": {
+      "edit": "Änneren",
+      "activate": "Aktivéieren",
+      "deactivate": "Deaktivéieren",
+      "delete": "Läschen"
+    },
+    "lastEntry": "Lescht: {{date}}",
+    "overTarget": "{{amount}} driwwer"
+  },
+  "details": {
+    "active": "Aktiv",
+    "inactive": "Inaktiv",
+    "createdOn": "Erstellt {{date}}",
+    "total": "Total verfollegt",
+    "entries": "Transaktiounen",
+    "lastEntry": "Lescht Entrée",
+    "leftOfTarget": "{{amount}} vun {{target}} iwwreg",
+    "overBy": "{{amount}} iwwer dem Zil",
+    "transactions": "Transaktiounen an dësem Tracker",
+    "noTransactions": "Hei ass nach näischt. Füügt ënnendrënner eng Transaktioun dobäi oder wielt dëse Tracker beim Ännere vun enger Transaktioun aus.",
+    "removeFromTracker": "Aus dem Tracker ewechhuelen",
+    "removeFromTrackerNamed": "„{{description}}“ aus dësem Tracker ewechhuelen",
+    "addTransaction": "Transaktioun dobäisetzen",
+    "edit": "Änneren",
+    "close": "Zoumaachen",
+    "toasts": {
+      "removed": "Aus dem Tracker ewechgeholl",
+      "removeFailed": "D’Transaktioun konnt net ewechgeholl ginn."
+    }
+  },
+  "form": {
+    "titleCreate": "Neie Tracker",
+    "description": "Gëff dem Objet, deen s du verfollege wëlls, en Numm. En Zilbetrag ass optional.",
+    "untitled": "Tracker ouni Numm",
+    "noTarget": "Keen Zil",
+    "targetPreview": "Zil: {{amount}}",
+    "create": "Tracker erstellen",
+    "saveChanges": "Ännerunge späicheren",
+    "name": {
+      "label": "Numm"
+    },
+    "descriptionField": {
+      "label": "Beschreiwung",
+      "placeholder": "Wat verfollegt dëse Tracker?"
+    },
+    "target": {
+      "label": "Zilbetrag",
+      "placeholder": "Optional",
+      "hint": "Eidel loossen, wann nëmmen de Gesamtbetrag verfollegt soll ginn."
+    },
+    "currency": {
+      "label": "Währung"
+    },
+    "icon": {
+      "label": "Ikon"
+    },
+    "active": {
+      "label": "Aktiv",
+      "hint": "Nëmmen aktiv Tracker erschéngen beim Ännere vun enger Transaktioun."
+    },
+    "validation": {
+      "nameRequired": "Numm ass obligatoresch",
+      "targetPositive": "Den Zilbetrag muss méi grouss wéi 0 sinn."
+    },
+    "toasts": {
+      "created": "Tracker erstallt",
+      "updated": "Tracker aktualiséiert",
+      "createFailed": "De Tracker konnt net erstallt ginn.",
+      "updateFailed": "De Tracker konnt net aktualiséiert ginn."
+    }
+  },
+  "transactionForm": {
+    "title": "Transaktioun dobäisetzen",
+    "description": "Erstellt eng richteg Transaktioun a füügt se bei „{{name}}“ dobäi.",
+    "descriptionNoTracker": "Erstellt eng richteg Transaktioun a füügt se bei dësem Tracker dobäi.",
+    "submit": "Transaktioun dobäisetzen",
+    "type": {
+      "label": "Richtung",
+      "expense": "Ausgab",
+      "income": "Akommes",
+      "hint": "Akommes an engem Tracker (z. B. eng Remboursement) gëtt vum Gesamtbetrag ofgezunn."
+    },
+    "amount": {
+      "label": "Betrag"
+    },
+    "descriptionField": {
+      "label": "Beschreiwung",
+      "placeholder": "Hotel zu Roum"
+    },
+    "account": {
+      "label": "Kont",
+      "placeholder": "Wiel e Kont"
+    },
+    "category": {
+      "label": "Kategorie",
+      "none": "Keng Kategorie"
+    },
+    "date": {
+      "label": "Datum"
+    },
+    "notes": {
+      "label": "Notizen",
+      "placeholder": "Eppes, wat s du dir mierke wëlls"
+    },
+    "validation": {
+      "amountPositive": "De Betrag muss méi grouss wéi 0 sinn.",
+      "dateRequired": "Datum ass obligatoresch."
+    },
+    "toasts": {
+      "added": "Transaktioun beim Tracker dobäigesat",
+      "failed": "D’Transaktioun konnt net dobäigesat ginn."
+    }
+  }
+}

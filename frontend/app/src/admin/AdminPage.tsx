@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { HugeiconsIcon } from '@hugeicons/react'
 import {
@@ -30,6 +31,7 @@ import {
 import { Field, FieldDescription, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Table,
   TableBody,
@@ -45,6 +47,7 @@ import { PageHeader } from '../ui/PageHeader'
 import { useConfirm } from '../ui/useConfirm'
 import * as adminApi from './adminApi'
 import type { InviteCode } from './adminApi'
+import { ApplicationSettings } from './ApplicationSettings'
 
 function inviteStatusBadge(status: string) {
   switch (status) {
@@ -62,6 +65,7 @@ function inviteStatusBadge(status: string) {
 }
 
 export function AdminPage() {
+  const { t } = useTranslation('admin')
   const queryClient = useQueryClient()
   const { user: currentUser } = useAuth()
   const { confirm, confirmDialog } = useConfirm()
@@ -194,7 +198,13 @@ export function AdminPage() {
   return (
     <PageContainer className="flex flex-col gap-6">
       <PageHeader title="Admin" description="Manage users and invite codes." />
-      {confirmDialog}
+      <Tabs defaultValue="manage" className="w-full">
+        <TabsList>
+          <TabsTrigger value="manage">{t('tabs.manage')}</TabsTrigger>
+          <TabsTrigger value="settings">{t('tabs.settings')}</TabsTrigger>
+        </TabsList>
+        <TabsContent value="manage" className="mt-4 flex flex-col gap-6">
+          {confirmDialog}
 
       <Card>
         <CardHeader>
@@ -396,6 +406,12 @@ export function AdminPage() {
           )}
         </CardContent>
       </Card>
+
+        </TabsContent>
+        <TabsContent value="settings" className="mt-4">
+          <ApplicationSettings />
+        </TabsContent>
+      </Tabs>
 
       <Dialog open={createInviteOpen} onOpenChange={setCreateInviteOpen}>
         <DialogContent className="sm:max-w-md">

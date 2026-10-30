@@ -136,7 +136,7 @@ export function MarketNewsPage() {
     query: query || undefined,
     symbol: symbol || undefined,
     limit: PAGE_SIZE * (page + 1),
-    language: i18n.language?.slice(0, 2),
+    language: i18n.language?.startsWith('lu') ? 'lb' : i18n.language?.slice(0, 2),
     provider,
   })
 

@@ -1,0 +1,196 @@
+{
+  "categories": {
+    "emergencyFund": "Noutreserve",
+    "vacation": "Vakanz",
+    "car": "Autokaf",
+    "home": "Hauskaf",
+    "education": "Bildung",
+    "retirement": "Pensioun",
+    "other": "Aneres",
+    "general": "Allgemeng"
+  },
+  "icons": {
+    "target": "Zilbetrag",
+    "money": "Geld",
+    "home": "Doheem",
+    "car": "Auto",
+    "travel": "Reesen",
+    "education": "Bildung",
+    "health": "Gesondheet",
+    "gift": "Kaddo"
+  },
+  "page": {
+    "title": "Ziler",
+    "description": "Erreech deng finanziell Ziler mat engem kloeren Endpunkt — spuer, verfolleg de Fortschrëtt a feier deng Erfolleger.",
+    "addGoal": "Zil dobäisetzen",
+    "createFirstGoal": "Éischt Zil erstellen",
+    "yourGoals": "Deng Ziler",
+    "tabs": {
+      "active": "Aktiv",
+      "completed": "Ofgeschloss",
+      "all": "All"
+    },
+    "empty": {
+      "title": "Nach keng Ziler",
+      "description": "Erstell däin éischt finanziellt Zil, fir däi Fortschrëtt ze verfollegen."
+    },
+    "noGoalsInView": {
+      "all": "Keng Ziler an dëser Vue.",
+      "active": "Keng aktiv Ziler an dëser Vue.",
+      "completed": "Keng ofgeschloss Ziler an dëser Vue."
+    },
+    "onlyGoalInView": {
+      "all": "D’Zil uewen ass däin eenzegt Zil.",
+      "active": "D’Zil uewen ass däin eenzegt aktivt Zil.",
+      "completed": "D’Zil uewen ass däin eenzegt ofgeschlossent Zil."
+    },
+    "toasts": {
+      "deleted": "Zil geläscht",
+      "deleteFailed": "D’Zil konnt net geläscht ginn.",
+      "markedComplete": "Zil als ofgeschloss markéiert",
+      "updateFailed": "D’Zil konnt net aktualiséiert ginn."
+    },
+    "deleteDialog": {
+      "title": "{{name}} läschen?",
+      "description": "D’Zil a säi Fortschrëttshistorique ginn ewechgeholl. Dat kann net réckgängeg gemaach ginn.",
+      "confirmLabel": "Zil läschen"
+    }
+  },
+  "journey": {
+    "ariaLabel": "Spuerverlaf",
+    "title": "Spuerverlaf",
+    "ofTargeted": "vun {{amount}} Zilbetrag",
+    "summary_one": "{{saved}} gespuert bei {{count}} Zil · {{active}} aktiv · {{completed}} ofgeschloss",
+    "summary_other": "{{saved}} gespuert bei {{count}} Ziler · {{active}} aktiv · {{completed}} ofgeschloss"
+  },
+  "hero": {
+    "primaryGoalAria": "Haaptzil: {{name}}",
+    "spotlight": "Am Fokus",
+    "primary": "Haaptmenü",
+    "completed": "Ofgeschloss",
+    "ofTarget": "vun {{amount}}",
+    "toGo": "Nach {{amount}}",
+    "saveToArrive": "Spuer {{amount}} pro Mount, fir et bis den {{date}} z'erreechen",
+    "targetDate": "Zildatum {{date}}",
+    "daysLeft": "Nach {{count}} Deeg",
+    "contribute": "Bäidroen",
+    "details": "Detailer",
+    "edit": "Änneren"
+  },
+  "list": {
+    "primary": "Haaptmenü",
+    "done": "Fäerdeg",
+    "left": "{{amount}} iwwreg",
+    "contribute": "Bäidroen",
+    "actionsFor": "Aktioune fir {{name}}",
+    "menu": {
+      "contribute": "Bäidroen",
+      "details": "Detailer",
+      "edit": "Änneren",
+      "markComplete": "Als ofgeschloss markéieren",
+      "delete": "Läschen"
+    }
+  },
+  "form": {
+    "titleEdit": "Zil änneren",
+    "titleCreate": "Zil erstellen",
+    "updating": "Gëtt aktualiséiert",
+    "newTarget": "Neit Spuerzil",
+    "untitledGoal": "Zil ouni Numm",
+    "name": {
+      "label": "Numm vum Zil",
+      "placeholder": "z. B. Noutreserve"
+    },
+    "description": {
+      "label": "Beschreiwung",
+      "placeholder": "Optional Notizen"
+    },
+    "targetAmount": {
+      "label": "Zilbetrag"
+    },
+    "currency": {
+      "label": "Währung"
+    },
+    "category": {
+      "label": "Kategorie",
+      "placeholder": "Kategorie auswielen",
+      "selectPlaceholder": "Kategorie auswielen"
+    },
+    "targetDate": {
+      "label": "Zildatum"
+    },
+    "icon": {
+      "label": "Ikon",
+      "placeholder": "Ikon"
+    },
+    "color": {
+      "label": "Faarf"
+    },
+    "setAsPrimary": "Als Haaptzil festleeën",
+    "cancel": "Ofbriechen",
+    "saveChanges": "Ännerunge späicheren",
+    "saveGoal": "Zil späicheren",
+    "toasts": {
+      "updated": "Zil aktualiséiert",
+      "created": "Zil erstallt",
+      "updateFailed": "D’Zil konnt net aktualiséiert ginn.",
+      "createFailed": "D’Zil konnt net erstallt ginn."
+    },
+    "validation": {
+      "nameRequired": "Den Numm vum Zil ass obligatoresch.",
+      "targetAmountPositive": "Den Zilbetrag muss méi grouss wéi 0 sinn."
+    }
+  },
+  "contribute": {
+    "title": "Bäitrag dobäisetzen",
+    "descriptionWithGoal": "{{name}} · {{amount}} iwwreg",
+    "descriptionNoGoal": "Zu engem Zil bäidroen",
+    "amount": {
+      "label": "Betrag"
+    },
+    "type": {
+      "label": "Typ",
+      "contribution": "Bäitrag (zum Zil dobäisetzen)",
+      "withdrawal": "Entnam (vum Zil ofzéien)"
+    },
+    "description": {
+      "label": "Beschreiwung",
+      "placeholder": "z. B. Monatlech Spueren"
+    },
+    "date": {
+      "label": "Datum"
+    },
+    "submitWithdrawal": "Entnam erfaassen",
+    "submitContribution": "Bäitrag dobäisetzen",
+    "toasts": {
+      "contributionAdded": "Bäitrag dobäigesat",
+      "withdrawalRecorded": "Entnam erfaasst",
+      "failed": "Transaktioun konnt net dobäigesat ginn."
+    },
+    "validation": {
+      "amountPositive": "De Betrag muss méi grouss wéi 0 sinn.",
+      "dateRequired": "Datum ass obligatoresch."
+    }
+  },
+  "details": {
+    "primary": "Haaptmenü",
+    "completed": "Ofgeschloss",
+    "complete": "ofgeschloss",
+    "saved": "Gespäichert",
+    "target": "Zilbetrag",
+    "remaining": "Iwwreg",
+    "targetDate": "Zildatum",
+    "daysLeft": "Deeg iwwreg",
+    "saveToReach": "Spuer {{amount}} pro Mount, fir et bis den {{date}} z'erreechen",
+    "onTrack": "Am Plang",
+    "behindPace": "Hannert dem Zäitplang",
+    "avgPerMonth": "Duerchschnëtt {{amount}}/Mount",
+    "recentActivity": "Rezent Aktivitéit",
+    "noContributions": "Nach keng Bäiträg",
+    "contribution": "Bäitrag",
+    "withdrawal": "Entnam",
+    "contribute": "Bäidroen",
+    "edit": "Änneren",
+    "close": "Zoumaachen"
+  }
+}

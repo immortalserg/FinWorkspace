@@ -143,16 +143,23 @@ export function RecurringPage() {
   }, [visible, view, t])
 
   const totals = useMemo(() => {
-    const due30 = active
-      .filter((e) => daysUntilDue(e) <= 30)
+    const dueIn30Days = active
+      .filter((e) => flowOf(e) === 'expense' && daysUntilDue(e) <= 30)
       .reduce((sum, e) => sum + e.amount, 0)
+
+    const incomeIn30Days = active
+      .filter((e) => flowOf(e) === 'income' && daysUntilDue(e) <= 30)
+      .reduce((sum, e) => sum + e.amount, 0)
+
     const overdueTotal = active
-      .filter((e) => isOverdue(e))
+      .filter((e) => flowOf(e) === 'expense' && isOverdue(e))
       .reduce((sum, e) => sum + e.amount, 0)
+
     const monthly = active
       .filter((e) => flowOf(e) === 'expense')
       .reduce((sum, e) => sum + monthlyEquivalent(e), 0)
-    return { due30, overdueTotal, monthly }
+
+    return { dueIn30Days, incomeIn30Days, overdueTotal, monthly }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, categoryById])
 
@@ -263,28 +270,12 @@ export function RecurringPage() {
             aria-label={t('aria.totals')}
             className="glass-panel overflow-hidden rounded-xl border"
           >
-            <div className="grid grid-cols-1 divide-y divide-border/70 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-            <Figure
-              label={t('totals.due30.label')}
-              value={formatCurrency(totals.due30)}
-              hint={t('totals.due30.hint', { count: active.length })}
-            />
-            <Figure
-              label={t('totals.monthly.label')}
-              value={formatCurrency(totals.monthly)}
-              hint={t('totals.monthly.hint')}
-            />
-            <Figure
-              label={t('totals.overdue.label')}
-              value={formatCurrency(totals.overdueTotal)}
-              hint={
-                totals.overdueTotal > 0
-                  ? t('totals.overdue.hintAttention')
-                  : t('totals.overdue.hintClear')
-              }
-              tone={totals.overdueTotal > 0 ? 'urgent' : 'calm'}
-            />
-            </div>
+            <div className="grid grid-cols-1 divide-y divide-border/70 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x lg:divide-y-0">
+          <Figure label={t('totals.due30.label')} value={formatCurrency(totals.dueIn30Days)} hint={t('totals.due30.hint')} />
+          <Figure label={t('totals.income30.label')} value={formatCurrency(totals.incomeIn30Days)} hint={t('totals.income30.hint')} />
+          <Figure label={t('totals.monthly.label')} value={formatCurrency(totals.monthly)} hint={t('totals.monthly.hint')} />
+          <Figure label={t('totals.overdue.label')} value={formatCurrency(totals.overdueTotal)} hint={t('totals.overdue.hint')} tone={totals.overdueTotal > 0 ? 'urgent' : 'calm'} />
+        </div>
           </section>
 
           <Tabs value={view} onValueChange={(v) => setView(v as View)}>

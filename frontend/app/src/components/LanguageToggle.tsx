@@ -12,7 +12,15 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-const LANGUAGES = ['en', 'el', 'ru', 'fr', 'de', 'it'] as const
+const LANGUAGES = [
+  { code: 'en', name: 'English' },
+  { code: 'el', name: 'Ελληνικά' },
+  { code: 'ru', name: 'Русский' },
+  { code: 'fr', name: 'Français' },
+  { code: 'de', name: 'Deutsch' },
+  { code: 'it', name: 'Italiano' },
+  { code: 'lu', name: 'Lëtzebuergesch' },
+] as const
 
 export function LanguageToggle() {
   const { t, i18n } = useTranslation('nav')
@@ -37,9 +45,9 @@ export function LanguageToggle() {
             value={current}
             onValueChange={(lng) => void i18n.changeLanguage(lng)}
           >
-            {LANGUAGES.map((lng) => (
-              <DropdownMenuRadioItem key={lng} value={lng}>
-                {t(`common:languages.${lng}`)}
+            {LANGUAGES.map(({ code, name }) => (
+              <DropdownMenuRadioItem key={code} value={code}>
+                {name}
               </DropdownMenuRadioItem>
             ))}
           </DropdownMenuRadioGroup>

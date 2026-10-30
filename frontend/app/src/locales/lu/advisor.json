@@ -1,0 +1,76 @@
+{
+  "tools": {
+    "investment": "Investitioun",
+    "networth": "Verméigen netto"
+  },
+  "secondaryNav": {
+    "investment": {
+      "retirement": "Pensioun",
+      "compare": "Vergläichen"
+    }
+  },
+  "investmentTool": {
+    "compound": {
+      "interest": "Zënsen",
+      "legendBalance": "Gesamte Kontostand"
+    },
+    "compare": {
+      "monthlyLabel": "Monatlech",
+      "columnMonthly": "Monatlech"
+    },
+    "selfSustaining": {
+      "legendBalance": "Kontostand",
+      "export": {
+        "headerBalance": "Kontostand"
+      }
+    }
+  },
+  "loanTool": {
+    "amortization": {
+      "monthly": "Monatlech",
+      "totalInterest": "Zënsen insgesamt",
+      "totalPaid": "Insgesamt bezuelt"
+    },
+    "earlyPayoff": {
+      "save": "Späicheren"
+    }
+  },
+  "emergencyFund": {
+    "tiers": {
+      "recommended": "Recommandéiert"
+    },
+    "recommendedBadge": "Recommandéiert"
+  },
+  "netWorthTool": {
+    "netWorth": "Verméigen netto",
+    "history": {
+      "seriesNetWorth": "Verméigen netto"
+    },
+    "projection": {
+      "todayLine": "Haut"
+    }
+  },
+  "aiAdvisor": {
+    "popup": {
+      "title": "Finanzassistent"
+    },
+    "models": {
+      "sortName": "Numm"
+    },
+    "profileUpdate": {
+      "fields": {
+        "notes": "Notizen"
+      }
+    }
+  },
+  "investorProfile": {
+    "title": "Investisseursprofil",
+    "loading": "Gëtt gelueden…",
+    "saving": "Gëtt gespäichert…",
+    "saved": "Gespäichert",
+    "assetClasses": {
+      "cash": "Bargeld",
+      "other": "Aneres"
+    }
+  }
+}

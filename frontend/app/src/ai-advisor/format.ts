@@ -7,7 +7,8 @@
 import i18n from '../i18n/config'
 
 function locale(): string {
-  return (i18n.resolvedLanguage ?? i18n.language ?? 'en').slice(0, 2)
+  const language = i18n.resolvedLanguage ?? i18n.language ?? 'en'
+  return language === 'lu' ? 'lb-LU' : language.slice(0, 2)
 }
 
 /** 1234 -> "1.2k", 980 -> "980", 1_000_000 -> "1M" (locale decimal separator). */

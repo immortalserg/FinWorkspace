@@ -1,0 +1,101 @@
+{
+  "page": {
+    "title": "Budgeten",
+    "description": "Setz Ausgabegrenze fir Kategorien a Perioden. Iwwerbléck deng Budgeten op ee Bléck a kuck dir d’Historique am Detail un.",
+    "createButton": "Budget erstellen"
+  },
+  "summary": {
+    "of": "vun {{amount}}",
+    "envelopes_one": "{{count}} Budgetposten",
+    "envelopes_other": "{{count}} Budgetposten",
+    "overLimit": "{{count}} iwwer dem Limit",
+    "over": "iwwer",
+    "left": "iwwreg"
+  },
+  "empty": {
+    "title": "Nach keng Budgeten erstallt",
+    "description": "Erstell e Budget, fir deng Ausgaben an all Kategorie bis zum nächste Periodenufank am A ze behalen.",
+    "cta": "Erstell däin éischte Budget"
+  },
+  "period": {
+    "monthly": "Monatlech",
+    "yearly": "Jäerlech",
+    "custom": "Benotzerdefinéiert"
+  },
+  "status": {
+    "watch": "Bal erreecht",
+    "unused": "Net benotzt",
+    "good": "Am Plang"
+  },
+  "card": {
+    "actionsAria": "Aktioune fir {{name}}",
+    "edit": "Änneren",
+    "periodDetails": "Detailer vun der Period",
+    "delete": "Läschen",
+    "over": "iwwer",
+    "allCategories": "All Kategorien"
+  },
+  "deleteDialog": {
+    "title": "{{name}} läschen?",
+    "description": "Deng Ausgaben bleiwen erhalen; nëmmen de Budget a seng Limit ginn ewechgeholl.",
+    "confirmLabel": "Budget läschen"
+  },
+  "toasts": {
+    "deleted": "Budget geläscht",
+    "deleteError": "De Budget konnt net geläscht ginn.",
+    "created": "Budget erstallt",
+    "updated": "Budget aktualiséiert",
+    "createError": "De Budget konnt net erstallt ginn.",
+    "updateError": "De Budget konnt net aktualiséiert ginn."
+  },
+  "form": {
+    "createTitle": "Budget erstellen",
+    "editTitle": "Budget änneren",
+    "name": "Numm vum Budget",
+    "amount": "Betrag",
+    "period": "Period",
+    "selectPeriod": "Wiel eng Period",
+    "startDate": "Ufanksdatum",
+    "endDate": "Schlussdatum",
+    "categories": "Kategorien",
+    "noExpenseCategories": "Keng Ausgabekategorie verfügbar.",
+    "submitCreate": "Budget erstellen",
+    "submitUpdate": "Budget aktualiséieren",
+    "validation": {
+      "nameRequired": "De Budgetnumm ass obligatoresch.",
+      "amountPositive": "De Betrag muss méi grouss wéi null sinn."
+    }
+  },
+  "details": {
+    "titleFallback": "Budgetdetailer",
+    "description": "Notzung vu Period zu Period fir {{year}}, inklusiv verbonnenen Ausgabetransaktiounen.",
+    "prevYearAria": "Viregt Joer {{year}}",
+    "nextYearAria": "Nächst Joer {{year}}",
+    "unableToLoad": "D’Budgetdetailer konnten net geluede ginn.",
+    "perMonth": "/Mount",
+    "perYear": "/Joer",
+    "yearBudget": "Joresbudget",
+    "yearSpent": "Am Joer ausginn",
+    "yearRemaining": "Am Joer iwwreg",
+    "yearUsage": "Joresnotzung",
+    "noDataForYear": "Keng Date fir dëst Joer",
+    "current": "Aktuell",
+    "statusAlmost": "Bal erreecht",
+    "statusNoSpending": "Keng Ausgaben",
+    "noTransactions": "Keng Transaktiounen an dëser Period",
+    "table": {
+      "date": "Datum",
+      "description": "Beschreiwung",
+      "category": "Kategorie",
+      "account": "Kont",
+      "amount": "Betrag",
+      "uncategorized": "Ouni Kategorie"
+    },
+    "totalMobile": "Total ({{count}})",
+    "totalDesktop_one": "Total ({{count}} Transaktioun)",
+    "totalDesktop_other": "Total ({{count}} Transaktiounen)",
+    "percentUsed": "{{percent}}% vum Budget benotzt",
+    "over": "iwwer",
+    "left": "iwwreg"
+  }
+}

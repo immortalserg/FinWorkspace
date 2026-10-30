@@ -6,6 +6,19 @@ Releases that add database migrations or new `.env` settings say so, so you know
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-10-30
+
+No database migrations and no new `.env` settings.
+
+### Added
+- Application settings management in the Admin interface, including encrypted storage of API and SMTP secrets.
+- Enable Banking private-key upload and removal.
+- Initial Luxembourgish (`lu`) interface localization, with English fallback for untranslated text.
+
+### Fixed
+- Persistent application settings are loaded on startup and validated together with environment configuration.
+
+
 ## [1.3.2] - 2026-10-25
 
 Adds migration `026`. No new `.env` settings. Migrations apply automatically on start, so [back up first](docs/operations.md#backups).

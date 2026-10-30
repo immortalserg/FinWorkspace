@@ -1,0 +1,112 @@
+{
+  "title": "Transaktiounen importéieren",
+  "description": "Importéier e CSV- oder Excel-Export vun denger Bank, kontrolléier d’Zeilen a füüg se duerno engem Kont dobäi.",
+  "guide": {
+    "title": "Wéi eng Datei kann ech importéieren?",
+    "intro": "E CSV-, XLSX- oder XLS-Export mat enger Kappzeil. D’Spaltennimm ginn op Englesch, Griichesch oder Hollännesch erkannt; Grouss-/Klengschreiwung an Akzenter ginn ignoréiert.",
+    "template": "Virlag eroflueden",
+    "columns": {
+      "date": {
+        "label": "Datum",
+        "help": "Datum, Transaktiounsdatum, Buchungsdatum, Ημερομηνία…"
+      },
+      "description": {
+        "label": "Beschreiwung",
+        "help": "Beschreiwung, Detailer, Narrativ, Περιγραφή…"
+      },
+      "amount": {
+        "label": "Betrag",
+        "help": "Betrag, Wäert, Ποσό. Negativ bedeit Geld eraus, positiv Geld eran."
+      },
+      "debitCredit": {
+        "label": "…oder Soll an Haben",
+        "help": "Zwou Spalten amplaz vu Betrag: Soll / Χρέωση ass Geld eraus, Haben / Πίστωση ass Geld eran."
+      }
+    },
+    "notes": {
+      "header": "Zeilen iwwer der Kappzeil, wéi de Banknumm oder d’Kontosnummer, ginn automatesch iwwersprongen.",
+      "dates": "Datumer ginn genee am ënnen ausgewielte Format gelies, ni geroden. D’Virlag benotzt d’Joer als éischt (2026-01-05).",
+      "amounts": "Souwuel 1.234,56 wéi och 1,234.56 funktionéieren. Währungssymboler ginn ignoréiert.",
+      "linked": "Konten, déi mat der Banksynchronisatioun verbonne sinn, kënnen näischt importéieren, well d’Bank hir Transaktioune scho liwwert."
+    }
+  },
+  "dateFormat": {
+    "legend": "A wéi engem Format sinn d’Datumer an denger Datei geschriwwen?",
+    "help": "Wiel dëst virum Auswiele vun der Datei. Net passend Datumer ginn iwwersprongen an net geroden.",
+    "dmy": "Dag als éischt",
+    "mdy": "Mount als éischt",
+    "ymd": "Joer als éischt",
+    "chosen": "Datumsformat: {{format}}"
+  },
+  "upload": {
+    "choose": "Datei auswielen",
+    "pickFormatFirst": "Wiel fir d’éischt den Datumsformat",
+    "uploading": "Datei gëtt gelies…",
+    "types": "CSV, XLSX oder XLS, bis zu 10 MB",
+    "failed": "D’Datei konnt net gelies ginn."
+  },
+  "review": {
+    "title_one": "{{count}} Zeil an {{file}} fonnt",
+    "title_other": "{{count}} Zeilen an {{file}} fonnt",
+    "account": "An dëse Kont importéieren",
+    "accountPlaceholder": "Wiel e Kont",
+    "noAccounts": "Du brauchs e Kont, deen net mat der Banksynchronisatioun verbonnen ass. Erstell fir d’éischt een op der Kontesäit.",
+    "invert": "Virzeechen ëmdréinen",
+    "invertHelp": "Benotz dëst fir Kreditkaarten-Exporten, bei deenen Akeef als positiv Beträg ugewise ginn.",
+    "duplicateBadge": "Méiglechen Duplikat",
+    "duplicatesNote_one": "{{count}} Zeil gesäit aus wéi eng Transaktioun, déi schonn op dësem Kont ass; si gouf ofgewielt.",
+    "duplicatesNote_other": "{{count}} Zeile gesinn aus wéi Transaktiounen, déi schonn op dësem Kont sinn; si goufen ofgewielt.",
+    "include": "{{description}} mat abezéien",
+    "category": "Kategorie",
+    "noCategory": "Keng Kategorie",
+    "skipped_one": "{{count}} Zeil gouf iwwersprongen",
+    "skipped_other": "{{count}} Zeile goufen iwwersprongen",
+    "skipReason": {
+      "missing_date": "Zeil {{line}}: keen Datum",
+      "invalid_date": "Zeil {{line}}: Datum „{{value}}“ net liesbar",
+      "invalid_amount": "Zeil {{line}}: Betrag „{{value}}“ net liesbar",
+      "zero_amount": "Zeil {{line}}: Betrag ass null"
+    },
+    "loading": "Zeile ginn gelueden…",
+    "confirm_one": "{{count}} Transaktioun importéieren",
+    "confirm_other": "{{count}} Transaktiounen importéieren",
+    "importing": "Gëtt importéiert…",
+    "startOver": "Eng aner Datei auswielen",
+    "confirmFailed": "Den Import ass feelgeschloen. Näischt gouf gespäichert."
+  },
+  "done": {
+    "title_one": "{{count}} Transaktioun importéiert",
+    "title_other": "{{count}} Transaktiounen importéiert",
+    "description": "Si sinn elo op {{account}}.",
+    "viewTransactions": "Transaktioune weisen",
+    "another": "Eng aner Datei importéieren"
+  },
+  "columns": {
+    "title": "Spaltennimm (optional)",
+    "help": "Looss dës Felder eidel, da ginn d’Spalten automatesch erkannt. Wann deng Datei méi Datums- oder Beschreiwungsspalten huet (z. B. Buchungsdatum a Wäertstellungsdatum), gëff de geneeën Numm vun der gewënschter Kappzeil an. Grouss-/Klengschreiwung an Akzenter spillen keng Roll.",
+    "auto": "Automatesch",
+    "date": "Datumspalt",
+    "description": "Beschreiwungsspalt",
+    "amount": "Betragsspalt",
+    "debit": "Soll-Spalt (Geld eraus)",
+    "credit": "Haben-Spalt (Geld eran)"
+  },
+  "table": {
+    "search": "Zeile sichen",
+    "searchPlaceholder": "No Beschreiwung, Datum oder Betrag sichen…",
+    "noMatches": "Keng Zeile passen op deng Sich.",
+    "selectAll": "All Zeile auswielen",
+    "selectAllMatching": "All passend Zeilen auswielen",
+    "date": "Datum",
+    "description": "Beschreiwung",
+    "amount": "Betrag",
+    "category": "Kategorie",
+    "pagination": "Säiten",
+    "showing": "{{from}}–{{to}} vun {{total}}",
+    "page": "Säit {{page}} vun {{pages}}",
+    "previous": "Vireg",
+    "next": "Nächst",
+    "rowsPerPage": "Zeile pro Säit",
+    "perPage": "{{count}} / Säit"
+  }
+}

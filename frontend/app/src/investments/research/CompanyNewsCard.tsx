@@ -81,7 +81,7 @@ export function CompanyNewsCard({
                     </Badge>
                   )}
                   <span className="text-[0.65rem] text-muted-foreground">
-                    {relativeTime(item.published_at, i18n.language)}
+                    {relativeTime(item.published_at, i18n.language === 'lu' ? 'lb-LU' : i18n.language)}
                   </span>
                 </div>
                 <p className="line-clamp-2 text-sm font-medium leading-snug">{item.title}</p>

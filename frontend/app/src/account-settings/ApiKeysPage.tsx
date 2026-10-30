@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { Add01Icon, CheckmarkCircle02Icon, Copy01Icon, Key01Icon } from '@hugeicons/core-free-icons'
 import { toast } from 'sonner'
@@ -26,9 +27,9 @@ import { ApiKeyGuide } from './ApiKeyGuide'
 import * as apiKeysApi from './apiKeysApi'
 import type { ApiKey, ApiKeyScope } from './apiKeysApi'
 
-const SCOPE_OPTIONS: { value: ApiKeyScope; label: string; help: string }[] = [
-  { value: 'read', label: 'Read-only', help: 'Can only fetch data (GET). Safest for dashboards.' },
-  { value: 'full', label: 'Full access', help: 'Can also create, edit and delete your data.' },
+const SCOPE_OPTIONS = [
+  { value: 'read' as const, labelKey: 'apiKeys.readOnly', helpKey: 'apiKeys.readOnlyHelp' },
+  { value: 'full' as const, labelKey: 'apiKeys.fullAccess', helpKey: 'apiKeys.fullAccessHelp' },
 ]
 
 function formatDateTime(value: string) {
@@ -36,6 +37,7 @@ function formatDateTime(value: string) {
 }
 
 export function ApiKeysPage() {
+  const { t } = useTranslation('accounts')
   const queryClient = useQueryClient()
   const { confirm, confirmDialog } = useConfirm()
 
@@ -60,16 +62,16 @@ export function ApiKeysPage() {
       setNewKey(result.key)
       void invalidate()
     },
-    onError: (error) => toast.error(error instanceof Error ? error.message : 'Failed to create API key'),
+    onError: (error) => toast.error(error instanceof Error ? error.message : t('apiKeys.createFailed')),
   })
 
   const revokeMutation = useMutation({
     mutationFn: apiKeysApi.revokeApiKey,
     onSuccess: () => {
-      toast.success('API key revoked')
+      toast.success(t('apiKeys.revoked'))
       void invalidate()
     },
-    onError: () => toast.error('Failed to revoke API key'),
+    onError: () => toast.error(t('apiKeys.revokeFailed')),
   })
 
   const atLimit = (keys?.length ?? 0) >= apiKeysApi.MAX_API_KEYS
@@ -85,18 +87,18 @@ export function ApiKeysPage() {
     if (!newKey) return
     try {
       await navigator.clipboard.writeText(newKey)
-      toast.success('Copied to clipboard')
+      toast.success(t('apiKeys.copied'))
     } catch {
-      toast.error('Could not copy — select the key and copy manually')
+      toast.error(t('apiKeys.copyFailed'))
     }
   }
 
   const handleRevoke = async (key: ApiKey) => {
     const ok = await confirm({
-      title: `Revoke "${key.name}"?`,
-      description: 'Anything using this key stops working immediately. This cannot be undone.',
-      confirmLabel: 'Revoke key',
-      cancelLabel: 'Keep key',
+      title: t('apiKeys.revokeTitle', { name: key.name }),
+      description: t('apiKeys.revokeDescription'),
+      confirmLabel: t('apiKeys.revokeConfirm'),
+      cancelLabel: t('apiKeys.keepKey'),
       tone: 'destructive',
     })
     if (!ok) return
@@ -106,8 +108,8 @@ export function ApiKeysPage() {
   return (
     <PageContainer className="flex flex-col gap-6">
       <PageHeader
-        title="API Keys"
-        description="Create keys so scripts and integrations can use your data. Each key is shown only once."
+        title={t('apiKeys.title')}
+        description={t('apiKeys.description')}
       />
       {confirmDialog}
 
@@ -115,15 +117,15 @@ export function ApiKeysPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <HugeiconsIcon icon={Key01Icon} strokeWidth={2} className="size-5 text-primary" />
-            Your keys
+            {t('apiKeys.yourKeys')}
           </CardTitle>
           <CardDescription>
-            {keys ? `${keys.length} of ${apiKeysApi.MAX_API_KEYS} keys in use.` : 'Name each key after what uses it.'}
+            {keys ? t('apiKeys.keysInUse', { count: keys.length, max: apiKeysApi.MAX_API_KEYS }) : t('apiKeys.nameEachKey')}
           </CardDescription>
           <CardAction>
             <Button size="sm" disabled={atLimit} onClick={() => setCreateOpen(true)}>
               <HugeiconsIcon icon={Add01Icon} strokeWidth={2} data-icon="inline-start" />
-              New key
+              {t('apiKeys.newKey')}
             </Button>
           </CardAction>
         </CardHeader>
@@ -131,25 +133,23 @@ export function ApiKeysPage() {
           {isLoading && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground py-6 justify-center">
               <Spinner />
-              Loading keys…
+              {t('apiKeys.loading')}
             </div>
           )}
-          {isError && <p className="text-sm text-destructive text-center py-6">Failed to load API keys.</p>}
+          {isError && <p className="text-sm text-destructive text-center py-6">{t('apiKeys.loadFailed')}</p>}
           {!isLoading && !isError && keys?.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-6">
-              No API keys yet. Create one to get started — see the guide below for what it can do.
-            </p>
+            <p className="text-sm text-muted-foreground text-center py-6">{t('apiKeys.empty')}</p>
           )}
           {!isLoading && !isError && keys && keys.length > 0 && (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Access</TableHead>
-                  <TableHead>Key</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead>Last used</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t('apiKeys.columnName')}</TableHead>
+                  <TableHead>{t('apiKeys.columnAccess')}</TableHead>
+                  <TableHead>{t('apiKeys.columnKey')}</TableHead>
+                  <TableHead>{t('apiKeys.columnCreated')}</TableHead>
+                  <TableHead>{t('apiKeys.columnLastUsed')}</TableHead>
+                  <TableHead className="text-right">{t('apiKeys.columnActions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -158,16 +158,16 @@ export function ApiKeysPage() {
                     <TableCell className="font-medium">{key.name}</TableCell>
                     <TableCell>
                       {key.scope === 'full' ? (
-                        <Badge variant="destructive">Full access</Badge>
+                        <Badge variant="destructive">{t('apiKeys.fullAccess')}</Badge>
                       ) : (
-                        <Badge variant="secondary">Read-only</Badge>
+                        <Badge variant="secondary">{t('apiKeys.readOnly')}</Badge>
                       )}
                     </TableCell>
                     <TableCell className="font-mono text-xs">
                       {key.key_prefix}…{key.last_four}
                     </TableCell>
                     <TableCell>{formatDate(key.created_at)}</TableCell>
-                    <TableCell>{key.last_used_at ? formatDateTime(key.last_used_at) : 'Never'}</TableCell>
+                    <TableCell>{key.last_used_at ? formatDateTime(key.last_used_at) : t('apiKeys.never')}</TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="ghost"
@@ -176,7 +176,7 @@ export function ApiKeysPage() {
                         disabled={revokeMutation.isPending}
                         onClick={() => void handleRevoke(key)}
                       >
-                        Revoke
+                        {t('apiKeys.revoke')}
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -192,24 +192,24 @@ export function ApiKeysPage() {
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>New API key</DialogTitle>
-            <DialogDescription>Give it a name and choose what it is allowed to do.</DialogDescription>
+            <DialogTitle>{t('apiKeys.createTitle')}</DialogTitle>
+            <DialogDescription>{t('apiKeys.createDescription')}</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleCreate} className="flex flex-col gap-4">
             <Field>
-              <FieldLabel htmlFor="api-key-name">Name</FieldLabel>
+              <FieldLabel htmlFor="api-key-name">{t('apiKeys.name')}</FieldLabel>
               <Input
                 id="api-key-name"
                 value={name}
                 maxLength={100}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Home dashboard"
+                placeholder={t('apiKeys.namePlaceholder')}
                 autoFocus
               />
-              <FieldDescription>So you know which integration uses it.</FieldDescription>
+              <FieldDescription>{t('apiKeys.nameHelp')}</FieldDescription>
             </Field>
             <fieldset className="flex flex-col gap-2">
-              <legend className="text-sm font-medium mb-1">Access</legend>
+              <legend className="text-sm font-medium mb-1">{t('apiKeys.access')}</legend>
               {SCOPE_OPTIONS.map((option) => (
                 <label
                   key={option.value}
@@ -224,18 +224,18 @@ export function ApiKeysPage() {
                     className="mt-1"
                   />
                   <span>
-                    <span className="block text-sm font-medium">{option.label}</span>
-                    <span className="block text-xs text-muted-foreground">{option.help}</span>
+                    <span className="block text-sm font-medium">{t(option.labelKey)}</span>
+                    <span className="block text-xs text-muted-foreground">{t(option.helpKey)}</span>
                   </span>
                 </label>
               ))}
             </fieldset>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>
-                Cancel
+                {t('apiKeys.cancel')}
               </Button>
               <Button type="submit" disabled={createMutation.isPending || !name.trim()}>
-                {createMutation.isPending ? <Spinner /> : 'Create key'}
+                {createMutation.isPending ? <Spinner /> : t('apiKeys.createKey')}
               </Button>
             </DialogFooter>
           </form>
@@ -252,28 +252,28 @@ export function ApiKeysPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <HugeiconsIcon icon={CheckmarkCircle02Icon} strokeWidth={2} className="size-5 text-primary" />
-              API key created
+              {t('apiKeys.createdTitle')}
             </DialogTitle>
             <DialogDescription>
-              <strong className="text-destructive font-medium">Copy it now!</strong> This key will not be
-              shown again — only a hash is stored.
+              <strong className="text-destructive font-medium">{t('apiKeys.copyNow')}</strong>{' '}
+              {t('apiKeys.createdWarning')}
             </DialogDescription>
           </DialogHeader>
           <div className="rounded-lg bg-muted/60 p-4">
             <Field>
-              <FieldLabel htmlFor="new-api-key">API key</FieldLabel>
+              <FieldLabel htmlFor="new-api-key">{t('apiKeys.apiKey')}</FieldLabel>
               <div className="flex gap-2">
                 <Input id="new-api-key" readOnly value={newKey ?? ''} className="font-mono text-sm" />
-                <Button type="button" size="icon" title="Copy to clipboard" onClick={() => void handleCopy()}>
+                <Button type="button" size="icon" title={t('apiKeys.copy')} onClick={() => void handleCopy()}>
                   <HugeiconsIcon icon={Copy01Icon} strokeWidth={2} />
-                  <span className="sr-only">Copy</span>
+                  <span className="sr-only">{t('apiKeys.copy')}</span>
                 </Button>
               </div>
             </Field>
           </div>
           <DialogFooter>
             <Button type="button" onClick={() => setNewKey(null)}>
-              I&apos;ve copied the key
+              {t('apiKeys.copiedConfirmation')}
             </Button>
           </DialogFooter>
         </DialogContent>

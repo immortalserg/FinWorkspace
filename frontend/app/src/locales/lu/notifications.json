@@ -1,0 +1,164 @@
+{
+  "page": {
+    "title": "Notifikatiounen",
+    "description": "Wiel, wéi s du iwwer Kontostänn, Budgeten a geplangte Rapporten informéiert wëlls ginn."
+  },
+  "hourNone": "Keng",
+  "channels": {
+    "title": "Notifikatiounskanäl",
+    "email": {
+      "title": "E-Mail-Notifikatiounen",
+      "description": "Schéck Notifikatiounen op d’E-Mail-Adress vun dengem Kont"
+    },
+    "push": {
+      "title": "Push-Notifikatiounen",
+      "description": "Desktop-Browser-Notifikatiounen, wann aktivéiert"
+    },
+    "enableDesktop": "Desktop-Notifikatiounen aktivéieren",
+    "disableDesktop": "Desktop-Notifikatiounen desaktivéieren",
+    "notSupported": "Desktop-Notifikatioune ginn net ënnerstëtzt",
+    "checkRulesNow": "Reegelen elo iwwerpréiwen",
+    "sendTestPush": "Test-Desktop-Notifikatioun schécken",
+    "status": {
+      "vapidNotConfigured": "Server-Push ass net konfiguréiert — setz d’VAPID-Schlësselen am Backend",
+      "enabled": "Desktop-Notifikatioune sinn an dësem Browser aktivéiert",
+      "subscribedNotRegistered": "De Browser huet sech ageschriwwen, ass awer net um Server registréiert — klick nach eng Kéier op Aktivéieren",
+      "clickEnable": "Klick op Aktivéieren, fir Browser-Notifikatiounen z’erlaben"
+    }
+  },
+  "general": {
+    "title": "Allgemeng Astellungen",
+    "defaultDaysBefore": "Standardzuel vun Deeg virdrun",
+    "defaultDaysBeforeHint": "Fir Erënnerungen u widderhuelend Ausgaben a Scholden",
+    "quietHoursStart": "Ufank vun der Rouzäit",
+    "quietHoursStartHint": "Auerzäit (0–23), wärend där keng Notifikatioune geschéckt ginn",
+    "quietHoursEnd": "Enn vun der Rouzäit",
+    "quietHoursEndHint": "Auerzäit (0–23)",
+    "save": "Astellunge späicheren"
+  },
+  "smtp": {
+    "title": "SMTP-Iwwerschreiwung",
+    "description": "Optional SMTP-Astellunge pro Benotzer. Net ausgefëllte Felder benotzen d’Serverkonfiguratioun.",
+    "host": "SMTP-Server",
+    "port": "SMTP-Port",
+    "user": "SMTP-Benotzer",
+    "password": "SMTP-Passwuert",
+    "passwordPlaceholder": "Eidel loossen, fir den aktuelle Wäert ze behalen",
+    "passwordSaved": "E Passwuert ass scho gespäichert",
+    "from": "Ofsenderadress",
+    "useTls": "TLS benotzen",
+    "enableTls": "TLS aktivéieren",
+    "sendTestEmail": "Test-E-Mail schécken",
+    "save": "SMTP-Astellunge späicheren"
+  },
+  "rules": {
+    "title": "Notifikatiounsreegelen",
+    "description": "Individuell Warnunge fir niddreg Kontostänn, Budgetnotzung a geplangte Rapporten.",
+    "add": "Reegel dobäisetzen",
+    "empty": {
+      "title": "Nach keng Notifikatiounsreegelen",
+      "description": "Füügt eng dobäi, fir iwwer Kontostänn, Budgeten oder Rapporten informéiert ze ginn.",
+      "addFirst": "Erstell deng éischt Reegel"
+    },
+    "table": {
+      "name": "Numm",
+      "type": "Typ",
+      "details": "Detailer",
+      "channels": "Kanäl",
+      "status": "Status",
+      "actions": "Aktiounen"
+    },
+    "typeLabels": {
+      "balance_below": "Kontostand",
+      "scheduled_report": "Rapport",
+      "investment_return_below": "Portfoliorendement",
+      "investment_scheduled": "Portfolio-Iwwersiicht"
+    },
+    "statusActive": "Aktiv",
+    "statusInactive": "Inaktiv",
+    "actionsFor": "Aktioune fir {{name}}"
+  },
+  "deleteConfirm": {
+    "title": "{{name}} läschen?",
+    "description": "Dës Notifikatiounsreegel gëtt direkt gestoppt.",
+    "confirmLabel": "Reegel läschen"
+  },
+  "toasts": {
+    "desktopEnableFailed": "Desktop-Notifikatioune konnten net aktivéiert ginn.",
+    "desktopDisableFailed": "Desktop-Notifikatioune konnten net desaktivéiert ginn.",
+    "channelsUpdated": "Kanalastellunge aktualiséiert",
+    "channelsFailed": "Kanäl konnten net aktualiséiert ginn.",
+    "generalSaved": "Notifikatiounsastellunge gespäichert",
+    "generalFailed": "Astellunge konnten net gespäichert ginn.",
+    "smtpSaved": "SMTP-Astellunge gespäichert",
+    "smtpFailed": "SMTP-Astellunge konnten net gespäichert ginn.",
+    "desktopEnabled": "Desktop-Notifikatioune sinn aktivéiert",
+    "desktopDisabled": "Desktop-Notifikatioune sinn desaktivéiert",
+    "rulesCheckFailed": "Reegelen konnten net iwwerpréift ginn.",
+    "testEmailSent": "Test-E-Mail geschéckt — kontrolléier deng Inbox",
+    "testEmailFailed": "Test-E-Mail feelgeschloen: {{detail}}",
+    "testEmailFailedGeneric": "SMTP-Astellunge kontrolléieren",
+    "testPushSent": "Test-Desktop-Notifikatioun geschéckt",
+    "testPushFailed": "Test-Push feelgeschloen: {{detail}}",
+    "testPushFailedGeneric": "Konfiguratioun kontrolléieren",
+    "testFailed": "Test feelgeschloen",
+    "ruleDeleted": "Reegel geläscht",
+    "ruleDeleteFailed": "Reegel konnt net geläscht ginn.",
+    "ruleUpdated": "Reegel aktualiséiert",
+    "ruleCreated": "Reegel erstallt",
+    "ruleUpdateFailed": "Reegel konnt net aktualiséiert ginn.",
+    "ruleCreateFailed": "Reegel konnt net erstallt ginn."
+  },
+  "ruleForm": {
+    "titleEdit": "Notifikatiounsreegel änneren",
+    "titleCreate": "Notifikatiounsreegel dobäisetzen",
+    "ruleType": "Reegeltyp",
+    "selectType": "Wiel en Typ",
+    "name": "Numm",
+    "namePlaceholder": "z. B. Niddrege Kontostand um Girokonto",
+    "account": "Kont",
+    "investmentAccount": "Investitiounskont",
+    "selectTarget": "Auswielen…",
+    "balanceThreshold": "Kontostandsgrenz",
+    "usageThreshold": "Notzungsgrenz (%)",
+    "returnThreshold": "Rendementgrenz (%)",
+    "returnThresholdHint": "Warnt, wann de Gesamtrendement vum Portfolio ënner dëse Prozentsaz fält — benotz eng negativ Zuel, fir nëmme bei Verloschter gewarnt ze ginn.",
+    "reportType": "Rapporttyp",
+    "selectReport": "Rapport auswielen",
+    "schedule": "Zäitplang",
+    "selectSchedule": "Zäitplang auswielen",
+    "everyDays": "All (Deeg)",
+    "channels": "Kanäl",
+    "channelEmail": "E-Mail",
+    "channelPush": "Push",
+    "ruleActive": "Reegel aktiv",
+    "updateRule": "Reegel aktualiséieren",
+    "saveRule": "Reegel späicheren",
+    "typeOptions": {
+      "balance_below": "Kontostand ënner der Grenz",
+      "budget_percent": "Budgetnotzung a Prozent",
+      "scheduled_report": "Geplangte Rapport",
+      "investment_return_below": "Portfoliorendement ënner der Grenz",
+      "investment_scheduled": "Geplangte Portfolio-Iwwersiicht"
+    },
+    "reportTypes": {
+      "spending": "Ausgaben",
+      "cashflow": "Cashflow",
+      "income": "Akommes"
+    },
+    "scheduleKinds": {
+      "every_n_days": "All N Deeg",
+      "weekly": "Wöchentlech",
+      "monthly": "Monatlech"
+    },
+    "validation": {
+      "nameRequired": "Numm ass obligatoresch",
+      "selectTarget": "Wiel w.e.g. en Zil aus",
+      "validThreshold": "Gëff w.e.g. eng valabel Grenz an"
+    }
+  },
+  "actions": {
+    "edit": "Änneren",
+    "delete": "Läschen"
+  }
+}

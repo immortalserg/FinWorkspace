@@ -137,6 +137,29 @@ import rulesEl from '../locales/el/rules.json'
 import trackersEl from '../locales/el/trackers.json'
 import validationEl from '../locales/el/validation.json'
 
+import commonLu from '../locales/lu/common.json'
+import navLu from '../locales/lu/nav.json'
+import authLu from '../locales/lu/auth.json'
+import dashboardLu from '../locales/lu/dashboard.json'
+import transactionsLu from '../locales/lu/transactions.json'
+import accountsLu from '../locales/lu/accounts.json'
+import budgetsLu from '../locales/lu/budgets.json'
+import categoriesLu from '../locales/lu/categories.json'
+import debtsLu from '../locales/lu/debts.json'
+import goalsLu from '../locales/lu/goals.json'
+import recurringLu from '../locales/lu/recurring.json'
+import reportsLu from '../locales/lu/reports.json'
+import documentsLu from '../locales/lu/documents.json'
+import investmentsLu from '../locales/lu/investments.json'
+import importLu from '../locales/lu/import.json'
+import notificationsLu from '../locales/lu/notifications.json'
+import advisorLu from '../locales/lu/advisor.json'
+import adminLu from '../locales/lu/admin.json'
+import bankSyncLu from '../locales/lu/bankSync.json'
+import rulesLu from '../locales/lu/rules.json'
+import trackersLu from '../locales/lu/trackers.json'
+import validationLu from '../locales/lu/validation.json'
+
 export const defaultNS = 'common'
 
 export const resources = {
@@ -164,6 +187,30 @@ export const resources = {
     trackers: trackersEn,
     validation: validationEn,
   },  
+  lu: {
+    common: commonLu,
+    nav: navLu,
+    auth: authLu,
+    dashboard: dashboardLu,
+    transactions: transactionsLu,
+    accounts: accountsLu,
+    budgets: budgetsLu,
+    categories: categoriesLu,
+    debts: debtsLu,
+    goals: goalsLu,
+    recurring: recurringLu,
+    reports: reportsLu,
+    documents: documentsLu,
+    investments: investmentsLu,
+    import: importLu,
+    notifications: notificationsLu,
+    advisor: advisorLu,
+    admin: adminLu,
+    bankSync: bankSyncLu,
+    rules: rulesLu,
+    trackers: trackersLu,
+    validation: validationLu,
+  },
   fr: {
     common: commonFr,
     nav: navFr,
@@ -292,12 +339,13 @@ void i18next
   .init({
     resources,
     fallbackLng: 'en',
-    supportedLngs: ['en', 'el', 'ru', 'fr', 'de', 'it'],
+    supportedLngs: ['en', 'el', 'ru', 'fr', 'de', 'it', 'lu'],
     defaultNS,
     ns: Object.keys(resources.en),
     detection: {
       order: ['localStorage', 'navigator'],
       caches: ['localStorage'],
+      convertDetectedLanguage: (lng) => lng.toLowerCase().startsWith('lb') ? 'lu' : lng,
       lookupLocalStorage: 'pf-language',
     },
     interpolation: {
@@ -320,7 +368,7 @@ void i18next
  */
 function syncDocumentLanguage(language: string) {
   if (typeof document === 'undefined') return
-  document.documentElement.lang = language.split('-')[0]
+  document.documentElement.lang = language === 'lu' ? 'lb-LU' : language.split('-')[0]
 }
 
 syncDocumentLanguage(i18next.resolvedLanguage ?? i18next.language ?? 'en')

@@ -1,0 +1,73 @@
+{
+  "title": "Iwwersiicht",
+  "subtitle": "Dëse Mount op ee Bléck.",
+  "panel": {
+    "viewAll": "Alles weisen"
+  },
+  "bankAlert": {
+    "action": "Verbind dech nei, fir weiderzemaachen. Deng Konten an den Historique bleiwen erhalen."
+  },
+  "summary": {
+    "ariaLabel": "Dëse Mount",
+    "totalBalance": "Gesamte Kontostand",
+    "accountsCount_one": "op {{count}} Kont",
+    "accountsCount_other": "op {{count}} Konten",
+    "incomeThisMonth": "Akommes dëse Mount",
+    "expensesThisMonth": "Ausgaben dëse Mount",
+    "netSaved": "Netto gespuert"
+  },
+  "accounts": {
+    "title": "Konten",
+    "empty": "Nach keng Konten. Füügt een op der Kontesäit dobäi.",
+    "linked": "Verbonnen",
+    "groups": {
+      "daily": "Alldag",
+      "savings": "Spuerkonten",
+      "investments": "Investitiounen"
+    }
+  },
+  "due": {
+    "title": "Fälleg an den nächsten 30 Deeg",
+    "hintEmpty": "Näischt geplangt",
+    "empty": "An den nächsten 30 Deeg ass näischt fälleg.",
+    "overdue": "Iwwerfälleg",
+    "dueToday": "Haut fälleg",
+    "inDays_one": "A {{count}} Dag",
+    "inDays_other": "A {{count}} Deeg",
+    "types": {
+      "debt": "Schold",
+      "recurring": "Widderhuelend"
+    }
+  },
+  "spending": {
+    "title": "Ausgaben no Kategorie",
+    "reportsLink": "Rapporten"
+  },
+  "spendingChart": {
+    "noData": "Keng Ausgabedate fir dës Period."
+  },
+  "budgets": {
+    "title": "Budgeten",
+    "empty": "Nach keng Budgeten."
+  },
+  "recent": {
+    "title": "Rezent Aktivitéit",
+    "hint": "Deng sechs rezentst Entréeën",
+    "empty": "Nach näischt erfaasst."
+  },
+  "goals": {
+    "title": "Ziler",
+    "hint": "Fortschrëtt bei dengen Ziler",
+    "empty": "Keng aktiv Ziler."
+  },
+  "cashflowChart": {
+    "legend": {
+      "income": "Akommes",
+      "expenses": "Ausgaben"
+    },
+    "yAxis": {
+      "cashflow": "Cashflow"
+    },
+    "noData": "Keng Cashflow-Daten fir dës Period."
+  }
+}

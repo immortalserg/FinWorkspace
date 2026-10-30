@@ -1,0 +1,105 @@
+{
+  "page": {
+    "title": "Bankverbindungen",
+    "description": "Synchroniséier Transaktiounen direkt vun denger Bank amplaz se manuell anzeginn.",
+    "connect": "Eng Bank verbannen"
+  },
+  "empty": {
+    "title": "Keng Bank verbonnen",
+    "description": "Verbanne eng Bank, fir Transaktiounen automatesch ze importéieren. Bargeld an aner Konten kanns du weider manuell erfaassen."
+  },
+  "status": {
+    "active": "aktiv",
+    "pending": "ausstoend",
+    "expired": "ofgelaf",
+    "revoked": "widderruff",
+    "error": "Feeler"
+  },
+  "connection": {
+    "lastSynced": "Fir d’lescht synchroniséiert {{when}}",
+    "never": "nach ni",
+    "syncNow": "Elo synchroniséieren",
+    "syncing": "Gëtt synchroniséiert…",
+    "disconnect": "Verbindung trennen",
+    "reconnect": "Nei verbannen",
+    "reconnectNow": "Elo nei verbannen",
+    "reconnecting": "Gëtt nei verbonnen…",
+    "expiredNotice": "Dës Verbindung ass ofgelaf a synchroniséiert net méi. Verbanne se nei, fir weiderzemaachen — deng Konten an hiren Historique bleiwen erhalen.",
+    "prematureNotice": "Deng Bank huet dës Sessioun virzäiteg, virum ofgemaachten Oflafdatum, beendegt. Dat ass normal a kann no enger Sécherheetskontroll vun der Bank oder enger Autorisatioun vum selwechte Kont op enger anerer Plaz geschéien. Verbanne se nei, fir weiderzemaachen — deng Konten an hiren Historique bleiwen erhalen.",
+    "revokedNotice": "Den Zougang zu dëser Bank gouf widderruff. Verbanne se nei, fir weider ze synchroniséieren — deng Konten an hiren Historique bleiwen erhalen.",
+    "errorNotice": "Dës Verbindung konnt net ofgeschloss ginn a synchroniséiert net. Verbanne se nei a probéier et nach eng Kéier — deng Konten an hiren Historique bleiwen erhalen.",
+    "expiringNotice": "Den Zougang leeft a {{days}} Dag(en) of. Verbanne se nei, fir d’Transaktioune weider ze synchroniséieren.",
+    "noAccounts": "Mat dëser Verbindung si keng Konten verbonnen. Si mussen am Enable-Banking-Control-Panel op d’Erlaabneslëscht gesat ginn, ier se hei erschéngen.",
+    "unlinkAccount": "D’Synchronisatioun vun dësem Kont stoppen",
+    "unlinkAccountFor": "Synchronisatioun vu {{account}} stoppen"
+  },
+  "disconnectDialog": {
+    "title": "Verbindung mat {{bank}} trennen?",
+    "description": "D’Synchronisatioun gëtt gestoppt an d’Zoustëmmung vun der Bank gëtt widderruff. Du kanns duerno auswielen, wat mat de Konten an hiren Transaktioune geschitt.",
+    "confirmLabel": "Verbindung trennen"
+  },
+  "dialog": {
+    "title": "Eng Bank verbannen",
+    "description": "Du gëtts op d’Säit vun denger Bank weidergeleet, fir dech unzemellen an den Zougang ze autoriséieren. Mir gesinn deng Umeldungsdaten ni.",
+    "search": "Banke sichen…",
+    "noMatches": "Keng Bank passt op „{{query}}“.",
+    "loadFailed": "D’Bankelëscht konnt net geluede ginn.",
+    "redirecting": "Gëtt weidergeleet…",
+    "cancel": "Ofbriechen",
+    "whitelistNote": "Deng Konten mussen am Enable-Banking-Control-Panel verbonne sinn, ier se hei synchroniséiert kënne ginn. Wann d’Verbindung klappt, awer keng Konten erschéngen, feelt dëse Schrëtt.",
+    "readOnlyNote": "Den Zougang ass nëmme liesbar — Bezuelunge sinn net méiglech. Kuck eis <privacy>Dateschutzreegelen</privacy> an <terms>Benotzungsbedingungen</terms>."
+  },
+  "toasts": {
+    "connected": "Bank verbonnen",
+    "connectedWithAccounts": "Bank verbonnen — {{count}} Kont(en) verbonnen",
+    "imported": "{{count}} nei Transaktioun(en) importéiert",
+    "upToDate": "Schonn um neiste Stand",
+    "partialFailure": "{{count}} Kont(en) konnten net synchroniséiert ginn",
+    "syncFailed": "Synchronisatioun feelgeschloen",
+    "disconnected": "Verbindung mat {{bank}} getrennt",
+    "disconnectFailed": "D’Verbindung konnt net getrennt ginn.",
+    "startFailed": "D’Verbindung konnt net gestart ginn.",
+    "disconnectedAndKept": "Verbindung mat {{bank}} getrennt — Konten erhale bliwwen an elo manuell ännerbar",
+    "disconnectedAndDeleted": "Verbindung mat {{bank}} getrennt — {{count}} Transaktioun(en) geläscht",
+    "accountUnlinked": "{{account}} gëtt net méi synchroniséiert — erhale bliwwen an elo manuell ännerbar",
+    "accountDeleted": "{{account}} geläscht — {{count}} Transaktioun(en) ewechgeholl",
+    "connectionRemoved": "Dat war de leschte Kont vun dëser Bank; dofir gouf och d’Verbindung ewechgeholl."
+  },
+  "callbackErrors": {
+    "missing_state": "D’Bank huet net genuch Informatioun zeréckgeschéckt. Probéier et w.e.g. nach eng Kéier.",
+    "invalid_state": "Dëse Verbindungsversuch ass net méi valabel. Fänk w.e.g. nach eng Kéier un.",
+    "state_expired": "De Verbindungsversuch ass ofgelaf. Probéier et w.e.g. nach eng Kéier.",
+    "state_already_used": "Dëse Verbindungslink gouf scho benotzt. Start eng nei Verbindung.",
+    "bank_declined": "Deng Bank huet d’Ufro refuséiert oder d’Autorisatioun gouf ofgebrach.",
+    "session_failed": "D’Verbindung mat denger Bank konnt net ofgeschloss ginn. Probéier et w.e.g. nach eng Kéier.",
+    "no_accounts": "Deng Bank huet den Zougang autoriséiert, awer keng Konten zeréckgeliwwert. Si mussen eventuell nach am Enable-Banking-Control-Panel verbonne ginn.",
+    "generic": "D’Bankverbindung konnt net ofgeschloss ginn."
+  },
+  "transaction": {
+    "pending": "Virleefeg",
+    "pendingHint": "Vun denger Bank nach net definitiv gebucht. De Betrag kann nach änneren oder verschwannen."
+  },
+  "disconnectChoice": {
+    "title": "Wat soll mat den Date vun {{name}} geschéien?",
+    "keep": {
+      "title": "Konten an Transaktioune behalen",
+      "description": "Si ginn zu normale manuelle Konten, déi s du ännere a läsche kanns. Näischt geet verluer, mee si ginn net méi automatesch aktualiséiert.",
+      "titleBank": "Konten an Transaktioune behalen",
+      "titleAccount": "De Kont a seng Transaktioune behalen"
+    },
+    "delete": {
+      "title": "Déi {{count}} Kont(en) an alles doranner läschen",
+      "description": "All jee synchroniséiert Transaktioune ginn definitiv geläscht. Dat kann net réckgängeg gemaach ginn.",
+      "titleBank": "Déi {{count}} Kont(en) an alles doranner läschen",
+      "titleAccount": "De Kont an alles doranner läschen"
+    },
+    "cancel": "Ofbriechen",
+    "descriptionBank": "{{count}} Kont(en) goufe vun dëser Bank synchroniséiert.",
+    "descriptionAccount": "Dëse Kont gouf vun denger Bank synchroniséiert."
+  },
+  "unlinkAccountDialog": {
+    "title": "Synchronisatioun vu {{account}} stoppen?",
+    "description": "Nëmmen dëse Kont ass betraff — déi aner Konten vu {{bank}} ginn weider synchroniséiert. Du wiels duerno, wat mat sengen Transaktioune geschitt.",
+    "confirmLabel": "Synchronisatioun stoppen"
+  }
+}

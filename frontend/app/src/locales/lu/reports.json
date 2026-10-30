@@ -1,0 +1,157 @@
+{
+  "page": {
+    "title": "Rapporten",
+    "description": "Wiel eng Period a kuck dir un, wat an där Zäit geschitt ass."
+  },
+  "tabs": {
+    "overview": "Iwwersiicht",
+    "cashflow": "Cashflow",
+    "spending": "Ausgaben",
+    "budgets": "Budgeten",
+    "debt": "Schold"
+  },
+  "viewSelect": {
+    "report": "Rapport"
+  },
+  "filters": {
+    "range": {
+      "mtd": "Vum Ufank vum Mount bis haut",
+      "30d": "Déi lescht 30 Deeg",
+      "3m": "Déi lescht 3 Méint",
+      "6m": "Déi lescht 6 Méint",
+      "ytd": "Vum Ufank vum Joer bis haut",
+      "1y": "Déi lescht 12 Méint",
+      "custom": "Benotzerdefinéiert"
+    },
+    "startDateAria": "Ufanksdatum",
+    "endDateAria": "Schlussdatum",
+    "accounts": "Konten",
+    "categories": "Kategorien",
+    "noAccounts": "Nach keng Konten",
+    "noCategories": "Nach keng Kategorien",
+    "clearFilters": "Filter läschen",
+    "clear": "Eidel maachen"
+  },
+  "periodBand": {
+    "eyebrow": "D’Period op ee Bléck",
+    "askAdvisor": "De Finanzassistent dozou froen",
+    "metrics": {
+      "moneyIn": "Geld erakomm",
+      "moneyOut": "Geld erausgaang",
+      "net": "Netto",
+      "savingsRate": "Spuerquot"
+    },
+    "delta": {
+      "flatVsPrior": "Onverännert par rapport zu virdrun",
+      "vsPrior": "{{value}}{{unit}} par rapport zu virdrun"
+    }
+  },
+  "read": {
+    "noActivityHeadline": "Keng Aktivitéit an dëser Period erfaasst.",
+    "noActivityDetail": "Erweider d’Datumsperiod oder läsch e Filter, fir hei eppes ze gesinn.",
+    "keptHeadline": "Vun den erakommene {{income}} hues du {{net}} behalen.",
+    "overspentHeadline": "Du hues {{net}} méi ausginn wéi erakomm ass.",
+    "savingsRateDetail": "Dat entsprécht enger Spuerquot vun {{rate}}%",
+    "spendingUpJoined": "an d’Ausgabe leien {{pct}}% iwwer der viregter Period",
+    "spendingDownJoined": "an d’Ausgabe leien {{pct}}% ënner der viregter Period",
+    "yourSpendingUp": "Deng Ausgabe leien {{pct}}% iwwer der viregter Period",
+    "yourSpendingDown": "Deng Ausgabe leien {{pct}}% ënner der viregter Period"
+  },
+  "chart": {
+    "defaultEmpty": "Näischt an dëser Period fir an engem Diagramm ze weisen."
+  },
+  "series": {
+    "moneyIn": "Geld erakomm",
+    "moneyOut": "Geld erausgaang",
+    "net": "Netto",
+    "other": "Aneres",
+    "otherCount": "Aneres ({{count}})",
+    "total": "Total",
+    "changeInBalance": "Ännerung vum Kontostand"
+  },
+  "overview": {
+    "cashflow": {
+      "title": "Geld erakomm, Geld eraus a wat iwwreg bliwwen ass",
+      "hint": "D’Balken weisen d’Geldflëss; d’Linn weist, wat no all Period iwwreg bliwwen ass.",
+      "empty": "An dëser Period gouf keen Akommes a keng Ausgab erfaasst."
+    },
+    "ranked": {
+      "title": "Wou et higaangen ass",
+      "hint": "Ausgabekategorien, vun héchstem op niddregste Betrag.",
+      "empty": "Keng kategoriséiert Ausgaben an dëser Period."
+    },
+    "savingsRate": {
+      "title": "Spuerquot pro Mount",
+      "hint": "Deel vum monatlechen Akommes, deen s du net ausginn hues. Ënner der Linn bedeit, datt s du op deng Reserven zeréckgegraff hues.",
+      "empty": "Et muss op d’mannst ee Mount mat erfaasstem Akommes ginn."
+    }
+  },
+  "cashflow": {
+    "waterfall": {
+      "title": "Wéi all Mount däi Kontostand beaflosst huet",
+      "empty": "Keng Transaktiounen an dëser Period."
+    },
+    "balanceHistory": {
+      "title": "Kontostandshistorique",
+      "hint": "Deegleche Kontostand pro Kont. D’Gesamtsumm gëtt duerch déi déck Linn gewisen.",
+      "empty": "Keng aktiv Konten entspriechen dësem Filter."
+    },
+    "table": {
+      "title": "Period fir Period",
+      "hint": "Déiselwecht Zuelen an enger Tabell, wann s du genee Wäerter brauchs.",
+      "empty": "Keng Transaktiounen an dëser Period.",
+      "period": "Period",
+      "moneyIn": "Geld erakomm",
+      "moneyOut": "Geld erausgaang",
+      "net": "Netto"
+    }
+  },
+  "spending": {
+    "byCategory": {
+      "title": "Ausgaben no Kategorie",
+      "empty": "Keng kategoriséiert Ausgaben an dëser Period."
+    },
+    "merchants": {
+      "title": "Top 10 Bezuelungsempfänger",
+      "hint": "No der Beschreiwung vun all Transaktioun gruppéiert.",
+      "empty": "Keng Ausgaben an dëser Period."
+    },
+    "weekday": {
+      "title": "Deng Woch",
+      "hintDefault": "Ausgaben op d’Wochendeeg opgedeelt.",
+      "empty": "Keng Ausgaben an dëser Period."
+    },
+    "mom": {
+      "title": "Ännerung vu Mount zu Mount",
+      "hint": "Verglach vun den Ausgaben all Mount mat deenen am Mount virdrun.",
+      "empty": "Fir de Verglach brauche mir Ausgaben aus op d’mannst zwee Méint."
+    }
+  },
+  "budgets": {
+    "empty": {
+      "title": "Keng Budgete fir ze moossen",
+      "description": "Erstell e Budget; dës Tab weist dann, wéi no all Budget u senger Limit ass."
+    },
+    "summary": {
+      "allComfortable": "All Budgete leie sécher ënner hirer Limit."
+    },
+    "status": {
+      "tight": "Zoumaachen",
+      "ok": "Am Plang"
+    }
+  },
+  "debt": {
+    "empty": {
+      "title": "Keng Scholden erfaasst",
+      "description": "Füügt eng Schold dobäi; dës Tab weist de Remboursementsfortschrëtt, d’Zënskäschten a wéi eng Schold s du fir d’éischt begleiche solls."
+    },
+    "stats": {
+      "stillOwed": "Nach op",
+      "paidDown": "Zeréckbezuelt",
+      "interestPaid": "Bis elo bezuelt Zënsen"
+    },
+    "progress": {
+      "title": "Remboursementsfortschrëtt"
+    }
+  }
+}

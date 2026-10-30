@@ -1,0 +1,97 @@
+{
+  "title": "Kategoriséierungsreegelen",
+  "description": "Passende Transaktioune automatesch Kategorien zouuerdnen.",
+  "actions": {
+    "add": "Reegel dobäisetzen",
+    "applyAll": "All elo uwenden",
+    "apply": "Op fréier Transaktiounen uwenden",
+    "edit": "Änneren",
+    "delete": "Läschen",
+    "preview": "Treffer virschauen"
+  },
+  "empty": {
+    "title": "Nach keng Kategoriséierungsreegelen",
+    "description": "Erstell eng Reegel — passend Transaktioune ginn beim Synchroniséieren an Import automatesch kategoriséiert.",
+    "cta": "Erstell deng éischt Reegel"
+  },
+  "list": {
+    "active": "Aktiv",
+    "inactive": "Pauséiert",
+    "applied": "{{count}}-mol ugewannt",
+    "neverApplied": "Nach net ugewannt"
+  },
+  "table": {
+    "name": "Reegel",
+    "category": "Kategorie",
+    "applied": "Notzung",
+    "active": "Aktiv",
+    "actions": "Aktiounen",
+    "searchPlaceholder": "Reegelen sichen…",
+    "noMatches": "Keng Reegel passt op dës Sich."
+  },
+  "summary": {
+    "contains": "Beschreiwung enthält „{{value}}“",
+    "not_contains": "Beschreiwung enthält net „{{value}}“",
+    "starts_with": "Beschreiwung fänkt mat „{{value}}“ un",
+    "ends_with": "Beschreiwung hält mat „{{value}}“ op",
+    "regex": "Beschreiwung passt op /{{value}}/",
+    "fields": {
+      "description": "Beschreiwung",
+      "amount": "Betrag",
+      "account_id": "Kont",
+      "type": "Typ",
+      "counterparty": "Géigepartei"
+    }
+  },
+  "form": {
+    "titleCreate": "Nei Kategoriséierungsreegel",
+    "titleEdit": "Kategoriséierungsreegel änneren",
+    "name": "Numm",
+    "namePlaceholder": "z. B. Supermarchéen",
+    "category": "Kategorie zouuerdnen",
+    "matchType": "Match",
+    "matchAll": "All Konditiounen (AND)",
+    "matchAny": "Eng vun de Konditiounen (OR)",
+    "active": "Reegel ass aktiv",
+    "conditions": "Konditiounen",
+    "addCondition": "Konditioun dobäisetzen",
+    "removeCondition": "Ewechhuelen",
+    "field": "Feld",
+    "operator": "Bedreiwer",
+    "value": "Wäert",
+    "valueTo": "Bis",
+    "applyToExisting": "Och op fréier Transaktiounen ouni Kategorie uwenden",
+    "includeCategorised": "Och Transaktioune mat Kategorie nei kategoriséieren",
+    "previewCount": "Passt op {{count}} existent Transaktiounen",
+    "previewSample": "Beispilltreffer",
+    "save": "Reegel späicheren",
+    "validation": {
+      "nameRequired": "Numm ass obligatoresch",
+      "categoryRequired": "Kategorie ass obligatoresch",
+      "conditionRequired": "Op d’mannst eng Konditioun ass néideg",
+      "valueRequired": "Wäert ass obligatoresch"
+    }
+  },
+  "apply": {
+    "title": "Reegel op fréier Transaktiounen uwenden",
+    "confirm": "Elo uwenden",
+    "success": "{{count}} Transaktiounen aktualiséiert",
+    "none": "Keng passend Transaktioune fir ze aktualiséieren",
+    "applyAllTitle": "All aktiv Reegelen uwenden"
+  },
+  "toast": {
+    "created": "Reegel erstallt",
+    "updated": "Reegel aktualiséiert",
+    "deleted": "Reegel geläscht",
+    "createError": "Reegel konnt net erstallt ginn.",
+    "updateError": "Reegel konnt net aktualiséiert ginn.",
+    "deleteError": "Reegel konnt net geläscht ginn.",
+    "applyError": "Reegel konnt net ugewannt ginn.",
+    "ruleFromTxFailed": "Transaktioun gespäichert, mee d’Reegel konnt net erstallt ginn."
+  },
+  "fromTransaction": {
+    "checkbox": "Och eng Reegel aus dëser Transaktioun erstellen",
+    "hint": "Zukünfteg passend Transaktioune kréien dës Kategorie automatesch.",
+    "containsLabel": "Beschreiwung enthält"
+  }
+}

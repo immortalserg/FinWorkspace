@@ -1,0 +1,196 @@
+{
+  "page": {
+    "title": "Widderhuelend",
+    "description": "Wat reegelméisseg vun dengen Konten ofgeet a wéini et als Nächstes fälleg ass.",
+    "addAction": "Dobäisetzen"
+  },
+  "totals": {
+    "due30": {
+      "label": "Fälleg an den nächsten 30 Deeg",
+      "hint": "Kommend Bezuelungen an den nächsten 30 Deeg"
+    },
+    "monthly": {
+      "label": "Monatlech Fixkäschten",
+      "hint": "All Bezuelungsintervaller normaliséiert"
+    },
+    "overdue": {
+      "label": "Iwwerfälleg",
+      "hintAttention": "Erfuerdert Opmierksamkeet",
+      "hintClear": "Alles an der Rei"
+    },
+    "income30": {
+      "label": "Akommes an den nächsten 30 Deeg",
+      "hint": "Erwaart erakommend Bezuelungen"
+    }
+  },
+  "tabs": {
+    "all": "All",
+    "expenses": "Ausgaben",
+    "income": "Akommes",
+    "paused": "Pauséiert ({{count}})"
+  },
+  "sections": {
+    "paused": "Pauséiert",
+    "overdue": "Iwwerfälleg",
+    "next7": "Nächst 7 Deeg",
+    "later": "Méi spéit",
+    "empty": "Näischt an dëser Vue."
+  },
+  "empty": {
+    "title": "Nach näischt geplangt",
+    "description": "Füügt widderhuelend Rechnungen an Abonnementer dobäi; si erschéngen hei virum Fällegkeetsdatum.",
+    "addFirst": "Déi éischt dobäisetzen"
+  },
+  "cadence": {
+    "daily": "Alldag",
+    "weekly": "Wöchentlech",
+    "monthly": "Monatlech",
+    "every": "All {{interval}} {{unit}}"
+  },
+  "units": {
+    "days": "Deeg",
+    "weeks": "Wochen",
+    "months": "Méint"
+  },
+  "due": {
+    "paused": "Pauséiert",
+    "overdue": "{{count}} Deeg iwwerfälleg",
+    "today": "Haut",
+    "tomorrow": "Muer",
+    "inDays": "A {{count}} Deeg"
+  },
+  "detail": {
+    "fallbackTitle": "Widderhuelend Bezuelung",
+    "fallbackDescription": "Verbonne Bezuelungen",
+    "loadError": "D’Bezuelungshistorique konnt net geluede ginn.",
+    "stats": {
+      "totalPaid": "Insgesamt bezuelt",
+      "payments": "Bezuelungen",
+      "lastPayment": "Lescht Bezuelung"
+    },
+    "empty": {
+      "title": "Nach keng Bezuelungen erfaasst.",
+      "description": "Markéier et als bezuelt, da fänkt den Historique hei un."
+    },
+    "table": {
+      "date": "Datum",
+      "description": "Beschreiwung",
+      "amount": "Betrag",
+      "actions": "Bezuelungsaktiounen"
+    },
+    "paymentOnly": "Nëmmen de Bezuelungsbeleg"
+  },
+  "paymentEdit": {
+    "title": "Bezuelung änneren",
+    "description": "Dëse Bezuelungsbeleg aktualiséieren. Déi verlinkt Transaktioun am Journal bleift onverännert.",
+    "amount": "Betrag (€)",
+    "date": "Bezuelungsdatum",
+    "notes": "Notizen",
+    "save": "Ännerunge späicheren",
+    "leavesTransaction": "Eng verlinkt Transaktioun op der Transaktiounssäit gëtt net geännert.",
+    "validation": {
+      "amountRequired": "De Betrag muss méi grouss wéi 0 sinn.",
+      "dateRequired": "De Bezuelungsdatum ass obligatoresch."
+    },
+    "toasts": {
+      "updated": "Bezuelung aktualiséiert",
+      "failed": "Bezuelung konnt net aktualiséiert ginn.",
+      "deleted": "Bezuelung ewechgeholl",
+      "deleteFailed": "Bezuelung konnt net ewechgeholl ginn."
+    },
+    "deleteConfirm": {
+      "title": "Dës Bezuelung ewechhuelen?",
+      "description": "D’Bezuelung gëtt bei dësem widderhuelenden Element ewechgeholl an de Fällegkeetsdatum gëtt zeréckgesat. All verlinkt Transaktioun bleift am Journal.",
+      "confirmLabel": "Bezuelung ewechhuelen"
+    }
+  },
+  "actions": {
+    "resume": "Weiderféieren",
+    "markPaid": "Als bezuelt markéieren",
+    "viewTransactions": "Transaktiounen",
+    "moreActionsAria": "Weider Aktiounen",
+    "disable": "Desaktivéieren"
+  },
+  "toast": {
+    "resumed": "{{name}} nees aktivéiert",
+    "paused": "{{name}} pauséiert",
+    "resumeError": "Et konnt net nees aktivéiert ginn. Probéier et nach eng Kéier.",
+    "pauseError": "Et konnt net pauséiert ginn. Probéier et nach eng Kéier.",
+    "deleted": "Geläscht",
+    "deleteError": "Et konnt net geläscht ginn. Probéier et nach eng Kéier.",
+    "updated": "Widderhuelend Ausgab aktualiséiert",
+    "created": "Widderhuelend Ausgab erstallt",
+    "updateError": "Widderhuelend Ausgab konnt net aktualiséiert ginn.",
+    "createError": "Widderhuelend Ausgab konnt net dobäigesat ginn."
+  },
+  "deleteConfirm": {
+    "title": "{{name}} läschen?",
+    "description": "Säi Bezuelungshistorique gëtt och geläscht. Pauséier et amplaz, wann et nëmmen net méi an der Agenda opdauche soll.",
+    "confirmLabel": "Definitiv läschen"
+  },
+  "aria": {
+    "totals": "Widderhuelend Gesamtsummen",
+    "schedule": "Widderhuelende Plang"
+  },
+  "form": {
+    "titleCreate": "Widderhuelend Bezuelung dobäisetzen",
+    "titleEdit": "Widderhuelend Bezuelung änneren",
+    "description": "Gëff de Betrag an d’Widderhuelungsintervall an. D’Agenda weist et virun all Fällegkeetsdatum.",
+    "saving": "Gëtt gespäichert…",
+    "saveChanges": "Ännerunge späicheren",
+    "addIt": "Dobäisetzen",
+    "none": "Keng",
+    "categoryPrefix": {
+      "expense": "Ausgab",
+      "income": "Akommes"
+    },
+    "units": {
+      "days": "Deeg",
+      "weeks": "Wochen",
+      "months": "Méint"
+    },
+    "fields": {
+      "name": "Numm",
+      "amount": "Betrag (€)",
+      "account": "Kont",
+      "accountPlaceholder": "Kont",
+      "category": "Kategorie",
+      "categoryPlaceholder": "Kategorie",
+      "startDate": "Ufanksdatum",
+      "nextDueDate": "Nächste Fällegkeetsdatum",
+      "repeatsEvery": "Widderhëlt sech all",
+      "unitPlaceholder": "Eenheet",
+      "notifyBeforeDue": "Virum Fällegkeetsdatum informéieren",
+      "daysBefore": "Deeg virdrun",
+      "notifyDaysPlaceholder": "Benotzt de Standardwäert, wann d’Feld eidel ass",
+      "notes": "Notizen"
+    },
+    "validation": {
+      "nameRequired": "Numm ass obligatoresch",
+      "amountPositive": "De Betrag muss méi grouss wéi 0 sinn.",
+      "startDateRequired": "Ufanksdatum ass obligatoresch.",
+      "nextDueDateRequired": "Nächste Fällegkeetsdatum ass obligatoresch."
+    }
+  },
+  "markPaid": {
+    "validation": {
+      "amountPositive": "De Betrag muss méi grouss wéi 0 sinn.",
+      "paymentDateRequired": "De Bezuelungsdatum ass obligatoresch."
+    },
+    "title": "Als bezuelt markéieren",
+    "submit": "Als bezuelt markéieren",
+    "saving": "Gëtt gespäichert…",
+    "descriptionFor": "Erfaasst eng Bezuelung fir {{name}} a verréckelt den nächste Fällegkeetsdatum no vir.",
+    "descriptionGeneric": "Erfaasst eng Bezuelung a verréckelt den nächste Fällegkeetsdatum no vir.",
+    "noTransactionLink": "Keng Transaktiounsverbindung",
+    "toastSuccess": "Bezuelung erfaasst — den nächste Fällegkeetsdatum gouf no vir verréckelt",
+    "toastError": "Bezuelung konnt net erfaasst ginn.",
+    "fields": {
+      "amountPaid": "Bezuelt Betrag (€)",
+      "paymentDate": "Bezuelungsdatum",
+      "linkTransaction": "Mat existenter Transaktioun verbannen (optional)",
+      "notes": "Notizen",
+      "notesPlaceholder": "Optional"
+    }
+  }
+}

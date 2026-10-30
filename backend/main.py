@@ -11,6 +11,7 @@ from app.utils.security import get_password_hash
 from app.routers import (
     accounts,
     admin,
+    admin_settings,
     advisor,
     ai_chat,
     ai_usage,
@@ -241,6 +242,7 @@ def health_check():
 # Include routers
 app.include_router(auth.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
+app.include_router(admin_settings.router, prefix="/api")
 app.include_router(accounts.router, prefix="/api")
 app.include_router(categories.router, prefix="/api")
 app.include_router(transactions.router, prefix="/api")
