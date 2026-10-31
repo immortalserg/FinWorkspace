@@ -16,7 +16,6 @@ backend/app/    FastAPI + SQLAlchemy + SQLite
 backend/alembic/  database migrations
 scripts/          admin, VAPID and backup helpers
 docs/             this documentation
-promo/            legacy assets from the upstream project (not shipped in the UI)
 ```
 
 Key ideas:
