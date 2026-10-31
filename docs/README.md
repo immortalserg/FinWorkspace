@@ -1,6 +1,6 @@
 # Documentation
 
-Everything you need to install, run, operate and extend **Home Finance**. If you are brand new, start with [Getting started](getting-started.md).
+Everything you need to install, run, operate and extend **FinWorkspace**. If you are brand new, start with [Getting started](getting-started.md).
 
 ## For people running the app
 

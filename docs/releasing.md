@@ -6,7 +6,7 @@ For maintainers. Pushing a version tag publishes a multi-arch Docker image to Gi
 
 | Output | Where |
 |---|---|
-| Image `ghcr.io/immortalserg/homefinance:1.4.0` | GitHub Packages. Built for `linux/amd64` and `linux/arm64`. |
+| Image `ghcr.io/immortalserg/finworkspace:1.4.0` | GitHub Packages. Built for `linux/amd64` and `linux/arm64`. |
 | Moving tags `1.2` and `latest` | Same package. `latest` is only moved by stable releases, never by pre-releases. |
 | GitHub Release with notes | The matching section of `CHANGELOG.md` plus GitHub's generated notes, and a `docker pull` line. Tags containing `-` (for example `v1.3.0-rc1`) are marked as pre-releases. |
 
@@ -65,7 +65,7 @@ git tag -a v1.3.0-rc1 -m "v1.3.0-rc1"
 git push origin v1.3.0-rc1
 ```
 
-The version files must say `1.3.0` (the part before the `-`). Testers run it with `PF_IMAGE_TAG=1.3.0-rc1`.
+The version files must say `1.3.0` (the part before the `-`). Testers run it with `FINWORKSPACE_IMAGE_TAG=1.3.0-rc1`.
 
 ## What not to bake into the image
 

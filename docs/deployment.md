@@ -1,6 +1,6 @@
 # Deployment
 
-Home Finance ships as a **single Docker image**. One container serves the web app and the API from one port (`8223`), with SQLite on disk. There is no TLS in the container: HTTPS comes from a reverse proxy or [Tailscale](https://tailscale.com) on the host.
+FinWorkspace ships as a **single Docker image**. One container serves the web app and the API from one port (`8223`), with SQLite on disk. There is no TLS in the container: HTTPS comes from a reverse proxy or [Tailscale](https://tailscale.com) on the host.
 
 ```
 Browser ──HTTPS──▶ Tailscale Funnel / reverse proxy ──▶ 127.0.0.1:8223 ──▶ container
@@ -29,7 +29,7 @@ NOTIFICATION_ENCRYPTION_KEY=<openssl rand -hex 32>
 CORS_ORIGINS=[]
 BIND_ADDRESS=127.0.0.1
 TRUST_PROXY_HEADERS=true
-PUBLIC_BASE_URL=https://finance.your-tailnet.ts.net
+PUBLIC_BASE_URL=https://finworkspace.your-tailnet.ts.net
 ADMIN_EMAILS=["you@example.com"]
 ```
 
@@ -78,7 +78,7 @@ curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8223/api/auth/me # 401
 Any proxy that forwards a single origin works (Caddy, nginx, Traefik). Keep `/api` and `/` on the same host so `CORS_ORIGINS=[]` stays valid. A minimal Caddy example:
 
 ```caddyfile
-finance.example.com {
+finworkspace.example.com {
     reverse_proxy 127.0.0.1:8223
 }
 ```
@@ -89,18 +89,18 @@ Run the proxy on the same host as Docker, keep `BIND_ADDRESS=127.0.0.1` and `TRU
 
 Compose already restarts the container (`restart: unless-stopped`) whenever the Docker daemon starts, so on most systems `systemctl enable docker` is enough. If you prefer a unit that brings the stack up and down explicitly, use this template.
 
-Save as `/etc/systemd/system/personal-finance.service`, replacing the two placeholders:
+Save as `/etc/systemd/system/finworkspace.service`, replacing the two placeholders:
 
 ```ini
 [Unit]
-Description=Home Finance (Docker)
+Description=FinWorkspace (Docker)
 Requires=docker.service
 After=docker.service network-online.target
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-WorkingDirectory=/opt/personalfinance
+WorkingDirectory=/opt/finworkspace
 User=YOUR_USER
 ExecStart=/usr/bin/docker compose up -d
 ExecStop=/usr/bin/docker compose down
@@ -114,9 +114,9 @@ WantedBy=multi-user.target
 
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable --now personal-finance.service
-sudo systemctl status personal-finance.service   # "active (exited)" is normal for Type=oneshot
-journalctl -u personal-finance.service -f
+sudo systemctl enable --now finworkspace.service
+sudo systemctl status finworkspace.service   # "active (exited)" is normal for Type=oneshot
+journalctl -u finworkspace.service -f
 ```
 
 - `systemctl reload` pulls the newest image and restarts the stack, which is the update step (back up first). `stop` runs `docker compose down`, and your `./data` folder is untouched.
