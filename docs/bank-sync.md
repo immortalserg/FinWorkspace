@@ -1,18 +1,18 @@
 # Bank connection (Enable Banking)
 
-Home Finance can pull transactions and balances straight from your bank using [Enable Banking](https://enablebanking.com), a PSD2 open-banking aggregator covering many European banks. Access is **read-only** (balances and transactions only). The feature is **off by default**.
+FinWorkspace can pull transactions and balances straight from your bank using [Enable Banking](https://enablebanking.com), a PSD2 open-banking aggregator covering many European banks. Access is **read-only** (balances and transactions only). The feature is **off by default**.
 
 > Enable Banking's portal and policies change over time. This guide covers what the app needs and does. For anything about the portal itself, trust Enable Banking's own documentation.
 
 ## How it works
 
 1. You register your own application with Enable Banking and download its private key.
-2. You tell Home Finance the application id, the key path and the redirect URL.
+2. You tell FinWorkspace the application id, the key path and the redirect URL.
 3. In the app you pick your bank. You're sent to the bank to approve access (strong customer authentication, same as in your banking app).
-4. The bank sends you back to Home Finance, which creates local accounts and imports your history.
+4. The bank sends you back to FinWorkspace, which creates local accounts and imports your history.
 5. A nightly job keeps the accounts in sync until the consent expires (typically after 90 days), at which point you reconnect.
 
-Your credentials never touch Home Finance. The app only holds an encrypted session id from the bank.
+Your credentials never touch FinWorkspace. The app only holds an encrypted session id from the bank.
 
 ## Prerequisites
 
@@ -135,6 +135,6 @@ You choose whether to **keep** the account (it becomes an ordinary manual accoun
 
 ## Privacy
 
-Home Finance talks to Enable Banking and, through it, to your bank, to fetch your own transactions and balances. Nothing else about your finances is sent. See [Security and privacy](security.md).
+FinWorkspace talks to Enable Banking and, through it, to your bank, to fetch your own transactions and balances. Nothing else about your finances is sent. See [Security and privacy](security.md).
 
 Banks, their logos and names used in the UI belong to their respective owners. Their use here only identifies the institution.

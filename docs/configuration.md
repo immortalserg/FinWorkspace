@@ -29,7 +29,7 @@ With `DEBUG=true` these checks only log warnings. Never use `DEBUG=true` in prod
 | `BACKEND_PORT` | `8223` | The single port serving both UI and API. |
 | `BIND_ADDRESS` | `127.0.0.1` | Compose only. Host interface the port is published on. |
 | `BIND_HOST` | `127.0.0.1` | Interface for `python main.py` outside Docker. |
-| `PF_IMAGE_TAG` | `latest` | Compose only. Which published image to run, for example `1.0.0` to pin a release. See [Operations](operations.md#updating). |
+| `FINWORKSPACE_IMAGE_TAG` | `latest` | Compose only. Which published image to run, for example `1.0.0` to pin a release. See [Operations](operations.md#updating). |
 | `CORS_ORIGINS` | `[]` | Leave empty for same-origin deployment, which is the default. `["*"]` disables credentials. |
 | `TRUST_PROXY_HEADERS` | `false` (template: `true`) | Trust `X-Forwarded-For` for the client IP. Only safe when the port is reachable solely through your local proxy. See [Deployment](deployment.md#trusting-proxy-headers). |
 | `PUBLIC_BASE_URL` | unset | Public origin used in verification and reset emails, for example `https://finance.your-tailnet.ts.net`. Falls back to the request origin. |
@@ -64,7 +64,7 @@ In-process sliding windows, reset on restart. Applied to login, register, forgot
 | `DATABASE_URL` | `sqlite:///./finance.db` (Docker/template: `sqlite:////app/data/finance.db`) | Three slashes is relative to `backend/`, four is absolute. Outside Docker, any URL under `/app/data/` is remapped to `<repo>/data/finance.db`. |
 | `DOCUMENTS_DIR` | `<repo>/data/documents` | Files are stored per user. |
 | `DOCUMENTS_MAX_FILE_SIZE` | `50` MB | Per-file upload limit for the Documents page. |
-| `LOG_DIR` | `<repo>/logs` | Falls back to `~/.local/state/personalfinance/logs` if not writable. |
+| `LOG_DIR` | `<repo>/logs` | Falls back to `~/.local/state/finworkspace/logs` if not writable. |
 | `LOG_LEVEL` | `INFO` | |
 
 ## Notifications

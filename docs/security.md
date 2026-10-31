@@ -1,6 +1,6 @@
 # Security and privacy
 
-Home Finance is built for one household running its own server. This page explains the security model and, just as important, exactly what leaves your machine.
+FinWorkspace is built for one household running its own server. This page explains the security model and, just as important, exactly what leaves your machine.
 
 ## Your data stays with you by default
 
@@ -61,4 +61,4 @@ Please don't open a public issue for security problems. Use GitHub's **private v
 
 ## Disclaimers
 
-Home Finance is a personal tool. Nothing it shows, including the AI advisor, calculators and investment analytics, is financial, tax or legal advice. Bank and broker names and logos shown in the interface belong to their owners and are used only to identify the institution.
+FinWorkspace is a personal tool. Nothing it shows, including the AI advisor, calculators and investment analytics, is financial, tax or legal advice. Bank and broker names and logos shown in the interface belong to their owners and are used only to identify the institution.

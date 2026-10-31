@@ -1,6 +1,6 @@
 # User guide
 
-A tour of every part of Home Finance. Everything here works out of the box unless a section says otherwise.
+A tour of every part of FinWorkspace. Everything here works out of the box unless a section says otherwise.
 
 ## Contents
 
