@@ -288,7 +288,7 @@ class _PdfBuilder:
         pdf.add_font("Inter", "BI", bold)
         pdf.alias_nb_pages()
         pdf.set_title(safe_title)
-        pdf.set_creator("Personal Finance")
+        pdf.set_creator("FinWorkspace")
         pdf.add_page()
         self.pdf = pdf
         self.base_left = pdf.l_margin

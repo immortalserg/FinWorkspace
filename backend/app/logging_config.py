@@ -20,7 +20,7 @@ def _resolve_log_dir(preferred: str) -> str:
 
     home = Path.home()
     xdg = os.environ.get("XDG_STATE_HOME", str(home / ".local" / "state"))
-    fallback = Path(xdg) / "personalfinance" / "logs"
+    fallback = Path(xdg) / "finworkspace" / "logs"
     fallback.mkdir(parents=True, exist_ok=True)
     cmd = f"sudo chown -R \"$USER\" {shlex.quote(str(p.resolve()))}"
     print(
