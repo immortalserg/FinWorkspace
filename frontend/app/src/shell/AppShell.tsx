@@ -105,20 +105,21 @@ function BrandMark({ compact = false }: { compact?: boolean }) {
   )
 }
 
-/** The author's credit, pinned to the foot of the sidebar. */
+/** FinWorkspace project link, pinned to the foot of the sidebar. */
 function MadeBy({ compact }: { compact: boolean }) {
-  const { t } = useTranslation('nav')
   return (
     <a
-      href="https://fthenos.work"
+      href="https://github.com/immortalserg/FinWorkspace"
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex shrink-0 items-center justify-center gap-2 rounded-xl px-2 py-2 font-signature text-xs font-medium italic text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+      aria-label="FinWorkspace on GitHub"
+      title="FinWorkspace on GitHub"
+      className="group flex shrink-0 items-center justify-center gap-2 rounded-xl px-2 py-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
     >
-      {!compact && t('brand.madeBy')}
+      {!compact && <span>FinWorkspace</span>}
       <img
-        src="/assets/icons/lf_logo.svg"
-        alt="Lefteris Fthenos"
+        src="/assets/icons/favicon.svg"
+        alt=""
         className="size-7 transition-transform group-hover:scale-110"
       />
     </a>
