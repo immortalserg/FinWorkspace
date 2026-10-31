@@ -14,7 +14,7 @@ Day-two tasks: updating, backing up, restoring, reading logs and fixing common p
 
 ## Updating
 
-Releases are listed on the [Releases page](https://github.com/Lefyd24/HomeFinance/releases) and in [`CHANGELOG.md`](../CHANGELOG.md). Each says whether it adds migrations or new settings.
+Releases are listed on the [Releases page](https://github.com/immortalserg/FinWorkspace/releases) and in [`CHANGELOG.md`](../CHANGELOG.md). Each says whether it adds migrations or new settings.
 
 ```bash
 # 1. Back up first (see below), then read the release notes
@@ -31,12 +31,12 @@ docker compose logs -f app
 To **pin a version** instead of following `latest`, set it in `.env` and the same commands apply:
 
 ```dotenv
-PF_IMAGE_TAG=1.0.0
+FINWORKSPACE_IMAGE_TAG=1.0.0
 ```
 
 Available tags are the exact version (`1.0.0`), the minor line (`1.0`, which receives patch releases) and `latest` (the newest stable release). Pre-releases such as `1.1.0-rc1` are only available by exact tag.
 
-Building from source instead? Use `docker compose up --build -d`. Check `/health` afterwards. Under systemd, `sudo systemctl reload personal-finance.service` does the pull and restart. For how migrations behave and how to roll back, see [Migrations](migrations.md).
+Building from source instead? Use `docker compose up --build -d`. Check `/health` afterwards. Under systemd, `sudo systemctl reload finworkspace.service` does the pull and restart. For how migrations behave and how to roll back, see [Migrations](migrations.md).
 
 ## Backups
 
@@ -54,7 +54,7 @@ sqlite3 data/finance.db ".backup 'data-backups/finance_$(date +%Y%m%d_%H%M%S).db
 `scripts/backup-finance-db.sh` does the same, logging to `data-backups/cron.log`. Example crontab entry, which runs at 03:00 every day:
 
 ```cron
-0 3 * * * /opt/personalfinance/scripts/backup-finance-db.sh
+0 3 * * * /opt/finworkspace/scripts/backup-finance-db.sh
 ```
 
 It backs up **the database only**. Copy documents and secrets separately:

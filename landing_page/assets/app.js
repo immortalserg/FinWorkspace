@@ -56,8 +56,8 @@
     'q3': 'Μπορούν να το χρησιμοποιούν κι άλλα άτομα του σπιτιού;', 'a3': 'Ναι, ο καθένας στον δικό του ιδιωτικό χώρο. Η εγγραφή γίνεται μόνο με πρόσκληση και κάθε άτομο έχει ξεχωριστό λογαριασμό με δικούς του τραπεζικούς λογαριασμούς, συναλλαγές και προϋπολογισμούς. Τα δεδομένα δεν μοιράζονται μεταξύ χρηστών, άρα δεν υπάρχουν κοινοί λογαριασμοί ούτε συνολικός προϋπολογισμός νοικοκυριού.',
     'q4': 'Πώς κάνω backup;', 'a4': 'Τα δεδομένα σου είναι ένα αρχείο SQLite σε έναν φάκελο data. Κράτα αντίγραφο του φακέλου και των δύο μυστικών κλειδιών.',
     'ft.sec': 'Ασφάλεια', 'ft.rel': 'Εκδόσεις',
-    'ft.small': 'Το Home Finance είναι προσωπικό εργαλείο. Τίποτα σε αυτό, ούτε ο AI σύμβουλος, δεν αποτελεί οικονομική, φορολογική ή νομική συμβουλή. Τα screenshots και η προεπισκόπηση χρησιμοποιούν demo δεδομένα. Αυτή η σελίδα δεν κάνει αιτήματα σε τρίτους.',
-    title: 'Home Finance: self-hosted εφαρμογή προσωπικών οικονομικών'
+    'ft.small': 'Το FinWorkspace είναι προσωπικό εργαλείο. Τίποτα σε αυτό, ούτε ο AI σύμβουλος, δεν αποτελεί οικονομική, φορολογική ή νομική συμβουλή. Τα screenshots και η προεπισκόπηση χρησιμοποιούν demo δεδομένα. Αυτή η σελίδα δεν κάνει αιτήματα σε τρίτους.',
+    title: 'FinWorkspace: self-hosted εφαρμογή προσωπικών οικονομικών'
   };
   var EN = { copied: 'Copied', 'st.ok': 'On track', 'st.close': 'Close to limit', 'st.over': 'Over by ',
     'pv.some': 'outside services contacted, only because you switched them on.',
@@ -103,7 +103,7 @@
   }
   themeBtn.addEventListener('click', function () {
     var next = isDark() ? 'light' : 'dark';
-    root.dataset.theme = next; store.set('hf-theme', next); paintTheme();
+    root.dataset.theme = next; store.set('finworkspace-theme', next); paintTheme();
   });
   darkMQ.addEventListener && darkMQ.addEventListener('change', paintTheme);
   paintTheme();

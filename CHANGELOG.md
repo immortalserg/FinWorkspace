@@ -6,6 +6,14 @@ Releases that add database migrations or new `.env` settings say so, so you know
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-10-31
+
+No database migrations and no new `.env` settings.
+
+### Changed
+- Rebranded the application as **FinWorkspace** across the interface, PWA metadata, Docker image, package metadata and documentation.
+- Updated the primary container image name to `ghcr.io/immortalserg/finworkspace`.
+
 ## [1.4.1] - 2026-10-31
 
 No database migrations and no new `.env` settings.
