@@ -8,7 +8,7 @@ send a genuine multipart alternative instead of a placeholder string.
 
 import html as _html
 
-APP_NAME = "Personal Finance"
+APP_NAME = "FinWorkspace"
 
 _BG = "#f3f4f6"
 _CARD_BG = "#ffffff"

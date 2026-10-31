@@ -142,7 +142,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
-    description="Personal Finance Management API",
+    description="FinWorkspace Personal Finance and Investment API",
     lifespan=lifespan,
     redirect_slashes=True,
 )
