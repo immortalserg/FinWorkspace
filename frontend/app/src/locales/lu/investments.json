@@ -40,14 +40,14 @@
   },
   "card": {
     "edit": "Kont änneren",
-    "delete": "Verbindung trennen",
+    "delete": "Verbindung ophiewen",
     "cash": "Bargeld",
     "today": "Haut",
     "neverSynced": "Nach net synchroniséiert"
   },
   "connect": {
     "nameLabel": "Kontnumm",
-    "currencyLabel": "Währung"
+    "currencyLabel": "Wärung"
   },
   "detail": {
     "neverSynced": "Nach net synchroniséiert",
@@ -68,7 +68,7 @@
       "total": "Total"
     },
     "txnTypes": {
-      "fx": "Währung",
+      "fx": "Wärung",
       "dividend": "Dividend",
       "withdrawal": "Entnam",
       "tax": "Steier"
@@ -89,13 +89,13 @@
       "name": "Numm",
       "type": "Typ"
     },
-    "viewTechnical": "Technesch Analysen"
+    "viewTechnical": "Technesch Analyse"
   },
   "research": {
     "action": "Recherche",
     "viewTechnical": "Technesch Analyse",
     "category": "Kategorie",
-    "currency": "Währung",
+    "currency": "Wärung",
     "series": {
       "close": "Zoumaachen"
     },
@@ -129,13 +129,13 @@
     "picker": {
       "benchmarkNone": "Keng",
       "period": "Period",
-      "currency": "Währung"
+      "currency": "Wärung"
     }
   },
   "backtest": {
     "form": {
       "amount": "Betrag",
-      "currency": "Währung",
+      "currency": "Wärung",
       "from": "Vun",
       "to": "Bis",
       "contributionFreq": {

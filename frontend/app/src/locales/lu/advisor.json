@@ -12,24 +12,24 @@
   "investmentTool": {
     "compound": {
       "interest": "Zënsen",
-      "legendBalance": "Gesamte Kontostand"
+      "legendBalance": "Total Saldo"
     },
     "compare": {
       "monthlyLabel": "Monatlech",
       "columnMonthly": "Monatlech"
     },
     "selfSustaining": {
-      "legendBalance": "Kontostand",
+      "legendBalance": "Saldo",
       "export": {
-        "headerBalance": "Kontostand"
+        "headerBalance": "Saldo"
       }
     }
   },
   "loanTool": {
     "amortization": {
       "monthly": "Monatlech",
-      "totalInterest": "Zënsen insgesamt",
-      "totalPaid": "Insgesamt bezuelt"
+      "totalInterest": "Total Zënsen",
+      "totalPaid": "Total bezuelt"
     },
     "earlyPayoff": {
       "save": "Späicheren"
