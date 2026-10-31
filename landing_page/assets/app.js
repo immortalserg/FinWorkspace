@@ -89,7 +89,7 @@
     var b = $('#lang'); b.textContent = l === 'el' ? 'EN' : 'EL';
     b.setAttribute('aria-label', l === 'el' ? 'Switch to English' : 'Αλλαγή σε Ελληνικά');
     renderSwitches(); renderLog(); update(+range.value, true);
-    store.set('hf-lang', l);
+    store.set('finworkspace-lang', l);
   }
 
   /* ---------- theme ---------- */
@@ -266,27 +266,15 @@
   $('#reset').addEventListener('click', function () { on = []; renderSwitches(); renderLog(); });
   renderSwitches(); renderLog();
 
-  /* ---------- copy + video ---------- */
+  /* ---------- copy button ---------- */
   $('#copy').addEventListener('click', function () {
     var b = this, txt = $('#code').innerText.split('\n').filter(function (l) { return l.indexOf('$ ') === 0 || l.indexOf('    ') === 0; })
       .map(function (l) { return l.replace(/^\$ /, ''); }).join('\n');
     var done = function () { b.textContent = t('copied'); setTimeout(function () { b.textContent = lang === 'el' ? EL.copy : 'Copy'; }, 1600); };
     if (navigator.clipboard) navigator.clipboard.writeText(txt).then(done, function () {});
   });
-  var dlg = $('#video'), vid = $('video', dlg);
-  $$('[data-video]').forEach(function (b) {
-    b.addEventListener('click', function () {
-      if (!vid.src) vid.src = 'assets/video/demo.mp4';
-      if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', '');
-      vid.play().catch(function () {});
-    });
-  });
-  $('.close', dlg).addEventListener('click', function () { dlg.close(); });
-  dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
-  dlg.addEventListener('close', function () { vid.pause(); });
-
   /* ---------- init language ---------- */
   var q = new URLSearchParams(location.search).get('lang');
-  var pref = q || store.get('hf-lang') || ((navigator.language || '').toLowerCase().indexOf('el') === 0 ? 'el' : 'en');
+  var pref = q || store.get('finworkspace-lang') || ((navigator.language || '').toLowerCase().indexOf('el') === 0 ? 'el' : 'en');
   if (pref === 'el') applyLang('el'); else $('#lang').setAttribute('aria-label', 'Αλλαγή σε Ελληνικά');
 })();

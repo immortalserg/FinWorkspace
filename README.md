@@ -1,8 +1,6 @@
 <div align="center">
 
-<a href="promo/hf_marketing.mp4">
-  <img src="promo/hf.jpg" alt="FinWorkspace: your whole household budget, in one place." width="860">
-</a>
+<img src="frontend/app/public/assets/icons/favicon.svg" alt="FinWorkspace" width="104">
 
 <br>
 
@@ -24,7 +22,7 @@ One Docker container. One SQLite file. No subscription, no third party reading y
 [![SQLite](https://img.shields.io/badge/SQLite-003B57?style=flat-square&logo=sqlite&logoColor=white)](docs/operations.md)
 [![License: ISC](https://img.shields.io/badge/license-ISC-blue?style=flat-square)](LICENSE)
 
-[**Website**](https://immortalserg.github.io/FinWorkspace/) &nbsp;·&nbsp; [**Get started**](docs/getting-started.md) &nbsp;·&nbsp; [**Watch the demo**](promo/hf_marketing.mp4) &nbsp;·&nbsp; [**Documentation**](docs/README.md) &nbsp;·&nbsp; [**Security & privacy**](docs/security.md)
+[**Website**](https://immortalserg.github.io/FinWorkspace/) &nbsp;·&nbsp; [**Get started**](docs/getting-started.md) &nbsp;·&nbsp; [**Documentation**](docs/README.md) &nbsp;·&nbsp; [**Security & privacy**](docs/security.md)
 
 </div>
 
@@ -44,9 +42,7 @@ Most finance apps want your bank login, a monthly fee and a copy of your data. F
 
 ## See it in action
 
-<div align="center">
-<a href="promo/hf_marketing.mp4"><b>▶ Watch the demo</b></a>
-</div>
+
 
 <br>
 
