@@ -36,7 +36,7 @@ describe('AppShell', () => {
     renderShell('/dashboard', 'Dashboard content')
 
     expect(screen.getByText('Dashboard content')).toBeInTheDocument()
-    expect(screen.getAllByText('Home Finance').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('FinWorkspace').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Dashboard').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Transactions').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Overview').length).toBeGreaterThan(0)
