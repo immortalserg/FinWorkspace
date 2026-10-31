@@ -77,8 +77,8 @@ class Settings(BaseSettings):
     )
 
     # Application
-    APP_NAME: str = "Personal Finance API"
-    APP_VERSION: str = "1.4.1"
+    APP_NAME: str = "FinWorkspace API"
+    APP_VERSION: str = "1.5.0"
     DEBUG: bool = False
 
     # Service ports (compose / .env — also used for CORS localhost origins)

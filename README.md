@@ -1,12 +1,12 @@
 <div align="center">
 
 <a href="promo/hf_marketing.mp4">
-  <img src="promo/hf.jpg" alt="Home Finance: your whole household budget, in one place." width="860">
+  <img src="promo/hf.jpg" alt="FinWorkspace: your whole household budget, in one place." width="860">
 </a>
 
 <br>
 
-# Home Finance
+# FinWorkspace
 
 **Your finances, in one place. On your own server, with a private login for everyone in your home.**
 
@@ -15,8 +15,8 @@ One Docker container. One SQLite file. No subscription, no third party reading y
 
 <br>
 
-[![CI](https://github.com/Lefyd24/HomeFinance/actions/workflows/ci.yml/badge.svg)](https://github.com/Lefyd24/HomeFinance/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/Lefyd24/HomeFinance?style=flat-square&color=1e3a5f)](https://github.com/Lefyd24/HomeFinance/releases)
+[![CI](https://github.com/immortalserg/FinWorkspace/actions/workflows/ci.yml/badge.svg)](https://github.com/immortalserg/FinWorkspace/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/Lefyd24/HomeFinance?style=flat-square&color=1e3a5f)](https://github.com/immortalserg/FinWorkspace/releases)
 [![Self-hosted](https://img.shields.io/badge/self--hosted-your%20data%2C%20your%20server-1e3a5f?style=flat-square)](docs/security.md)
 [![Docker](https://img.shields.io/badge/docker-single%20image-2496ED?style=flat-square&logo=docker&logoColor=white)](docs/getting-started.md)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)](docs/development.md)
@@ -24,15 +24,15 @@ One Docker container. One SQLite file. No subscription, no third party reading y
 [![SQLite](https://img.shields.io/badge/SQLite-003B57?style=flat-square&logo=sqlite&logoColor=white)](docs/operations.md)
 [![License: ISC](https://img.shields.io/badge/license-ISC-blue?style=flat-square)](LICENSE)
 
-[**Website**](https://lefyd24.github.io/HomeFinance/) &nbsp;·&nbsp; [**Get started**](docs/getting-started.md) &nbsp;·&nbsp; [**Watch the demo**](promo/hf_marketing.mp4) &nbsp;·&nbsp; [**Documentation**](docs/README.md) &nbsp;·&nbsp; [**Security & privacy**](docs/security.md)
+[**Website**](https://immortalserg.github.io/FinWorkspace/) &nbsp;·&nbsp; [**Get started**](docs/getting-started.md) &nbsp;·&nbsp; [**Watch the demo**](promo/hf_marketing.mp4) &nbsp;·&nbsp; [**Documentation**](docs/README.md) &nbsp;·&nbsp; [**Security & privacy**](docs/security.md)
 
 </div>
 
 <br>
 
-## Why Home Finance?
+## Why FinWorkspace?
 
-Most finance apps want your bank login, a monthly fee and a copy of your data. Home Finance is built the other way round: it's a normal progressive web app (PWA) you open from your phone or laptop, but the data lives in a **plain SQLite file on a machine you control**.
+Most finance apps want your bank login, a monthly fee and a copy of your data. FinWorkspace is built the other way round: it's a normal progressive web app (PWA) you open from your phone or laptop, but the data lives in a **plain SQLite file on a machine you control**.
 
 - 🏠 **One server, a private space for each person.** Invite the people you live with and each gets their own login, accounts, transactions and budgets. Data is never shared between users (there are no joint accounts or combined household view), and admins can't see anyone else's finances.
 - 🔒 **Private by default.** Nothing phones home. Every outside connection is optional and documented line by line in [Security & privacy](docs/security.md).
@@ -131,7 +131,7 @@ An optional **AI advisor** answers questions such as *"how much did I spend on g
 
 It's off until you add an API key. → [AI advisor guide](docs/ai-advisor.md)
 
-> Home Finance is a personal tool. Nothing in it, including the AI advisor, is financial, tax or legal advice.
+> FinWorkspace is a personal tool. Nothing in it, including the AI advisor, is financial, tax or legal advice.
 
 <br>
 
@@ -140,8 +140,8 @@ It's off until you add an API key. → [AI advisor guide](docs/ai-advisor.md)
 You need Docker with Compose, and `openssl`. The prebuilt image supports **amd64 and arm64**, so it runs on a PC, a server or a Raspberry Pi.
 
 ```bash
-git clone https://github.com/Lefyd24/HomeFinance.git
-cd HomeFinance
+git clone https://github.com/immortalserg/FinWorkspace.git
+cd FinWorkspace
 cp .env.example .env
 ```
 
@@ -170,7 +170,7 @@ Open **http://localhost:8223** and sign in. Then invite other people from **Admi
 
 That's it. Your data is in `./data`. The full walkthrough is in [Getting started](docs/getting-started.md).
 
-**Updating:** read the [release notes](https://github.com/Lefyd24/HomeFinance/releases), back up, then `docker compose pull && docker compose up -d`. Pin a version with `PF_IMAGE_TAG=1.0.0` in `.env`. Details in [Operations](docs/operations.md#updating). Prefer building from source? Use `docker compose up --build -d`.
+**Updating:** read the [release notes](https://github.com/immortalserg/FinWorkspace/releases), back up, then `docker compose pull && docker compose up -d`. Pin a version with `FINWORKSPACE_IMAGE_TAG=1.0.0` in `.env`. Details in [Operations](docs/operations.md#updating). Prefer building from source? Use `docker compose up --build -d`.
 
 <br>
 
@@ -247,5 +247,5 @@ Released under the [ISC License](LICENSE).
 <br>
 
 <div align="center">
-<sub>Bank and broker names and logos shown in the interface belong to their respective owners and are used only to identify the institution. Home Finance is not affiliated with or endorsed by any of them.</sub>
+<sub>Bank and broker names and logos shown in the interface belong to their respective owners and are used only to identify the institution. FinWorkspace is an independent fork of [HomeFinance](https://github.com/Lefyd24/HomeFinance), originally created by Lefyd24. It is not affiliated with or endorsed by any bank or broker mentioned above.</sub>
 </div>
