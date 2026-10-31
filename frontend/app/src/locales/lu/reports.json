@@ -153,5 +153,43 @@
     "progress": {
       "title": "Remboursementsfortschrëtt"
     }
+  },
+  "advisorPrompt": {
+    "template": "Kuck dir d'Period vum {{start}} bis den {{end}} un a sot mir {{focus}}. Benotz meng tatsächlech Transaktiounen.",
+    "focus": {
+      "overview": "wat bei menge Finanzen opfält",
+      "cashflow": "wéi sech mäi Cashflow entwéckelt huet an ob den Trend gesond ass",
+      "spending": "woufir ech meng Suen ausginn hunn a wou ech spuere kéint",
+      "budgets": "bei wéi enge Budgeten ech riskéieren, de Limit ze iwwerschreiden",
+      "debt": "wéi eng Schold ech als éischt soll ofbezuelen a firwat"
+    }
+  },
+  "months": {
+    "jan": "Jan",
+    "feb": "Feb",
+    "mar": "Mäe",
+    "apr": "Abr",
+    "may": "Mee",
+    "jun": "Jun",
+    "jul": "Jul",
+    "aug": "Aug",
+    "sep": "Sep",
+    "oct": "Okt",
+    "nov": "Nov",
+    "dec": "Dez"
+  },
+  "periodLabel": {
+    "week": "W{{week}} {{year}}",
+    "monthDay": "{{day}}. {{month}}",
+    "monthYear": "{{month}} {{year}}"
+  },
+  "weekdays": {
+    "Mon": "Mé",
+    "Tue": "Dë",
+    "Wed": "Më",
+    "Thu": "Do",
+    "Fri": "Fr",
+    "Sat": "Sa",
+    "Sun": "So"
   }
 }
