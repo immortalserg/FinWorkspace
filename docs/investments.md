@@ -13,7 +13,7 @@ Supported brokers:
 
 Steps:
 
-1. In your broker, create an **API key and secret**. Prefer read-only permissions, because Home Finance only reads.
+1. In your broker, create an **API key and secret**. Prefer read-only permissions, because FinWorkspace only reads.
 2. In the app, open **Investments → Connect account**, choose the broker, and enter a name, currency and both keys.
 3. The app syncs immediately, so bad keys fail right away.
 

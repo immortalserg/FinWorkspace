@@ -1,6 +1,6 @@
 # AI advisor
 
-Home Finance includes two kinds of advice:
+FinWorkspace includes two kinds of advice:
 
 - **Calculators** (`/advisor`): deterministic financial calculators that run entirely on your server. No external service.
 - **AI chat**: a conversational assistant that looks up your real data before answering. **Optional** and off until you add an API key.

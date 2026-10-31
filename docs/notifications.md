@@ -1,6 +1,6 @@
 # Notifications
 
-Home Finance can alert you by **email** and by **desktop push** (Web Push). Both are optional, and the app degrades gracefully when nothing is configured: email silently no-ops and push shows a clear "not configured" message.
+FinWorkspace can alert you by **email** and by **desktop push** (Web Push). Both are optional, and the app degrades gracefully when nothing is configured: email silently no-ops and push shows a clear "not configured" message.
 
 ## What you can be alerted about
 
@@ -35,7 +35,7 @@ SMTP_HOST=smtp.example.com
 SMTP_PORT=587
 SMTP_USER=you@example.com
 SMTP_PASSWORD=app-password
-SMTP_FROM=Home Finance <you@example.com>
+SMTP_FROM=FinWorkspace <you@example.com>
 SMTP_USE_TLS=true
 ```
 
