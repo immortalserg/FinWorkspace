@@ -16,7 +16,7 @@ One Docker container. One SQLite file. No subscription, no third party reading y
 <br>
 
 [![CI](https://github.com/immortalserg/FinWorkspace/actions/workflows/ci.yml/badge.svg)](https://github.com/immortalserg/FinWorkspace/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/Lefyd24/HomeFinance?style=flat-square&color=1e3a5f)](https://github.com/immortalserg/FinWorkspace/releases)
+[![Release](https://img.shields.io/github/v/release/immortalserg/FinWorkspace?style=flat-square&color=1e3a5f)](https://github.com/immortalserg/FinWorkspace/releases)
 [![Self-hosted](https://img.shields.io/badge/self--hosted-your%20data%2C%20your%20server-1e3a5f?style=flat-square)](docs/security.md)
 [![Docker](https://img.shields.io/badge/docker-single%20image-2496ED?style=flat-square&logo=docker&logoColor=white)](docs/getting-started.md)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)](docs/development.md)

@@ -128,10 +128,10 @@ First public release.
 - The Privacy Policy and Terms pages read the operator's name, contact email and jurisdiction from the server instead of compiled-in values. **Action required:** set `LEGAL_OPERATOR_NAME`, `LEGAL_CONTACT_EMAIL` and `LEGAL_JURISDICTION` in `.env`. Until you do, those pages show a "not configured" notice. See [Configuration](docs/configuration.md#legal-pages).
 - `docker-compose.yml` now names the published image. `docker compose pull && docker compose up -d` updates without building.
 
-[Unreleased]: https://github.com/Lefyd24/HomeFinance/compare/v1.3.1...HEAD
-[1.3.1]: https://github.com/Lefyd24/HomeFinance/compare/v1.3.0...v1.3.1
-[1.3.0]: https://github.com/Lefyd24/HomeFinance/compare/v1.2.0...v1.3.0
-[1.2.0]: https://github.com/Lefyd24/HomeFinance/compare/v1.1.0...v1.2.0
-[1.1.0]: https://github.com/Lefyd24/HomeFinance/compare/v1.0.1...v1.1.0
-[1.0.1]: https://github.com/Lefyd24/HomeFinance/compare/v1.0.0...v1.0.1
+[Unreleased]: https://github.com/immortalserg/FinWorkspace/compare/v1.3.1...HEAD
+[1.3.1]: https://github.com/immortalserg/FinWorkspace/compare/v1.3.0...v1.3.1
+[1.3.0]: https://github.com/immortalserg/FinWorkspace/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/immortalserg/FinWorkspace/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/immortalserg/FinWorkspace/compare/v1.0.1...v1.1.0
+[1.0.1]: https://github.com/immortalserg/FinWorkspace/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/Lefyd24/HomeFinance/releases/tag/v1.0.0
