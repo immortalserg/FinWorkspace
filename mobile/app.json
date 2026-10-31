@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "FinWorkspace",
+    "slug": "finworkspace",
+    "scheme": "finworkspace",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Used only to detect your selected home Wi-Fi network and choose the local server address."
+      }
+    },
+    "android": {
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_WIFI_STATE",
+        "ACCESS_NETWORK_STATE"
+      ],
+      "package": "lu.finworkspace.mobile"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-location"
+    ]
+  }
+}
