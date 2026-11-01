@@ -150,9 +150,21 @@ async def copy_from_local(doc_id: str, user: User = Depends(get_current_user)):
     for key in ("created", "archive_serial_number"):
         if meta.get(key):
             attrs[key] = meta[key]
-    # Do not silently discard local custom-field values.
     if meta.get("custom_fields"):
-        raise HTTPException(422, "Custom field mapping is not yet supported for copying to Paperless")
+        field_defs = await client.list("custom_fields", params={"page_size": 100})
+        by_name = {item["name"].casefold(): item for item in field_defs.get("results", [])}
+        local_defs = index.get("metadata_definitions", {}).get("custom_fields", [])
+        payload = []
+        for name, value in meta["custom_fields"].items():
+            field = by_name.get(name.casefold())
+            if not field:
+                definition = next((d for d in local_defs if d["name"] == name), {})
+                field = await client.create("custom_fields", {
+                    "name": name, "data_type": definition.get("data_type", "string")
+                })
+                by_name[name.casefold()] = field
+            payload.append({"field": field["id"], "value": value})
+        attrs["custom_fields"] = payload
     try:
         task = await client.upload(doc["filename"], path.read_bytes(),
                                    content_type=doc.get("mime_type") or "application/octet-stream",
@@ -200,8 +212,17 @@ async def copy_to_local(item_id: int, user: User = Depends(get_current_user)):
         for field in ("created", "archive_serial_number"):
             if doc.get(field) is not None:
                 metadata[field] = doc[field]
-        if doc.get("custom_fields"):
-            raise HTTPException(422, "Document contains custom fields; mapping is required before copying")
+        custom_definitions = []
+        custom_values = {}
+        for item in doc.get("custom_fields") or []:
+            field = await client.get("custom_fields", item["field"])
+            name = field["name"]
+            custom_definitions.append({"name": name, "data_type": field.get("data_type", "string"),
+                                       "extra_data": field.get("extra_data")})
+            custom_values[name] = item.get("value")
+        if custom_definitions:
+            definitions["custom_fields"] = custom_definitions
+            metadata["custom_fields"] = custom_values
         index = local._load_index(user.id)
         doc_id = str(uuid.uuid4())
         stored_name = f"{doc_id}{suffix}"
@@ -216,7 +237,7 @@ async def copy_to_local(item_id: int, user: User = Depends(get_current_user)):
             names = {item["name"].casefold() for item in existing}
             for item in items:
                 if item["name"].casefold() not in names:
-                    existing.append({"name": item["name"]})
+                    existing.append({k: v for k, v in item.items() if k != "id"})
                     names.add(item["name"].casefold())
         path = local._user_dir(user.id) / stored_name
         path.write_bytes(content)
