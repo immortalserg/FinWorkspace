@@ -1,3 +1,5 @@
+import { PaperlessTagPicker, togglePaperlessTag } from './PaperlessTagPicker'
+import type { PaperlessTag } from './PaperlessTagPicker'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -6,7 +8,7 @@ import { Dialog } from '../ui/Dialog'
 import { PencilEdit02Icon } from '@hugeicons/core-free-icons'
 import { apiFetch } from '../lib/apiClient'
 
-type Option = { id: number; name: string }
+type Option = PaperlessTag
 type Collection = { results: Option[] }
 type Resource = 'tags' | 'document_types' | 'correspondents' | 'storage_paths'
 type DocumentDetails = {
@@ -37,6 +39,7 @@ export function PaperlessEditDialog({
   })
   const [newNames, setNewNames] = useState<Partial<Record<Resource, string>>>({})
   const [busy, setBusy] = useState(false)
+  const [newTagParent, setNewTagParent] = useState<number | null>(null)
 
   useEffect(() => {
     let active = true
@@ -64,20 +67,21 @@ export function PaperlessEditDialog({
     try {
       const created = await apiFetch<Option>(`/paperless/${resource}`, {
         method: 'POST',
-        body: JSON.stringify({ name }),
+        body: JSON.stringify(resource === 'tags' ? { name, parent: newTagParent } : { name }),
       })
       setOptions((previous) => ({
         ...previous, [resource]: [...previous[resource], created],
       }))
       if (resource === 'tags') {
         setDetails((previous) => previous
-          ? { ...previous, tags: [...previous.tags, created.id] } : previous)
+          ? { ...previous, tags: togglePaperlessTag([...options.tags, { ...created, parent: newTagParent }], previous.tags, created.id, true) } : previous)
       } else {
         const field = resources.find((entry) => entry.key === resource)?.field
         if (field) setDetails((previous) => previous
           ? { ...previous, [field]: created.id } : previous)
       }
       setNewNames((previous) => ({ ...previous, [resource]: '' }))
+      if (resource === 'tags') setNewTagParent(null)
       toast.success('Created')
     } catch {
       toast.error('Could not create metadata entry')
@@ -134,17 +138,11 @@ export function PaperlessEditDialog({
             ))}
             <fieldset className="space-y-2">
               <legend className="text-sm">Tags</legend>
-              <div className="flex max-h-32 flex-wrap gap-3 overflow-auto">
-                {options.tags.map((tag) => (
-                  <label key={tag.id} className="flex items-center gap-1 text-sm">
-                    <input type="checkbox" checked={details.tags.includes(tag.id)} onChange={(event) => setDetails({
-                      ...details, tags: event.target.checked
-                        ? [...details.tags, tag.id] : details.tags.filter((id) => id !== tag.id),
-                    })} />
-                    {tag.name}
-                  </label>
-                ))}
-              </div>
+              <PaperlessTagPicker tags={options.tags} selected={details.tags} onChange={(tags) => setDetails({ ...details, tags })} />
+              <select aria-label="Parent tag" className="w-full rounded border bg-background p-2 text-sm" value={newTagParent ?? ''} onChange={(event) => setNewTagParent(event.target.value ? Number(event.target.value) : null)}>
+                <option value="">No parent (root tag)</option>
+                {options.tags.map((tag) => <option key={tag.id} value={tag.id}>{tag.name}</option>)}
+              </select>
               <div className="flex gap-2">
                 <input aria-label="New tag" placeholder="New tag" className="min-w-0 flex-1 rounded border bg-background p-2 text-sm" value={newNames.tags ?? ''} onChange={(event) => setNewNames({ ...newNames, tags: event.target.value })} />
                 <Button size="sm" variant="outline" disabled={busy || !newNames.tags?.trim()} onClick={() => void createOption('tags')}>Create tag</Button>
