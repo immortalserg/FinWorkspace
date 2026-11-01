@@ -75,7 +75,8 @@
     "open": "Öffnen quick actions",
     "close": "Schließen quick actions",
     "addTransaction": "Transaktion hinzufügen",
-    "aiAdvisor": "Finance Assistant"
+    "aiAdvisor": "Finance Assistant",
+    "addDocument": "Dokument hinzufügen"
   },
   "themeToggle": {
     "changeTheme": "Change theme"
