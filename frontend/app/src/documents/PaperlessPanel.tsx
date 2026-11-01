@@ -8,7 +8,7 @@ type Connection = { configured: boolean; url: string | null }
 type PaperlessDoc = { id: number; title: string; created?: string }
 type DocumentList = { count: number; results: PaperlessDoc[]; next?: string | null }
 
-export function PaperlessPanel() {
+export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload: boolean; onUploadOpenChange: (open: boolean) => void }) {
   const [connection, setConnection] = useState<Connection | null>(null)
   const [url, setUrl] = useState('')
   const [token, setToken] = useState('')
@@ -16,7 +16,6 @@ export function PaperlessPanel() {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
-  const [uploadOpen, setUploadOpen] = useState(false)
   const [file, setFile] = useState<File | null>(null)
   const [uploadTitle, setUploadTitle] = useState('')
   const [uploadTags, setUploadTags] = useState<number[]>([])
@@ -116,7 +115,7 @@ export function PaperlessPanel() {
       })
       if (!response.ok) throw new Error(String(response.status))
       setFile(null)
-      setUploadOpen(false)
+      onUploadOpenChange(false)
       setUploadTitle('')
       setUploadTags([])
       setUploadType(null)
@@ -217,13 +216,13 @@ export function PaperlessPanel() {
             <Button variant="outline" size="sm" disabled={busy} onClick={() => void apiFetch('/paperless/connection', { method: 'DELETE' }).then(refresh).catch(() => toast.error('Disconnect failed'))}>Disconnect</Button>
           </div>
           <div className="flex justify-end">
-            <Button onClick={() => setUploadOpen(true)}>Upload document</Button>
+            <Button onClick={() => onUploadOpenChange(true)}>Upload document</Button>
           </div>
-          {uploadOpen && <div role="dialog" aria-modal="true" aria-label="Upload document" className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          {openUpload && <div role="dialog" aria-modal="true" aria-label="Upload document" className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
             <div className="max-h-[90vh] w-full max-w-2xl space-y-3 overflow-y-auto rounded-xl border bg-background p-5 shadow-xl">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold">Upload document</h3>
-              <Button variant="outline" onClick={() => setUploadOpen(false)}>Close</Button>
+              <Button variant="outline" onClick={() => onUploadOpenChange(false)}>Close</Button>
             </div>
             <input aria-label="Choose document" type="file" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
             <input aria-label="Document title" placeholder="Document title (optional)" className="w-full rounded border bg-background p-2 text-sm" value={uploadTitle} onChange={(event) => setUploadTitle(event.target.value)} />
