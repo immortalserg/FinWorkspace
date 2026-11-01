@@ -1,5 +1,6 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { useSearchParams } from 'react-router-dom'
 import {
   FileText,
   Folder,
@@ -51,6 +52,8 @@ function formatBytes(size: number): string {
 type ViewMode = 'grid' | 'list'
 
 export function DocumentsPage() {
+  const [params, setParams] = useSearchParams()
+  const [paperlessUploadOpen, setPaperlessUploadOpen] = useState(false)
   const [provider, setProvider] = useState<'local' | 'paperless'>('local')
   const [selectedFolder, setSelectedFolder] = useState<string>('')
   const [search, setSearch] = useState('')
@@ -61,6 +64,17 @@ export function DocumentsPage() {
   const [addingFolder, setAddingFolder] = useState(false)
   const [folderDraft, setFolderDraft] = useState('')
   const folderInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (params.get('upload') !== '1') return
+    setProvider('paperless')
+    setPaperlessUploadOpen(true)
+    setParams((previous) => {
+      const next = new URLSearchParams(previous)
+      next.delete('upload')
+      return next
+    }, { replace: true })
+  }, [params, setParams])
 
   const { confirm, confirmDialog } = useConfirm()
 
@@ -162,7 +176,7 @@ export function DocumentsPage() {
         <Button variant={provider === 'local' ? 'default' : 'outline'} onClick={() => setProvider('local')}>Local documents</Button>
         <Button variant={provider === 'paperless' ? 'default' : 'outline'} onClick={() => setProvider('paperless')}>Paperless-ngx</Button>
       </div>
-      {provider === 'paperless' ? <PaperlessPanel /> : (
+      {provider === 'paperless' ? <PaperlessPanel openUpload={paperlessUploadOpen} onUploadOpenChange={setPaperlessUploadOpen} /> : (
       <div className="glass-panel flex flex-col overflow-hidden rounded-xl border lg:flex-row">
         {/* Folder rail — horizontal chips on mobile, sidebar on desktop */}
         <div className="flex shrink-0 gap-1.5 overflow-x-auto border-b p-3 lg:w-56 lg:flex-col lg:overflow-visible lg:border-b-0 lg:border-e lg:p-3">
