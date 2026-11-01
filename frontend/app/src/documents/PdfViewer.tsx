@@ -46,6 +46,7 @@ export function PdfViewer({ src }: { src: string }) {
           canvas.height = Math.ceil(viewport.height * ratio)
           canvas.style.width = '100%'
           canvas.style.display = 'block'
+          canvas.style.pointerEvents = 'none'
           canvas.style.height = 'auto'
           wrapper.appendChild(canvas)
           host.appendChild(wrapper)
@@ -54,7 +55,11 @@ export function PdfViewer({ src }: { src: string }) {
           await render.promise
           if (cancelled) break
           const textContainer = document.createElement('div')
-          textContainer.className = 'textLayer'
+          textContainer.className = 'textLayer select-text'
+          textContainer.style.userSelect = 'text'
+          textContainer.style.setProperty('-webkit-user-select', 'text')
+          textContainer.style.setProperty('-webkit-touch-callout', 'default')
+          textContainer.style.touchAction = 'auto'
           textContainer.style.setProperty('--scale-factor', String(scale))
           wrapper.appendChild(textContainer)
           const textLayer = new pdfjs.TextLayer({
