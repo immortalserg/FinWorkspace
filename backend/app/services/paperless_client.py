@@ -87,17 +87,20 @@ class PaperlessClient:
     async def upload(self, filename: str, content: bytes, *, content_type: str = "application/pdf",
                      metadata: dict | None = None) -> Any:
         """Submit a document and metadata; response is an async task ID."""
-        data: list[tuple[str, str]] = []
+        # httpx multipart encoder expects a mapping; a list of (key, value)
+        # tuples raises AttributeError during request construction (HTTP 500).
+        # Sequence values are expanded to repeated multipart fields by httpx.
+        data: dict[str, str | list[str]] = {}
         for key, value in (metadata or {}).items():
             if value is None:
                 continue
             if key == "tags":
-                data.extend(("tags", str(tag)) for tag in value)
+                data[key] = [str(tag) for tag in value]
             elif key == "custom_fields":
                 import json
-                data.append((key, json.dumps(value)))
+                data[key] = json.dumps(value)
             else:
-                data.append((key, str(value)))
+                data[key] = str(value)
         return await self._request(
             "POST", "/api/documents/post_document/",
             files={"document": (filename, content, content_type)}, data=data,
