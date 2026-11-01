@@ -126,8 +126,10 @@ export function PdfViewer({ src }: { src: string }) {
       </div>
       {loading && <p role="status" className="p-3 text-center text-sm">Loading PDF…</p>}
       {error && <p role="alert" className="p-3 text-sm text-destructive">{error}</p>}
-      <div ref={containerRef} className="pdfjs-scroll-container relative min-h-0 flex-1 overflow-auto bg-muted/40" style={{ position: 'relative', height: '65vh' }}>
-        <div ref={viewerRef} className="pdfViewer" />
+      <div className="relative min-h-[65vh] flex-1 bg-muted/40">
+        <div ref={containerRef} className="pdfjs-scroll-container absolute inset-0 overflow-auto" style={{ position: 'absolute' }}>
+          <div ref={viewerRef} className="pdfViewer" />
+        </div>
       </div>
     </div>
   )
