@@ -2,6 +2,7 @@ import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { RequireAuth } from './auth/RequireAuth'
 import { AppShell } from './shell/AppShell'
 import { LoginPage } from './routes/LoginPage'
+import { MobileAuthPage } from './routes/MobileAuthPage'
 import { RegisterPage } from './routes/RegisterPage'
 import { ForgotPasswordPage } from './routes/ForgotPasswordPage'
 import { ResetPasswordPage } from './routes/ResetPasswordPage'
@@ -56,6 +57,7 @@ function App() {
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/mobile-auth" element={<MobileAuthPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
