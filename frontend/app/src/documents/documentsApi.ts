@@ -1,4 +1,5 @@
 import { apiFetch, getApiBaseUrl } from '../lib/apiClient'
+import type { LocalMetadata } from './LocalMetadataFields'
 
 export interface DocumentItem {
   id: string
@@ -10,6 +11,7 @@ export interface DocumentItem {
   size: number
   mime_type: string
   uploaded_at: string
+  paperless_metadata?: LocalMetadata
 }
 
 export interface DocumentFolder {
@@ -31,6 +33,7 @@ export interface UploadDocumentInput {
   title: string
   description?: string
   folder?: string
+  paperless_metadata?: LocalMetadata
 }
 
 export interface UpdateDocumentInput {
@@ -77,6 +80,7 @@ export async function uploadDocument(
   formData.append('title', input.title || file.name)
   formData.append('description', input.description ?? '')
   formData.append('folder', input.folder ?? '')
+  formData.append('paperless_metadata', JSON.stringify(input.paperless_metadata ?? {}))
   const token = window.localStorage.getItem('token')
   const response = await fetch(`${getApiBaseUrl()}/documents/upload`, {
     method: 'POST',
