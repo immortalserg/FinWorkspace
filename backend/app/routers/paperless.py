@@ -151,6 +151,22 @@ async def sync_metadata(user: User = Depends(require_admin)):
                         await client.create(resource, payload)
                         remote_names.add(entry["name"].casefold())
                         counts["created_paperless"] += 1
+        # Local folders correspond to Paperless storage-path names.
+        if settings["paperless_to_local"]:
+            folder_names = {name.casefold() for name in index["folders"]}
+            for item in definitions.get("storage_paths", []):
+                name = item["name"]
+                if name.casefold() not in folder_names:
+                    index["folders"].append(name)
+                    folder_names.add(name.casefold())
+        if settings["local_to_paperless"]:
+            paths = await _all_resources(client, "storage_paths")
+            path_names = {item["name"].casefold() for item in paths}
+            for name in index["folders"]:
+                if name.casefold() not in path_names:
+                    await client.create("storage_paths", {"name": name, "path": name})
+                    path_names.add(name.casefold())
+                    counts["created_paperless"] += 1
         if settings["paperless_to_local"]:
             local._save_index(user.id, index)
         return counts
