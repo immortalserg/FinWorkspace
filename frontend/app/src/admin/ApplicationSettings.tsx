@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import * as adminApi from './adminApi'
+import { apiFetch } from '../lib/apiClient'
 
 type Values = Record<string, unknown>
 type SecretInputs = Record<string, string>
@@ -29,6 +30,54 @@ export function ApplicationSettings() {
   const { t } = useTranslation('admin')
   const queryClient = useQueryClient()
   const pemInput = useRef<HTMLInputElement>(null)
+  const [paperlessUrl, setPaperlessUrl] = useState('')
+  const [paperlessToken, setPaperlessToken] = useState('')
+  const paperlessQuery = useQuery({
+    queryKey: ['paperless', 'connection'],
+    queryFn: () => apiFetch<{ configured: boolean; url: string | null }>('/paperless/connection'),
+  })
+  const syncQuery = useQuery({
+    queryKey: ['paperless', 'sync-settings'],
+    queryFn: () => apiFetch<{ paperless_to_local: boolean; local_to_paperless: boolean }>('/paperless/sync-settings'),
+  })
+  const syncSave = useMutation({
+    mutationFn: (next: { paperless_to_local: boolean; local_to_paperless: boolean }) =>
+      apiFetch('/paperless/sync-settings', { method: 'PUT', body: JSON.stringify(next) }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['paperless', 'sync-settings'] })
+      toast.success('Synchronization settings saved')
+    },
+    onError: (error) => toast.error(error instanceof Error ? error.message : 'Could not save synchronization settings'),
+  })
+  const syncNow = useMutation({
+    mutationFn: () => apiFetch<{ created_local: number; created_paperless: number }>('/paperless/sync-metadata', { method: 'POST' }),
+    onSuccess: (result) => toast.success(`Metadata synchronized: ${result.created_local} local, ${result.created_paperless} Paperless entries created`),
+    onError: (error) => toast.error(error instanceof Error ? error.message : 'Metadata synchronization failed'),
+  })
+  const paperlessSave = useMutation({
+    mutationFn: () => apiFetch('/paperless/connection', {
+      method: 'PUT',
+      body: JSON.stringify({ url: paperlessUrl.trim(), token: paperlessToken }),
+    }),
+    onSuccess: async () => {
+      setPaperlessToken('')
+      await queryClient.invalidateQueries({ queryKey: ['paperless', 'connection'] })
+      toast.success(t('settings.paperlessSaved'))
+    },
+    onError: (error) => toast.error(error instanceof Error ? error.message : t('settings.saveFailed')),
+  })
+  const paperlessDelete = useMutation({
+    mutationFn: () => apiFetch('/paperless/connection', { method: 'DELETE' }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['paperless', 'connection'] })
+      toast.success(t('settings.paperlessRemoved'))
+    },
+    onError: (error) => toast.error(error instanceof Error ? error.message : t('settings.saveFailed')),
+  })
+  useEffect(() => {
+    if (paperlessQuery.data?.url) setPaperlessUrl(paperlessQuery.data.url)
+  }, [paperlessQuery.data?.url])
+
 
   const settingsQuery = useQuery({
     queryKey: ['admin', 'settings'],
@@ -298,6 +347,49 @@ export function ApplicationSettings() {
           {renderText('AI_CHAT_MAX_TOOL_ROUNDS', 'number')}
           {renderText('AI_FALLBACK_PRICE_IN_PER_M', 'number')}
           {renderText('AI_FALLBACK_PRICE_OUT_PER_M', 'number')}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Paperless-ngx</CardTitle>
+          <CardDescription>{t('settings.paperlessDescription')}</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <Badge variant={paperlessQuery.data?.configured ? 'default' : 'outline'}>
+            {paperlessQuery.data?.configured ? t('settings.configured') : t('settings.notConfigured')}
+          </Badge>
+          <Field>
+            <FieldLabel htmlFor="paperless-url">{t('settings.paperlessUrl')}</FieldLabel>
+            <Input id="paperless-url" type="url" value={paperlessUrl} onChange={(e) => setPaperlessUrl(e.target.value)} placeholder="https://paperless.example.com" />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="paperless-token">{t('settings.paperlessToken')}</FieldLabel>
+            <Input id="paperless-token" type="password" autoComplete="new-password" value={paperlessToken} onChange={(e) => setPaperlessToken(e.target.value)} />
+          </Field>
+          <div className="space-y-3 rounded-lg border p-3">
+            <p className="text-sm font-semibold">Metadata synchronization</p>
+            <p className="text-xs text-muted-foreground">Add missing tags, document types, correspondents, storage paths and custom field definitions. Existing entries are never deleted. Use Sync now to run synchronization.</p>
+            {([
+              ['paperless_to_local', 'Paperless-ngx → FinWorkspace'],
+              ['local_to_paperless', 'FinWorkspace → Paperless-ngx'],
+            ] as const).map(([key, label]) => (
+              <label key={key} className="flex items-center justify-between gap-3 text-sm">
+                {label}
+                <Switch checked={syncQuery.data?.[key] ?? false} disabled={syncQuery.isLoading || syncSave.isPending}
+                  onCheckedChange={(checked) => {
+                    const current = syncQuery.data ?? { paperless_to_local: false, local_to_paperless: false }
+                    syncSave.mutate({ ...current, [key]: checked })
+                  }} />
+              </label>
+            ))}
+            <Button type="button" variant="outline" disabled={!paperlessQuery.data?.configured || syncNow.isPending || !Object.values(syncQuery.data ?? {}).some(Boolean)}
+              onClick={() => syncNow.mutate()}>Sync now</Button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" disabled={!paperlessUrl.trim() || !paperlessToken || paperlessSave.isPending} onClick={() => paperlessSave.mutate()}>{t('settings.paperlessConnect')}</Button>
+            {paperlessQuery.data?.configured && <Button type="button" variant="destructive" disabled={paperlessDelete.isPending} onClick={() => { if (window.confirm(t('settings.paperlessConfirmRemove'))) paperlessDelete.mutate() }}>{t('settings.paperlessDisconnect')}</Button>}
+          </div>
         </CardContent>
       </Card>
 

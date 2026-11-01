@@ -1,5 +1,7 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
+import { useSearchParams } from 'react-router-dom'
 import {
   FileText,
   Folder,
@@ -40,6 +42,8 @@ import {
 import { DocumentUploadDialog } from './DocumentUploadDialog'
 import { DocumentEditDialog } from './DocumentEditDialog'
 import { DocumentPreviewSheet } from './DocumentPreviewSheet'
+import { PaperlessPanel } from './PaperlessPanel'
+import { apiFetch } from '../lib/apiClient'
 
 function formatBytes(size: number): string {
   if (size < 1024) return `${size} B`
@@ -50,6 +54,32 @@ function formatBytes(size: number): string {
 type ViewMode = 'grid' | 'list'
 
 export function DocumentsPage() {
+  const { t } = useTranslation('nav')
+  const [params, setParams] = useSearchParams()
+  const [paperlessUploadOpen, setPaperlessUploadOpen] = useState(false)
+  const [paperlessConfigured, setPaperlessConfigured] = useState(false)
+
+  useEffect(() => {
+    void apiFetch<{ configured: boolean }>('/paperless/connection')
+      .then((status) => setPaperlessConfigured(status.configured))
+      .catch(() => setPaperlessConfigured(false))
+  }, [])
+
+  async function copyToPaperless(doc: DocumentItem) {
+    try {
+      await apiFetch(`/paperless/copy-from-local/${encodeURIComponent(doc.id)}`, { method: 'POST' })
+      toast.success('Document submitted to Paperless for OCR processing')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Copy to Paperless failed')
+    }
+  }
+
+  function openUpload(destination: 'local' | 'paperless') {
+    setProvider(destination)
+    if (destination === 'paperless') setPaperlessUploadOpen(true)
+    else setUploadOpen(true)
+  }
+  const [provider, setProvider] = useState<'local' | 'paperless'>('local')
   const [selectedFolder, setSelectedFolder] = useState<string>('')
   const [search, setSearch] = useState('')
   const [view, setView] = useState<ViewMode>('grid')
@@ -59,6 +89,26 @@ export function DocumentsPage() {
   const [addingFolder, setAddingFolder] = useState(false)
   const [folderDraft, setFolderDraft] = useState('')
   const folderInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    const requested = params.get('upload')
+    if (!requested || !['1', 'local', 'paperless'].includes(requested)) return
+    if (requested === 'local') {
+      openUpload('local')
+    } else {
+      void apiFetch<{ configured: boolean }>('/paperless/connection')
+        .then((status) => {
+          setPaperlessConfigured(status.configured)
+          openUpload(status.configured ? 'paperless' : 'local')
+        })
+        .catch(() => openUpload('local'))
+    }
+    setParams((previous) => {
+      const next = new URLSearchParams(previous)
+      next.delete('upload')
+      return next
+    }, { replace: true })
+  }, [params, setParams])
 
   const { confirm, confirmDialog } = useConfirm()
 
@@ -133,8 +183,7 @@ export function DocumentsPage() {
   return (
     <PageContainer wide>
       <PageHeader
-        title="Documents"
-        description="Store and organize financial documents such as bank agreements, insurance policies, bills, and receipts."
+        title={t("items.documents")}
         action={
           <>
             <Button
@@ -148,14 +197,30 @@ export function DocumentsPage() {
               <FolderPlus data-icon="inline-start" />
               <PageHeaderActionLabel>New folder</PageHeaderActionLabel>
             </Button>
-            <Button size="sm" onClick={() => setUploadOpen(true)}>
-              <FileText data-icon="inline-start" />
-              <PageHeaderActionLabel>Upload</PageHeaderActionLabel>
-            </Button>
+            {paperlessConfigured ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="sm"><FileText data-icon="inline-start" /><PageHeaderActionLabel>Upload</PageHeaderActionLabel></Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => openUpload('local')}>Upload to Local documents</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => openUpload('paperless')}>Upload to Paperless-ngx</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button size="sm" onClick={() => openUpload('local')}>
+                <FileText data-icon="inline-start" /><PageHeaderActionLabel>Upload</PageHeaderActionLabel>
+              </Button>
+            )}
           </>
         }
       />
 
+      <div className="flex gap-2 pb-4">
+        <Button variant={provider === 'local' ? 'default' : 'outline'} onClick={() => setProvider('local')}>Local documents</Button>
+        <Button variant={provider === 'paperless' ? 'default' : 'outline'} onClick={() => setProvider('paperless')}>Paperless-ngx</Button>
+      </div>
+      {provider === 'paperless' ? <PaperlessPanel openUpload={paperlessUploadOpen} onUploadOpenChange={setPaperlessUploadOpen} /> : (
       <div className="glass-panel flex flex-col overflow-hidden rounded-xl border lg:flex-row">
         {/* Folder rail — horizontal chips on mobile, sidebar on desktop */}
         <div className="flex shrink-0 gap-1.5 overflow-x-auto border-b p-3 lg:w-56 lg:flex-col lg:overflow-visible lg:border-b-0 lg:border-e lg:p-3">
@@ -284,6 +349,7 @@ export function DocumentsPage() {
                     onOpen={() => setPreviewDoc(doc)}
                     onEdit={() => setEditingDoc(doc)}
                     onDelete={() => handleDeleteDoc(doc)}
+                    onCopy={paperlessConfigured ? () => void copyToPaperless(doc) : undefined}
                   />
                 ))}
               </div>
@@ -298,6 +364,7 @@ export function DocumentsPage() {
                     onOpen={() => setPreviewDoc(doc)}
                     onEdit={() => setEditingDoc(doc)}
                     onDelete={() => handleDeleteDoc(doc)}
+                    onCopy={paperlessConfigured ? () => void copyToPaperless(doc) : undefined}
                   />
                 ))}
               </div>
@@ -306,6 +373,7 @@ export function DocumentsPage() {
         </div>
       </div>
 
+      )}
       <DocumentUploadDialog open={uploadOpen} onOpenChange={setUploadOpen} defaultFolder={selectedFolder} />
       <DocumentEditDialog document={editingDoc} onOpenChange={(open) => !open && setEditingDoc(null)} />
       <DocumentPreviewSheet
@@ -383,7 +451,7 @@ function FolderRailItem({
   )
 }
 
-function DocumentActionsMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) {
+function DocumentActionsMenu({ onEdit, onDelete, onCopy }: { onEdit: () => void; onDelete: () => void; onCopy?: () => void }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -399,6 +467,7 @@ function DocumentActionsMenu({ onEdit, onDelete }: { onEdit: () => void; onDelet
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
         <DropdownMenuItem onClick={onEdit}>Edit details</DropdownMenuItem>
+        {onCopy && <DropdownMenuItem onClick={onCopy}>Copy to Paperless-ngx</DropdownMenuItem>}
         <DropdownMenuItem variant="destructive" onClick={onDelete}>
           <Trash2 />
           Delete
@@ -413,11 +482,13 @@ function DocumentCard({
   onOpen,
   onEdit,
   onDelete,
+  onCopy,
 }: {
   doc: DocumentItem
   onOpen: () => void
   onEdit: () => void
   onDelete: () => void
+  onCopy?: () => void
 }) {
   const meta = fileTypeMeta(doc.mime_type, doc.filename)
   return (
@@ -429,7 +500,7 @@ function DocumentCard({
       className="group/card relative flex cursor-pointer flex-col items-center gap-2.5 rounded-xl bg-card p-4 text-center shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover"
     >
       <div className="absolute end-2 top-2 opacity-0 transition-opacity group-hover/card:opacity-100 group-focus-within/card:opacity-100">
-        <DocumentActionsMenu onEdit={onEdit} onDelete={onDelete} />
+        <DocumentActionsMenu onEdit={onEdit} onDelete={onDelete} onCopy={onCopy} />
       </div>
       <span className={cn('flex h-16 w-14 items-center justify-center rounded-lg', meta.className)}>
         <meta.icon size={26} />
@@ -447,11 +518,13 @@ function DocumentRow({
   onOpen,
   onEdit,
   onDelete,
+  onCopy,
 }: {
   doc: DocumentItem
   onOpen: () => void
   onEdit: () => void
   onDelete: () => void
+  onCopy?: () => void
 }) {
   const meta = fileTypeMeta(doc.mime_type, doc.filename)
   return (
@@ -473,7 +546,7 @@ function DocumentRow({
         {formatDate(doc.uploaded_at)}
       </span>
       <span className="shrink-0 text-xs text-muted-foreground">{formatBytes(doc.size)}</span>
-      <DocumentActionsMenu onEdit={onEdit} onDelete={onDelete} />
+      <DocumentActionsMenu onEdit={onEdit} onDelete={onDelete} onCopy={onCopy} />
     </div>
   )
 }

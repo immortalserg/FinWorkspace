@@ -87,6 +87,14 @@
     "pemDeleting": "Удаление…",
     "pemDeleted": "PEM-файл удалён. Банковская синхронизация отключена.",
     "pemDeleteFailed": "Не удалось удалить PEM-файл.",
-    "confirmPemDelete": "Удалить сохранённый PEM-ключ? Банковская синхронизация будет отключена."
+    "confirmPemDelete": "Удалить сохранённый PEM-ключ? Банковская синхронизация будет отключена.",
+    "paperlessDescription": "Подключение Paperless-ngx для всех пользователей. Адрес и токен задаёт администратор.",
+    "paperlessUrl": "Адрес сервера Paperless",
+    "paperlessToken": "API-токен Paperless",
+    "paperlessConnect": "Подключить Paperless",
+    "paperlessDisconnect": "Отключить Paperless",
+    "paperlessSaved": "Подключение Paperless сохранено",
+    "paperlessRemoved": "Подключение Paperless удалено",
+    "paperlessConfirmRemove": "Отключить Paperless для всех пользователей?"
   }
 }

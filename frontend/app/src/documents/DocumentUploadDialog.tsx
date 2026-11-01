@@ -10,6 +10,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { Dialog } from '../ui/Dialog'
 import { cn } from '@/lib/utils'
 import { FolderPicker } from './FolderPicker'
+import { LocalMetadataFields, type LocalMetadata } from './LocalMetadataFields'
 import { fileTypeMeta } from './fileTypeMeta'
 import { useDocumentFolders, useUploadDocument } from './useDocuments'
 
@@ -41,6 +42,7 @@ export function DocumentUploadDialog({
   const [file, setFile] = useState<File | null>(null)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [metadata, setMetadata] = useState<LocalMetadata>({})
   const [folder, setFolder] = useState(defaultFolder)
   const [dragOver, setDragOver] = useState(false)
   const [fileError, setFileError] = useState<string | null>(null)
@@ -49,6 +51,7 @@ export function DocumentUploadDialog({
     setFile(null)
     setTitle('')
     setDescription('')
+    setMetadata({})
     setFolder(defaultFolder)
     setFileError(null)
   }
@@ -74,7 +77,7 @@ export function DocumentUploadDialog({
     try {
       await uploadDocument.mutateAsync({
         file,
-        input: { title: title.trim(), description: description.trim(), folder },
+        input: { title: title.trim(), description: description.trim(), folder, paperless_metadata: metadata },
       })
       toast.success('Document uploaded')
       handleOpenChange(false)
@@ -193,6 +196,7 @@ export function DocumentUploadDialog({
             <FieldLabel htmlFor="doc-folder">Folder</FieldLabel>
             <FolderPicker value={folder} onChange={setFolder} folders={foldersData?.folders ?? []} />
           </Field>
+          <LocalMetadataFields value={metadata} onChange={setMetadata} />
         </FieldGroup>
       </form>
     </Dialog>

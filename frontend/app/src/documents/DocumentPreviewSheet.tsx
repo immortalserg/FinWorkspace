@@ -1,3 +1,4 @@
+import { PdfViewer } from './PdfViewer'
 import { Download, PencilLine, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -37,7 +38,7 @@ export function DocumentPreviewSheet({
 
   return (
     <Sheet open={!!document} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-lg" side="right">
+      <SheetContent className="w-full sm:!max-w-[50vw]" side="right">
         {document && meta && (
           <>
             <SheetHeader className="flex-row items-start gap-3 border-b pe-12">
@@ -62,11 +63,7 @@ export function DocumentPreviewSheet({
                     className="max-h-[60vh] w-full object-contain"
                   />
                 ) : meta.kind === 'pdf' ? (
-                  <iframe
-                    src={documentsApi.getPreviewUrl(document.id)}
-                    title={document.title}
-                    className="h-[60vh] w-full border-0"
-                  />
+                  <PdfViewer src={documentsApi.getPreviewUrl(document.id)} />
                 ) : (
                   <div className="flex flex-col items-center gap-3 py-16">
                     <span className={cn('flex size-16 items-center justify-center rounded-2xl', meta.className)}>

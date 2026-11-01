@@ -87,6 +87,14 @@
     "pemDeleting": "Deleting…",
     "pemDeleted": "PEM file deleted. Bank synchronization has been disabled.",
     "pemDeleteFailed": "Could not delete the PEM file.",
-    "confirmPemDelete": "Delete the saved PEM key? Bank synchronization will be disabled."
+    "confirmPemDelete": "Delete the saved PEM key? Bank synchronization will be disabled.",
+    "paperlessDescription": "Shared Paperless-ngx connection for all users. Only administrators can configure it.",
+    "paperlessUrl": "Paperless server URL",
+    "paperlessToken": "Paperless API token",
+    "paperlessConnect": "Connect Paperless",
+    "paperlessDisconnect": "Disconnect Paperless",
+    "paperlessSaved": "Paperless connection saved",
+    "paperlessRemoved": "Paperless connection removed",
+    "paperlessConfirmRemove": "Disconnect Paperless for all users?"
   }
 }
