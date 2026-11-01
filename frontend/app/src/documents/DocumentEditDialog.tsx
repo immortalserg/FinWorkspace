@@ -8,6 +8,7 @@ import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import { Dialog } from '../ui/Dialog'
 import { FolderPicker } from './FolderPicker'
+import { LocalMetadataFields, type LocalMetadata } from './LocalMetadataFields'
 import { useDocumentFolders, useUpdateDocument } from './useDocuments'
 import type { DocumentItem } from './documentsApi'
 
@@ -22,12 +23,14 @@ export function DocumentEditDialog({ document, onOpenChange }: DocumentEditDialo
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [metadata, setMetadata] = useState<LocalMetadata>({})
   const [folder, setFolder] = useState('')
 
   useEffect(() => {
     if (document) {
       setTitle(document.title)
       setDescription(document.description)
+      setMetadata(document.paperless_metadata ?? {})
       setFolder(document.folder)
     }
   }, [document])
@@ -38,7 +41,7 @@ export function DocumentEditDialog({ document, onOpenChange }: DocumentEditDialo
     try {
       await updateDocument.mutateAsync({
         id: document.id,
-        input: { title: title.trim(), description: description.trim(), folder },
+        input: { title: title.trim(), description: description.trim(), folder, paperless_metadata: metadata },
       })
       toast.success('Document updated')
       onOpenChange(false)
@@ -86,6 +89,7 @@ export function DocumentEditDialog({ document, onOpenChange }: DocumentEditDialo
             <FieldLabel htmlFor="edit-doc-folder">Folder</FieldLabel>
             <FolderPicker value={folder} onChange={setFolder} folders={foldersData?.folders ?? []} />
           </Field>
+          <LocalMetadataFields value={metadata} onChange={setMetadata} />
         </FieldGroup>
       </form>
     </Dialog>
