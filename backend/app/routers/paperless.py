@@ -117,6 +117,39 @@ async def _all_resources(client, resource):
         page += 1
 
 
+def _tag_definitions(remote):
+    by_id = {item["id"]: item for item in remote}
+    return [{"name": item["name"],
+             "parent": by_id[item["parent"]]["name"] if item.get("parent") in by_id else None}
+            for item in remote]
+
+
+async def _ensure_tags(client, definitions):
+    """Create missing tags with their parents first, preserving the hierarchy."""
+    remote = await _all_resources(client, "tags")
+    known = {item["name"].casefold(): item for item in remote}
+    pending = {item["name"].casefold(): item for item in definitions if item["name"].casefold() not in known}
+    created_count = 0
+    while pending:
+        progressed = False
+        for key, item in list(pending.items()):
+            parent_name = item.get("parent")
+            if parent_name and parent_name.casefold() not in known:
+                if parent_name.casefold() not in pending:
+                    raise HTTPException(422, f"Missing parent tag: {parent_name}")
+                continue
+            payload = {"name": item["name"]}
+            if parent_name:
+                payload["parent"] = known[parent_name.casefold()]["id"]
+            known[key] = await client.create("tags", payload)
+            del pending[key]
+            created_count += 1
+            progressed = True
+        if not progressed:
+            raise HTTPException(422, "Cyclic tag hierarchy")
+    return known, created_count
+
+
 @router.post("/sync-metadata")
 async def sync_metadata(user: User = Depends(require_admin)):
     from app.routers import documents as local
@@ -134,13 +167,21 @@ async def sync_metadata(user: User = Depends(require_admin)):
             local_names = {entry["name"].casefold() for entry in existing}
             remote_names = {entry["name"].casefold() for entry in remote}
             if settings["paperless_to_local"]:
-                for entry in remote:
+                source = _tag_definitions(remote) if resource == "tags" else remote
+                for entry in source:
                     if entry["name"].casefold() not in local_names:
-                        existing.append({key: entry[key] for key in ("name", "data_type", "extra_data")
+                        existing.append({key: entry[key] for key in ("name", "parent", "data_type", "extra_data")
                                          if key in entry})
                         local_names.add(entry["name"].casefold())
                         counts["created_local"] += 1
+                    elif resource == "tags":
+                        local_entry = next(item for item in existing if item["name"].casefold() == entry["name"].casefold())
+                        local_entry["parent"] = entry.get("parent")
             if settings["local_to_paperless"]:
+                if resource == "tags":
+                    _, added = await _ensure_tags(client, existing)
+                    counts["created_paperless"] += added
+                    continue
                 for entry in existing:
                     if entry["name"].casefold() not in remote_names:
                         payload = {"name": entry["name"]}
@@ -253,16 +294,18 @@ async def copy_from_local(doc_id: str, user: User = Depends(get_current_user)):
                 item = await client.create(resource, {"name": name, **({"path": str(name)} if resource == "storage_paths" else {})})
             attrs[field] = item["id"]
     if meta.get("tags"):
-        result = await client.list("tags", params={"page_size": 100})
-        known = {v["name"].casefold(): v["id"] for v in result.get("results", [])}
-        attrs["tags"] = []
-        for name in meta["tags"]:
-            tag_id = known.get(name.casefold())
-            if tag_id is None:
-                created = await client.create("tags", {"name": name})
-                tag_id = created["id"]
-                known[name.casefold()] = tag_id
-            attrs["tags"].append(tag_id)
+        local_defs = index.get("metadata_definitions", {}).get("tags", [])
+        selected = set(meta["tags"])
+        needed = {entry["name"]: entry for entry in local_defs}
+        queue = list(selected)
+        while queue:
+            item = needed.get(queue.pop())
+            if item and item.get("parent") and item["parent"] not in selected:
+                selected.add(item["parent"])
+                queue.append(item["parent"])
+        tag_defs = [needed.get(name, {"name": name}) for name in selected]
+        known, _ = await _ensure_tags(client, tag_defs)
+        attrs["tags"] = [known[name.casefold()]["id"] for name in meta["tags"]]
     for key in ("created", "archive_serial_number"):
         if meta.get(key):
             attrs[key] = meta[key]
@@ -318,13 +361,12 @@ async def copy_to_local(item_id: int, user: User = Depends(get_current_user)):
                 entry = await client.get(resource, ref)
                 metadata[field] = entry["name"]
                 definitions[resource] = [entry]
-        tags = []
-        for ref in doc.get("tags") or []:
-            entry = await client.get("tags", ref)
-            tags.append(entry["name"])
-        metadata["tags"] = tags
-        if tags:
-            definitions["tags"] = [{"name": name} for name in tags]
+        remote_tags = await _all_resources(client, "tags")
+        by_id = {item["id"]: item for item in remote_tags}
+        selected_tags = [by_id[ref]["name"] for ref in doc.get("tags") or [] if ref in by_id]
+        metadata["tags"] = selected_tags
+        if selected_tags:
+            definitions["tags"] = _tag_definitions(remote_tags)
         for field in ("created", "archive_serial_number"):
             if doc.get(field) is not None:
                 metadata[field] = doc[field]
