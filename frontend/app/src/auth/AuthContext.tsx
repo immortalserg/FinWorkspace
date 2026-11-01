@@ -142,6 +142,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       clearStoredSession()
       clearTimeout(refreshTimer.current)
       setUser(null)
+      // Notify the native shell only for an explicit user logout.
+      // The WebView and native token stores are independent.
+      const nativeBridge = (window as Window & { ReactNativeWebView?: { postMessage: (message: string) => void } }).ReactNativeWebView
+      nativeBridge?.postMessage(JSON.stringify({ type: 'FINWORKSPACE_LOGOUT' }))
     }
   }, [])
 
