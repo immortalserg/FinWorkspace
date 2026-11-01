@@ -123,6 +123,29 @@ async def list_tasks(user: User = Depends(get_current_user)):
 
 
 
+@router.get("/documents/{item_id}/preview")
+async def preview_from_paperless(
+    item_id: int,
+    user: User = Depends(get_current_user),
+):
+    try:
+        content = await _client(user).download(item_id, archived=True)
+    except PaperlessError as exc:
+        raise _error(exc)
+    if not content.startswith(b"%PDF-"):
+        raise HTTPException(415, "Archived PDF preview is not available")
+    return Response(
+        content=content,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'inline; filename="paperless-{item_id}.pdf"',
+            "X-Content-Type-Options": "nosniff",
+            "Cache-Control": "no-store",
+            "Content-Security-Policy": "default-src 'none'; sandbox",
+        },
+    )
+
+
 @router.get("/documents/{item_id}/download")
 async def download_from_paperless(
     item_id: int,
