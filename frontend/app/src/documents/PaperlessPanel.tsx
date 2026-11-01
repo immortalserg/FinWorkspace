@@ -293,7 +293,7 @@ export function PaperlessPanel() {
             <span className="font-semibold">PDF preview · Document {previewId}</span>
             <Button variant="outline" onClick={() => { URL.revokeObjectURL(previewUrl); setPreviewUrl(null); setPreviewId(null) }}>Close</Button>
           </div>
-          <iframe title="Paperless PDF preview" sandbox="" src={previewUrl} className="min-h-0 w-full flex-1 rounded border" />
+          <iframe title="Paperless PDF preview" src={previewUrl} className="min-h-0 w-full flex-1 rounded border" />
         </div>
       )}
       {editingId !== null && <PaperlessEditDialog documentId={editingId} onClose={() => setEditingId(null)} onSaved={() => void refresh()} />}
