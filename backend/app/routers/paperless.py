@@ -77,6 +77,14 @@ async def test_connection(user: User = Depends(get_current_user)):
         raise _error(exc)
 
 
+@router.get("/tasks")
+async def list_tasks(user: User = Depends(get_current_user)):
+    try:
+        return await _client(user).tasks()
+    except PaperlessError as exc:
+        raise _error(exc)
+
+
 @router.get("/{resource}")
 async def list_resource(resource: str, user: User = Depends(get_current_user)):
     try:
