@@ -159,6 +159,15 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
     }
   }
 
+  async function copyToLocal(id: number) {
+    try {
+      await apiFetch(`/paperless/copy-to-local/${id}`, { method: 'POST' })
+      toast.success('Document copied to Local documents')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Copy to local failed')
+    }
+  }
+
   async function remove(id: number) {
     if (!window.confirm('Permanently delete this document from Paperless?')) return
     try {
@@ -266,6 +275,7 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
                   <DropdownMenuContent align="end" onClick={(event) => event.stopPropagation()}>
                     <DropdownMenuItem onClick={() => setEditingId(doc.id)}>Edit details</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => void download(doc.id)}>Download</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => void copyToLocal(doc.id)}>Copy to Local documents</DropdownMenuItem>
                     <DropdownMenuItem variant="destructive" onClick={() => void remove(doc.id)}>
                       <Trash2 />Delete
                     </DropdownMenuItem>
