@@ -40,6 +40,7 @@ import {
 import { DocumentUploadDialog } from './DocumentUploadDialog'
 import { DocumentEditDialog } from './DocumentEditDialog'
 import { DocumentPreviewSheet } from './DocumentPreviewSheet'
+import { PaperlessPanel } from './PaperlessPanel'
 
 function formatBytes(size: number): string {
   if (size < 1024) return `${size} B`
@@ -50,6 +51,7 @@ function formatBytes(size: number): string {
 type ViewMode = 'grid' | 'list'
 
 export function DocumentsPage() {
+  const [provider, setProvider] = useState<'local' | 'paperless'>('local')
   const [selectedFolder, setSelectedFolder] = useState<string>('')
   const [search, setSearch] = useState('')
   const [view, setView] = useState<ViewMode>('grid')
@@ -156,6 +158,11 @@ export function DocumentsPage() {
         }
       />
 
+      <div className="flex gap-2 pb-4">
+        <Button variant={provider === 'local' ? 'default' : 'outline'} onClick={() => setProvider('local')}>Local documents</Button>
+        <Button variant={provider === 'paperless' ? 'default' : 'outline'} onClick={() => setProvider('paperless')}>Paperless-ngx</Button>
+      </div>
+      {provider === 'paperless' ? <PaperlessPanel /> : (
       <div className="glass-panel flex flex-col overflow-hidden rounded-xl border lg:flex-row">
         {/* Folder rail — horizontal chips on mobile, sidebar on desktop */}
         <div className="flex shrink-0 gap-1.5 overflow-x-auto border-b p-3 lg:w-56 lg:flex-col lg:overflow-visible lg:border-b-0 lg:border-e lg:p-3">
@@ -306,6 +313,7 @@ export function DocumentsPage() {
         </div>
       </div>
 
+      )}
       <DocumentUploadDialog open={uploadOpen} onOpenChange={setUploadOpen} defaultFolder={selectedFolder} />
       <DocumentEditDialog document={editingDoc} onOpenChange={(open) => !open && setEditingDoc(null)} />
       <DocumentPreviewSheet
