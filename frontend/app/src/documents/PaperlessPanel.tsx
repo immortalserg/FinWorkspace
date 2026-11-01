@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
-import { Download, FileText, MoreVertical, PencilLine, Trash2 } from 'lucide-react'
+import { Download, FileText, FileUp, MoreVertical, PencilLine, Trash2 } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { apiFetch, getApiBaseUrl } from '../lib/apiClient'
 import { PaperlessEditDialog } from './PaperlessEditDialog'
 import { Dialog } from '../ui/Dialog'
+import { Input } from '@/components/ui/input'
+import { fileTypeMeta } from './fileTypeMeta'
 import { PdfViewer } from './PdfViewer'
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 
@@ -20,6 +22,7 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
   const [file, setFile] = useState<File | null>(null)
+  const [dragOver, setDragOver] = useState(false)
   const [uploadTitle, setUploadTitle] = useState('')
   const [uploadTags, setUploadTags] = useState<number[]>([])
   const [uploadType, setUploadType] = useState<number | null>(null)
@@ -209,8 +212,36 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
             }
           >
             <div className="space-y-3">
-            <input aria-label="Choose document" type="file" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
-            <input aria-label="Document title" placeholder="Document title (optional)" className="w-full rounded border bg-background p-2 text-sm" value={uploadTitle} onChange={(event) => setUploadTitle(event.target.value)} />
+            <label className={`flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed p-6 text-center transition-colors ${dragOver ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'}`}
+              onDragOver={(event) => { event.preventDefault(); setDragOver(true) }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={(event) => {
+                event.preventDefault()
+                setDragOver(false)
+                const dropped = event.dataTransfer.files?.[0]
+                if (dropped) { setFile(dropped); if (!uploadTitle) setUploadTitle(dropped.name.replace(/\\.[^/.]+$/, '')) }
+              }}>
+              {file ? (
+                <>
+                  <span className={`flex size-12 items-center justify-center rounded-lg ${fileTypeMeta(file.type, file.name).className}`}><FileText size={22} /></span>
+                  <span className="max-w-xs truncate text-sm font-medium">{file.name}</span>
+                  <span className="text-xs text-muted-foreground">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                </>
+              ) : (
+                <>
+                  <FileUp size={32} className="text-muted-foreground/50" />
+                  <span className="text-sm font-medium text-muted-foreground">Drop a file here or click to browse</span>
+                  <span className="text-xs text-muted-foreground/70">PDF, JPG, PNG, DOCX, XLSX, TXT, CSV…</span>
+                </>
+              )}
+              <input aria-label="Choose document" type="file" className="sr-only" onChange={(event) => {
+                const picked = event.target.files?.[0]
+                if (picked) { setFile(picked); if (!uploadTitle) setUploadTitle(picked.name.replace(/\\.[^/.]+$/, '')) }
+              }} />
+            </label>
+            <label className="block text-sm">Title
+              <Input className="mt-1" aria-label="Document title" placeholder="Document title (optional)" value={uploadTitle} onChange={(event) => setUploadTitle(event.target.value)} />
+            </label>
             <div className="grid gap-2 sm:grid-cols-3">
               {([
                 ['document_types', 'Document type', uploadType, setUploadType],
