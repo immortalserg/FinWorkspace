@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { apiFetch, getApiBaseUrl } from '../lib/apiClient'
+import { PaperlessEditDialog } from './PaperlessEditDialog'
 
 type Connection = { configured: boolean; url: string | null }
 type PaperlessDoc = { id: number; title: string; created?: string }
@@ -17,6 +18,7 @@ export function PaperlessPanel() {
   const [total, setTotal] = useState(0)
   const [file, setFile] = useState<File | null>(null)
   const [busy, setBusy] = useState(false)
+  const [editingId, setEditingId] = useState<number | null>(null)
 
   async function refresh() {
     const status = await apiFetch<Connection>('/paperless/connection')
@@ -144,6 +146,7 @@ export function PaperlessPanel() {
             {filtered.map((doc) => (
               <div key={doc.id} className="flex items-center gap-3 p-3">
                 <span className="min-w-0 flex-1 truncate text-sm">{doc.title}</span>
+                <Button size="sm" variant="outline" onClick={() => setEditingId(doc.id)}>Edit</Button>
                 <Button size="sm" variant="outline" onClick={() => void download(doc.id)}>Download</Button>
                 <Button size="sm" variant="destructive" onClick={() => void remove(doc.id)}>Delete</Button>
               </div>
@@ -157,6 +160,7 @@ export function PaperlessPanel() {
           </div>
         </>
       )}
+      {editingId !== null && <PaperlessEditDialog documentId={editingId} onClose={() => setEditingId(null)} onSaved={() => void refresh()} />}
     </div>
   )
 }
