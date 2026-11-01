@@ -144,6 +144,8 @@ async def sync_metadata(user: User = Depends(require_admin)):
                 for entry in existing:
                     if entry["name"].casefold() not in remote_names:
                         payload = {"name": entry["name"]}
+                        if resource == "storage_paths":
+                            payload["path"] = entry.get("path") or entry["name"]
                         if resource == "custom_fields":
                             payload["data_type"] = entry.get("data_type", "string")
                             if entry.get("extra_data") is not None:
@@ -248,7 +250,7 @@ async def copy_from_local(doc_id: str, user: User = Depends(get_current_user)):
             item = next((v for v in result.get("results", [])
                          if v["name"].casefold() == str(name).casefold()), None)
             if not item:
-                item = await client.create(resource, {"name": name})
+                item = await client.create(resource, {"name": name, **({"path": str(name)} if resource == "storage_paths" else {})})
             attrs[field] = item["id"]
     if meta.get("tags"):
         result = await client.list("tags", params={"page_size": 100})
