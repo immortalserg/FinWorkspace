@@ -33,6 +33,35 @@ export function LocalMetadataFields({ value, onChange }: {
     void apiFetch<Definitions>('/documents/metadata/definitions')
       .then(setDefinitions).catch(() => {})
   }, [])
+  function toggleTag(name: string, checked: boolean) {
+    const definitionsByName = new Map((definitions.tags ?? []).map((tag) => [tag.name, tag]))
+    const next = new Set(value.tags ?? [])
+    if (checked) {
+      let current: string | null | undefined = name
+      const visited = new Set<string>()
+      while (current && !visited.has(current)) {
+        visited.add(current)
+        next.add(current)
+        current = definitionsByName.get(current)?.parent
+      }
+    } else {
+      // Removing a parent also clears its descendants to avoid orphan selections.
+      const isDescendant = (candidate: string): boolean => {
+        let current = definitionsByName.get(candidate)?.parent
+        const visited = new Set<string>()
+        while (current && !visited.has(current)) {
+          if (current === name) return true
+          visited.add(current)
+          current = definitionsByName.get(current)?.parent
+        }
+        return false
+      }
+      for (const candidate of next) {
+        if (candidate === name || isDescendant(candidate)) next.delete(candidate)
+      }
+    }
+    onChange({ ...value, tags: [...next] })
+  }
   async function addDefinition(key: string) {
     const name = (newNames[key] ?? '').trim()
     if (!name || (definitions[key] ?? []).some((x) => x.name.toLowerCase() === name.toLowerCase())) return
@@ -42,7 +71,17 @@ export function LocalMetadataFields({ value, onChange }: {
       setDefinitions(next)
       setNewNames((prev) => ({ ...prev, [key]: '' }))
       if (key === 'tags') setTagParent('')
-      if (key === 'tags') onChange({ ...value, tags: [...(value.tags ?? []), name] })
+      if (key === 'tags') {
+        const selected = new Set([...(value.tags ?? []), name])
+        let parent = tagParent
+        const seen = new Set<string>()
+        while (parent && !seen.has(parent)) {
+          seen.add(parent)
+          selected.add(parent)
+          parent = next.tags.find((tag) => tag.name === parent)?.parent ?? ''
+        }
+        onChange({ ...value, tags: [...selected] })
+      }
       else if (key !== 'custom_fields') {
         const field = catalog.find(([resource]) => resource === key)?.[2]
         if (field) onChange({ ...value, [field]: name })
@@ -103,9 +142,7 @@ export function LocalMetadataFields({ value, onChange }: {
                           ) : <span className="inline-block w-6 shrink-0" />}
                           <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 text-sm">
                             <input type="checkbox" checked={(value.tags ?? []).includes(tag.name)}
-                              onChange={(event) => onChange({ ...value, tags: event.target.checked
-                                ? [...(value.tags ?? []), tag.name]
-                                : (value.tags ?? []).filter((name) => name !== tag.name) })} />
+                              onChange={(event) => toggleTag(tag.name, event.target.checked)} />
                             <span className="truncate" title={tag.name}>{tag.name}</span>
                           </label>
                         </div>
