@@ -82,7 +82,7 @@ export function PdfViewer({ src }: { src: string }) {
         const scale = availableWidth / base.width * zoom
         const viewport = page.getViewport({ scale })
         const wrapper = document.createElement('div')
-        wrapper.className = 'relative mx-auto bg-white shadow-sm'
+        wrapper.className = 'relative mx-auto bg-white shadow-sm pdf-page'
         wrapper.style.width = viewport.width + 'px'
         wrapper.style.height = viewport.height + 'px'
         const canvas = document.createElement('canvas')
@@ -103,11 +103,12 @@ export function PdfViewer({ src }: { src: string }) {
         await renderTask.promise
         if (!active) return
         const layer = document.createElement('div')
-        layer.className = 'textLayer'
+        layer.className = 'textLayer select-text'
         layer.style.setProperty('--scale-factor', String(scale))
         layer.style.userSelect = 'text'
         layer.style.setProperty('-webkit-user-select', 'text')
         layer.style.setProperty('-webkit-touch-callout', 'default')
+        layer.style.touchAction = 'auto'
         wrapper.appendChild(layer)
         await new pdfjs.TextLayer({
           textContentSource: page.streamTextContent(), container: layer, viewport,
@@ -121,7 +122,7 @@ export function PdfViewer({ src }: { src: string }) {
     return () => {
       active = false
       renderTask?.cancel()
-      host.replaceChildren()
+      // Do not clear a newly mounted host when switching between OCR and PDF.
     }
   }, [pages, pageNumber, zoom, textMode])
 
@@ -159,9 +160,8 @@ export function PdfViewer({ src }: { src: string }) {
             {text || 'No selectable text found on this page.'}
           </div>
         </div>
-      ) : (
-        <div className="w-full overflow-x-auto p-3"><div ref={hostRef} className="min-w-0" /></div>
-      )}
+      ) : null}
+      <div className={textMode ? "hidden" : "w-full overflow-x-auto p-3"}><div ref={hostRef} className="min-w-0" /></div>
     </div>
   )
 }
