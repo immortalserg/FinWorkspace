@@ -22,6 +22,7 @@ export function PaperlessPanel() {
   const [uploadType, setUploadType] = useState<number | null>(null)
   const [uploadCorrespondent, setUploadCorrespondent] = useState<number | null>(null)
   const [uploadPath, setUploadPath] = useState<number | null>(null)
+  const [newReferenceNames, setNewReferenceNames] = useState<Record<string, string>>({})
   const [references, setReferences] = useState<Record<string, { id: number; name: string }[]>>({})
   const [busy, setBusy] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
@@ -59,6 +60,32 @@ export function PaperlessPanel() {
       toast.success('Paperless connection saved')
     } catch {
       toast.error('Could not save Paperless connection')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function createReference(resource: string) {
+    const name = (newReferenceNames[resource] ?? '').trim()
+    if (!name) return
+    setBusy(true)
+    try {
+      const created = await apiFetch<{ id: number; name: string }>(`/paperless/${resource}`, {
+        method: 'POST',
+        body: JSON.stringify({ name }),
+      })
+      setReferences((current) => ({
+        ...current,
+        [resource]: [...(current[resource] ?? []), created],
+      }))
+      if (resource === 'tags') setUploadTags((current) => [...current, created.id])
+      if (resource === 'document_types') setUploadType(created.id)
+      if (resource === 'correspondents') setUploadCorrespondent(created.id)
+      if (resource === 'storage_paths') setUploadPath(created.id)
+      setNewReferenceNames((current) => ({ ...current, [resource]: '' }))
+      toast.success('Created ' + name)
+    } catch {
+      toast.error('Could not create reference')
     } finally {
       setBusy(false)
     }
@@ -175,6 +202,18 @@ export function PaperlessPanel() {
                 </label>
               ))}
             </div>
+            <div className="grid gap-2 sm:grid-cols-3">
+              {([
+                ['document_types', 'New document type'],
+                ['correspondents', 'New correspondent'],
+                ['storage_paths', 'New storage path'],
+              ] as const).map(([key, label]) => (
+                <div key={key} className="flex gap-1">
+                  <input aria-label={label} placeholder={label} className="min-w-0 flex-1 rounded border bg-background p-2 text-xs" value={newReferenceNames[key] ?? ''} onChange={(event) => setNewReferenceNames((current) => ({ ...current, [key]: event.target.value }))} />
+                  <Button variant="outline" size="sm" disabled={busy || !newReferenceNames[key]?.trim()} onClick={() => void createReference(key)}>Add</Button>
+                </div>
+              ))}
+            </div>
             <fieldset>
               <legend className="text-sm">Tags</legend>
               <div className="flex max-h-28 flex-wrap gap-3 overflow-y-auto">
@@ -184,6 +223,10 @@ export function PaperlessPanel() {
                     {tag.name}
                   </label>
                 ))}
+              </div>
+              <div className="mt-2 flex gap-2">
+                <input aria-label="New upload tag" placeholder="Create a tag" className="min-w-0 flex-1 rounded border bg-background p-2 text-sm" value={newReferenceNames.tags ?? ''} onChange={(event) => setNewReferenceNames((current) => ({ ...current, tags: event.target.value }))} />
+                <Button variant="outline" size="sm" disabled={busy || !newReferenceNames.tags?.trim()} onClick={() => void createReference('tags')}>Add tag</Button>
               </div>
             </fieldset>
             <Button disabled={busy || !file} onClick={() => void upload()}>Upload to Paperless</Button>
