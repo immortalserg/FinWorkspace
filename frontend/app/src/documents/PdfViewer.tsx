@@ -4,6 +4,7 @@ import * as pdfjs from 'pdfjs-dist'
 import { EventBus, PDFFindController, PDFLinkService, PDFViewer } from 'pdfjs-dist/web/pdf_viewer.mjs'
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 import 'pdfjs-dist/web/pdf_viewer.css'
+import './PdfViewer.css'
 import { Button } from '@/components/ui/button'
 
 pdfjs.GlobalWorkerOptions.workerSrc = workerUrl
