@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { apiFetch, getApiBaseUrl } from '../lib/apiClient'
 import { PaperlessEditDialog } from './PaperlessEditDialog'
+import { Dialog } from '../ui/Dialog'
 import { PdfViewer } from './PdfViewer'
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 
@@ -185,12 +186,20 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
         <p className="text-sm text-muted-foreground">Paperless-ngx is not configured. An administrator can connect it in Administration → Application settings.</p>
       ) : (
         <>
-          {openUpload && <div role="dialog" aria-modal="true" aria-label="Upload document" className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-            <div className="max-h-[90vh] w-full max-w-2xl space-y-3 overflow-y-auto rounded-xl border bg-background p-5 shadow-xl">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold">Upload document</h3>
-              <Button variant="outline" onClick={() => onUploadOpenChange(false)}>Close</Button>
-            </div>
+          <Dialog
+            open={openUpload}
+            onOpenChange={onUploadOpenChange}
+            title="Upload to Paperless-ngx"
+            description="Upload a document for OCR processing and choose its metadata."
+            size="lg"
+            footer={
+              <>
+                <Button variant="outline" onClick={() => onUploadOpenChange(false)}>Cancel</Button>
+                <Button disabled={busy || !file} onClick={() => void upload()}>Upload to Paperless</Button>
+              </>
+            }
+          >
+            <div className="space-y-3">
             <input aria-label="Choose document" type="file" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
             <input aria-label="Document title" placeholder="Document title (optional)" className="w-full rounded border bg-background p-2 text-sm" value={uploadTitle} onChange={(event) => setUploadTitle(event.target.value)} />
             <div className="grid gap-2 sm:grid-cols-3">
@@ -234,9 +243,8 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
                 <Button variant="outline" size="sm" disabled={busy || !newReferenceNames.tags?.trim()} onClick={() => void createReference('tags')}>Add tag</Button>
               </div>
             </fieldset>
-            <Button disabled={busy || !file} onClick={() => void upload()}>Upload to Paperless</Button>
             </div>
-          </div>}
+          </Dialog>
           <input aria-label="Search Paperless documents" className="w-full max-w-sm rounded border bg-background p-2" placeholder="Search Paperless documents…" value={search} onChange={(event) => { setPage(1); setSearch(event.target.value) }} />
           <div className="flex flex-col gap-1.5">
             {filtered.map((doc) => (
