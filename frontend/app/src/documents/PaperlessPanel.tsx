@@ -11,8 +11,6 @@ type DocumentList = { count: number; results: PaperlessDoc[]; next?: string | nu
 
 export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload: boolean; onUploadOpenChange: (open: boolean) => void }) {
   const [connection, setConnection] = useState<Connection | null>(null)
-  const [url, setUrl] = useState('')
-  const [token, setToken] = useState('')
   const [documents, setDocuments] = useState<PaperlessDoc[]>([])
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
@@ -51,23 +49,6 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
   useEffect(() => {
     void refresh().catch(() => toast.error('Could not load Paperless connection'))
   }, [page, search])
-
-  async function save() {
-    setBusy(true)
-    try {
-      await apiFetch('/paperless/connection', {
-        method: 'PUT',
-        body: JSON.stringify({ url, token }),
-      })
-      setToken('')
-      await refresh()
-      toast.success('Paperless connection saved')
-    } catch {
-      toast.error('Could not save Paperless connection')
-    } finally {
-      setBusy(false)
-    }
-  }
 
   async function createReference(resource: string) {
     const name = (newReferenceNames[resource] ?? '').trim()
@@ -199,22 +180,12 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
       {connection === null ? (
         <p>Loading connection…</p>
       ) : !connection.configured ? (
-        <div className="flex max-w-lg flex-col gap-3">
-          <label className="text-sm">Paperless server URL
-            <input className="mt-1 w-full rounded border bg-background p-2" value={url} onChange={(event) => setUrl(event.target.value)} placeholder="https://paperless.example.com" />
-          </label>
-          <label className="text-sm">API token
-            <input type="password" autoComplete="off" className="mt-1 w-full rounded border bg-background p-2" value={token} onChange={(event) => setToken(event.target.value)} />
-          </label>
-          <Button disabled={busy || !url || !token} onClick={() => void save()}>Connect Paperless</Button>
-          <p className="text-xs text-muted-foreground">The administrator must first add this origin to PAPERLESS_ALLOWED_ORIGINS.</p>
-        </div>
+        <p className="text-sm text-muted-foreground">Paperless-ngx is not configured. An administrator can connect it in Administration → Application settings.</p>
       ) : (
         <>
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm">Connected: {connection.url}</span>
             <Button variant="outline" size="sm" disabled={busy} onClick={() => void refresh()}>Refresh</Button>
-            <Button variant="outline" size="sm" disabled={busy} onClick={() => void apiFetch('/paperless/connection', { method: 'DELETE' }).then(refresh).catch(() => toast.error('Disconnect failed'))}>Disconnect</Button>
           </div>
           <div className="flex justify-end">
             <Button onClick={() => onUploadOpenChange(true)}>Upload document</Button>
