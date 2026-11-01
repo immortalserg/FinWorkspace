@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Dialog } from '../ui/Dialog'
+import { PencilEdit02Icon } from '@hugeicons/core-free-icons'
 import { apiFetch } from '../lib/apiClient'
 
 type Option = { id: number; name: string }
@@ -108,13 +111,12 @@ export function PaperlessEditDialog({
   }
 
   return (
-    <div role="dialog" aria-modal="true" aria-label="Edit Paperless document" className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="max-h-[90vh] w-full max-w-xl space-y-4 overflow-y-auto rounded-xl bg-background p-5 shadow-xl">
-        <h3 className="text-lg font-semibold">Edit Paperless document</h3>
+    <Dialog open={true} title="Edit Paperless document" icon={PencilEdit02Icon} size="lg" onOpenChange={(open) => { if (!open) onClose() }} footer={<><Button variant="outline" onClick={onClose}>Cancel</Button><Button disabled={!details || busy || !details.title.trim()} onClick={() => void save()}>Save changes</Button></>}>
+      <div className="space-y-4">
         {!details ? <p>Loading metadata…</p> : (
           <>
             <label className="block text-sm">Title
-              <input className="mt-1 w-full rounded border bg-background p-2" value={details.title} onChange={(event) => setDetails({ ...details, title: event.target.value })} />
+              <Input className="mt-1" value={details.title} onChange={(event) => setDetails({ ...details, title: event.target.value })} />
             </label>
             {resources.map(({ key, label, field }) => (
               <div key={key} className="space-y-2">
@@ -150,11 +152,7 @@ export function PaperlessEditDialog({
             </fieldset>
           </>
         )}
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button disabled={!details || busy} onClick={() => void save()}>Save</Button>
-        </div>
       </div>
-    </div>
+    </Dialog>
   )
 }
