@@ -6,6 +6,7 @@ import { Plus, ReceiptText, Sparkles, FilePlus2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAdvisor } from '../ai-advisor/advisorContext'
 import { TransactionFormDialog } from '../transactions/TransactionFormDialog'
+import { apiFetch } from '../lib/apiClient'
 
 /** Distance from the main button to the centre of each petal, in px. */
 const PETAL_RADIUS = 92
@@ -46,6 +47,13 @@ export function SpeedDial() {
   const { available, open: openAdvisor } = useAdvisor()
   const [isOpen, setIsOpen] = useState(false)
   const [addingTransaction, setAddingTransaction] = useState(false)
+  const [paperlessConfigured, setPaperlessConfigured] = useState(false)
+
+  useEffect(() => {
+    void apiFetch<{ configured: boolean }>('/paperless/connection')
+      .then((result) => setPaperlessConfigured(result.configured))
+      .catch(() => setPaperlessConfigured(false))
+  }, [])
   const mainButtonRef = useRef<HTMLButtonElement>(null)
   const reduceMotion = useReducedMotion()
   const inwardSign = i18n.dir() === 'rtl' ? -1 : 1
@@ -75,12 +83,16 @@ export function SpeedDial() {
     },
     {
       key: 'add-document',
-      label: t('speedDial.addDocument'),
+      label: paperlessConfigured ? 'Upload to Local documents' : t('speedDial.addDocument'),
       icon: <FilePlus2 />,
-      onSelect: choose(() => {
-        navigate('/documents?upload=1')
-      }),
+      onSelect: choose(() => navigate('/documents?upload=local')),
     },
+    ...(paperlessConfigured ? [{
+      key: 'add-paperless-document',
+      label: 'Upload to Paperless-ngx',
+      icon: <FilePlus2 />,
+      onSelect: choose(() => navigate('/documents?upload=paperless')),
+    }] : []),
     // Hidden rather than disabled when the server has the advisor switched
     // off: a petal that leads nowhere is just clutter.
     ...(available
