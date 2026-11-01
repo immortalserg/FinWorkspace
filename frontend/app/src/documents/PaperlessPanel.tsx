@@ -13,6 +13,8 @@ export function PaperlessPanel() {
   const [token, setToken] = useState('')
   const [documents, setDocuments] = useState<PaperlessDoc[]>([])
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
   const [file, setFile] = useState<File | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -20,7 +22,10 @@ export function PaperlessPanel() {
     const status = await apiFetch<Connection>('/paperless/connection')
     setConnection(status)
     if (status.configured) {
-      const result = await apiFetch<DocumentList>('/paperless/documents')
+      const query = new URLSearchParams({ page: String(page), page_size: '25' })
+      if (search.trim()) query.set('search', search.trim())
+      const result = await apiFetch<DocumentList>(`/paperless/documents?${query}`)
+      setTotal(result.count ?? 0)
       setDocuments(result.results ?? [])
     } else {
       setDocuments([])
@@ -29,7 +34,7 @@ export function PaperlessPanel() {
 
   useEffect(() => {
     void refresh().catch(() => toast.error('Could not load Paperless connection'))
-  }, [])
+  }, [page, search])
 
   async function save() {
     setBusy(true)
@@ -102,7 +107,7 @@ export function PaperlessPanel() {
     }
   }
 
-  const filtered = documents.filter((doc) => doc.title.toLowerCase().includes(search.toLowerCase()))
+  const filtered = documents
 
   return (
     <div className="space-y-5 rounded-xl border p-5">
@@ -134,7 +139,7 @@ export function PaperlessPanel() {
             <input aria-label="Choose document" type="file" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
             <Button disabled={busy || !file} onClick={() => void upload()}>Upload to Paperless</Button>
           </div>
-          <input aria-label="Search Paperless documents" className="w-full max-w-sm rounded border bg-background p-2" placeholder="Filter loaded documents…" value={search} onChange={(event) => setSearch(event.target.value)} />
+          <input aria-label="Search Paperless documents" className="w-full max-w-sm rounded border bg-background p-2" placeholder="Search Paperless documents…" value={search} onChange={(event) => { setPage(1); setSearch(event.target.value) }} />
           <div className="divide-y rounded-lg border">
             {filtered.map((doc) => (
               <div key={doc.id} className="flex items-center gap-3 p-3">
@@ -145,7 +150,11 @@ export function PaperlessPanel() {
             ))}
             {!filtered.length && <p className="p-4 text-sm text-muted-foreground">No documents on this page.</p>}
           </div>
-          <p className="text-xs text-muted-foreground">Currently showing the first page returned by Paperless.</p>
+          <div className="flex items-center gap-3 text-sm">
+            <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((value) => value - 1)}>Previous</Button>
+            <span>Page {page} · {total} documents</span>
+            <Button variant="outline" size="sm" disabled={page * 25 >= total} onClick={() => setPage((value) => value + 1)}>Next</Button>
+          </div>
         </>
       )}
     </div>
