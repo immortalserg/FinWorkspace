@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
-import { FileText, MoreVertical, Trash2, X } from 'lucide-react'
+import { Download, FileText, MoreVertical, PencilLine, Trash2 } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { apiFetch, getApiBaseUrl } from '../lib/apiClient'
 import { PaperlessEditDialog } from './PaperlessEditDialog'
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 
 type Connection = { configured: boolean; url: string | null }
 type PaperlessDoc = { id: number; title: string; created?: string }
@@ -170,18 +171,11 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
     }
   }
 
-  useEffect(() => {
-    if (!previewUrl) return
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        URL.revokeObjectURL(previewUrl)
-        setPreviewUrl(null)
-        setPreviewId(null)
-      }
-    }
-    window.addEventListener("keydown", onKeyDown)
-    return () => window.removeEventListener("keydown", onKeyDown)
-  }, [previewUrl])
+  function closePreview() {
+    if (previewUrl) URL.revokeObjectURL(previewUrl)
+    setPreviewUrl(null)
+    setPreviewId(null)
+  }
 
   const filtered = documents
 
@@ -291,15 +285,30 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
           {ocrTasks !== null && <pre className="max-h-48 overflow-auto rounded border p-3 text-xs">{JSON.stringify(ocrTasks, null, 2)}</pre>}
         </div>
       )}
-      {previewUrl && (
-        <div role="dialog" aria-modal="true" aria-label={`Preview Paperless document ${previewId}`} className="fixed inset-0 z-[100] flex flex-col bg-background p-4">
-          <div className="relative z-10 mb-3 flex shrink-0 items-center justify-between gap-3">
-            <span className="font-semibold">PDF preview · Document {previewId}</span>
-            <Button type="button" variant="default" className="shrink-0" aria-label="Закрыть документ" onClick={() => { URL.revokeObjectURL(previewUrl); setPreviewUrl(null); setPreviewId(null) }}><X className="mr-2 h-4 w-4" />Закрыть</Button>
-          </div>
-          <iframe title="Paperless PDF preview" src={previewUrl} className="min-h-0 w-full flex-1 rounded border" />
-        </div>
-      )}
+      <Sheet open={!!previewUrl} onOpenChange={(open) => { if (!open) closePreview() }}>
+        <SheetContent side="right" className="w-full sm:max-w-lg">
+          {previewUrl && previewId !== null && (
+            <>
+              <SheetHeader className="flex-row items-start gap-3 border-b pe-12">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground"><FileText size={20} /></span>
+                <div className="min-w-0 flex-1">
+                  <SheetTitle className="truncate">{documents.find((item) => item.id === previewId)?.title ?? 'Document'}</SheetTitle>
+                </div>
+              </SheetHeader>
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                <div className="flex min-h-64 items-center justify-center bg-muted/40">
+                  <iframe src={previewUrl} title="Paperless PDF preview" className="h-[60vh] w-full border-0" />
+                </div>
+              </div>
+              <SheetFooter className="flex-row border-t pt-4">
+                <Button className="flex-1" onClick={() => void download(previewId)}><Download data-icon="inline-start" />Download</Button>
+                <Button variant="outline" size="icon" aria-label="Edit" onClick={() => { const id = previewId; closePreview(); setEditingId(id) }}><PencilLine /></Button>
+                <Button variant="destructive" size="icon" aria-label="Delete" onClick={() => { const id = previewId; closePreview(); void remove(id) }}><Trash2 /></Button>
+              </SheetFooter>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
       {editingId !== null && <PaperlessEditDialog documentId={editingId} onClose={() => setEditingId(null)} onSaved={() => void refresh()} />}
     </div>
   )
