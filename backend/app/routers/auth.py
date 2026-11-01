@@ -2,6 +2,7 @@ import logging
 from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from pydantic import BaseModel, EmailStr, Field
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
@@ -61,6 +62,12 @@ def _send_verification_email(db: Session, user: User, request: Request) -> None:
     )
 
 
+class InitialAdminInput(BaseModel):
+    email: EmailStr
+    full_name: str = Field(min_length=1)
+    password: str = Field(min_length=8, max_length=72)
+
+
 @router.get("/setup-status")
 def setup_status(db: Session = Depends(get_db)):
     """Public flag used to show first-run setup; does not expose user details."""
@@ -68,7 +75,7 @@ def setup_status(db: Session = Depends(get_db)):
 
 
 @router.post("/setup", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def setup_first_admin(user_data: UserCreate, request: Request, db: Session = Depends(get_db)):
+def setup_first_admin(user_data: InitialAdminInput, request: Request, db: Session = Depends(get_db)):
     """Create the first administrator exactly once, without an invite code."""
     from sqlalchemy import text
 
