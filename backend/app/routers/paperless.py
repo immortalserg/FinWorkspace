@@ -60,6 +60,104 @@ def remove_connection(user: User = Depends(require_admin)):
     store.delete_connection(0)
 
 
+
+_SYNC_RESOURCES = ("tags", "document_types", "correspondents", "storage_paths", "custom_fields")
+
+
+def _sync_settings_path():
+    from app.config import settings
+    from pathlib import Path
+    return Path(settings.DOCUMENTS_DIR) / "0" / "_paperless_sync.json"
+
+
+def _sync_settings():
+    import json
+    path = _sync_settings_path()
+    if not path.exists():
+        return {"paperless_to_local": False, "local_to_paperless": False}
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    return {key: raw.get(key) is True for key in ("paperless_to_local", "local_to_paperless")}
+
+
+@router.get("/sync-settings")
+def get_sync_settings(user: User = Depends(require_admin)):
+    return _sync_settings()
+
+
+@router.put("/sync-settings")
+def put_sync_settings(payload: dict[str, bool], user: User = Depends(require_admin)):
+    import json
+    import os
+    import tempfile
+    keys = {"paperless_to_local", "local_to_paperless"}
+    if set(payload) != keys or any(type(value) is not bool for value in payload.values()):
+        raise HTTPException(422, "Invalid synchronization settings")
+    path = _sync_settings_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(prefix=".paperless-sync-", dir=path.parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as output:
+            json.dump(payload, output)
+        os.replace(tmp, path)
+    finally:
+        if os.path.exists(tmp):
+            os.unlink(tmp)
+    return payload
+
+
+async def _all_resources(client, resource):
+    items = []
+    page = 1
+    while True:
+        result = await client.list(resource, params={"page": page, "page_size": 100})
+        batch = result.get("results", [])
+        items.extend(batch)
+        if not result.get("next") or not batch:
+            return items
+        page += 1
+
+
+@router.post("/sync-metadata")
+async def sync_metadata(user: User = Depends(require_admin)):
+    from app.routers import documents as local
+    settings = _sync_settings()
+    if not any(settings.values()):
+        return {"created_local": 0, "created_paperless": 0}
+    client = _client(user)
+    index = local._load_index(user.id)
+    definitions = index.setdefault("metadata_definitions", {})
+    counts = {"created_local": 0, "created_paperless": 0}
+    try:
+        for resource in _SYNC_RESOURCES:
+            remote = await _all_resources(client, resource)
+            existing = definitions.setdefault(resource, [])
+            local_names = {entry["name"].casefold() for entry in existing}
+            remote_names = {entry["name"].casefold() for entry in remote}
+            if settings["paperless_to_local"]:
+                for entry in remote:
+                    if entry["name"].casefold() not in local_names:
+                        existing.append({key: entry[key] for key in ("name", "data_type", "extra_data")
+                                         if key in entry})
+                        local_names.add(entry["name"].casefold())
+                        counts["created_local"] += 1
+            if settings["local_to_paperless"]:
+                for entry in existing:
+                    if entry["name"].casefold() not in remote_names:
+                        payload = {"name": entry["name"]}
+                        if resource == "custom_fields":
+                            payload["data_type"] = entry.get("data_type", "string")
+                            if entry.get("extra_data") is not None:
+                                payload["extra_data"] = entry["extra_data"]
+                        await client.create(resource, payload)
+                        remote_names.add(entry["name"].casefold())
+                        counts["created_paperless"] += 1
+        if settings["paperless_to_local"]:
+            local._save_index(user.id, index)
+        return counts
+    except PaperlessError as exc:
+        raise _error(exc)
+
+
 @router.get("/test")
 async def test_connection(user: User = Depends(get_current_user)):
     try:
