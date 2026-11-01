@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useTranslation } from 'react-i18next'
-import { Plus, ReceiptText, Sparkles } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Plus, ReceiptText, Sparkles, FilePlus2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAdvisor } from '../ai-advisor/advisorContext'
 import { TransactionFormDialog } from '../transactions/TransactionFormDialog'
@@ -41,6 +42,7 @@ function petalOffset(index: number, count: number, inwardSign: 1 | -1) {
  */
 export function SpeedDial() {
   const { t, i18n } = useTranslation('nav')
+  const navigate = useNavigate()
   const { available, open: openAdvisor } = useAdvisor()
   const [isOpen, setIsOpen] = useState(false)
   const [addingTransaction, setAddingTransaction] = useState(false)
@@ -70,6 +72,14 @@ export function SpeedDial() {
       label: t('speedDial.addTransaction'),
       icon: <ReceiptText />,
       onSelect: choose(() => setAddingTransaction(true)),
+    },
+    {
+      key: 'add-document',
+      label: t('speedDial.addDocument'),
+      icon: <FilePlus2 />,
+      onSelect: choose(() => {
+        navigate('/documents?upload=1')
+      }),
     },
     // Hidden rather than disabled when the server has the advisor switched
     // off: a petal that leads nowhere is just clutter.
