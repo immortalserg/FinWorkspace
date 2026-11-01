@@ -221,6 +221,58 @@ def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
     }
 
 
+@router.post("/mobile-web-session")
+def create_mobile_web_session(
+    current_user: User = Depends(get_current_user_authenticated),
+    db: Session = Depends(get_db),
+):
+    """Issue a short-lived, single-use code for a mobile WebView login."""
+    code = auth_tokens.create_user_token(db, current_user.id, "mobile_web", 1)
+    return {"code": code, "expires_in": 60}
+
+
+@router.post("/mobile-web-session/exchange", response_model=Token)
+def exchange_mobile_web_session(
+    payload: dict,
+    db: Session = Depends(get_db),
+):
+    """Redeem a one-time code; never accept a JWT through the WebView URL."""
+    code = payload.get("code")
+    if not isinstance(code, str) or not (20 <= len(code) <= 256):
+        raise HTTPException(status_code=401, detail="Invalid or expired login code")
+    from app.models.user_token import UserToken
+    from sqlalchemy import update
+    now = datetime.utcnow()
+    token_hash = auth_tokens.hash_token(code)
+    # Atomic claim: concurrent redemption can succeed only once.
+    result = db.execute(
+        update(UserToken)
+        .where(
+            UserToken.token_hash == token_hash,
+            UserToken.purpose == "mobile_web",
+            UserToken.used_at.is_(None),
+            UserToken.expires_at > now,
+        )
+        .values(used_at=now)
+    )
+    if result.rowcount != 1:
+        db.rollback()
+        raise HTTPException(status_code=401, detail="Invalid or expired login code")
+    token = db.query(UserToken).filter(UserToken.token_hash == token_hash).first()
+    user = db.query(User).filter(User.id == token.user_id).first()
+    if not user or not user.is_active or token_issued_before_session_invalidation(
+        {"iat": int(token.created_at.timestamp())}, user
+    ):
+        db.rollback()
+        raise HTTPException(status_code=401, detail="Invalid or expired login code")
+    db.commit()
+    return {
+        "access_token": create_access_token(data={"sub": str(user.id)}),
+        "refresh_token": create_refresh_token(data={"sub": str(user.id)}),
+        "token_type": "bearer",
+    }
+
+
 @router.post("/logout")
 def logout(current_user: User = Depends(get_current_user_authenticated)):
     """Logout user (client should discard tokens)."""
