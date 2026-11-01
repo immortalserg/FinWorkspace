@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { apiFetch, getApiBaseUrl } from '../lib/apiClient'
 import { PaperlessEditDialog } from './PaperlessEditDialog'
+import { PdfViewer } from './PdfViewer'
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 
 type Connection = { configured: boolean; url: string | null }
@@ -297,7 +298,7 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
               </SheetHeader>
               <div className="min-h-0 flex-1 overflow-y-auto">
                 <div className="flex min-h-64 items-center justify-center bg-muted/40">
-                  <iframe src={previewUrl} title="Paperless PDF preview" className="h-[60vh] w-full border-0" />
+                  <PdfViewer src={previewUrl} />
                 </div>
               </div>
               <SheetFooter className="flex-row border-t pt-4">
