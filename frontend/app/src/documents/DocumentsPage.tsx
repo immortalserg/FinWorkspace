@@ -65,6 +65,15 @@ export function DocumentsPage() {
       .catch(() => setPaperlessConfigured(false))
   }, [])
 
+  async function copyToPaperless(doc: DocumentItem) {
+    try {
+      await apiFetch(`/paperless/copy-from-local/${encodeURIComponent(doc.id)}`, { method: 'POST' })
+      toast.success('Document submitted to Paperless for OCR processing')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Copy to Paperless failed')
+    }
+  }
+
   function openUpload(destination: 'local' | 'paperless') {
     setProvider(destination)
     if (destination === 'paperless') setPaperlessUploadOpen(true)
@@ -340,6 +349,7 @@ export function DocumentsPage() {
                     onOpen={() => setPreviewDoc(doc)}
                     onEdit={() => setEditingDoc(doc)}
                     onDelete={() => handleDeleteDoc(doc)}
+                    onCopy={paperlessConfigured ? () => void copyToPaperless(doc) : undefined}
                   />
                 ))}
               </div>
@@ -354,6 +364,7 @@ export function DocumentsPage() {
                     onOpen={() => setPreviewDoc(doc)}
                     onEdit={() => setEditingDoc(doc)}
                     onDelete={() => handleDeleteDoc(doc)}
+                    onCopy={paperlessConfigured ? () => void copyToPaperless(doc) : undefined}
                   />
                 ))}
               </div>
@@ -440,7 +451,7 @@ function FolderRailItem({
   )
 }
 
-function DocumentActionsMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) {
+function DocumentActionsMenu({ onEdit, onDelete, onCopy }: { onEdit: () => void; onDelete: () => void; onCopy?: () => void }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -456,6 +467,7 @@ function DocumentActionsMenu({ onEdit, onDelete }: { onEdit: () => void; onDelet
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
         <DropdownMenuItem onClick={onEdit}>Edit details</DropdownMenuItem>
+        {onCopy && <DropdownMenuItem onClick={onCopy}>Copy to Paperless-ngx</DropdownMenuItem>}
         <DropdownMenuItem variant="destructive" onClick={onDelete}>
           <Trash2 />
           Delete
@@ -470,11 +482,13 @@ function DocumentCard({
   onOpen,
   onEdit,
   onDelete,
+  onCopy,
 }: {
   doc: DocumentItem
   onOpen: () => void
   onEdit: () => void
   onDelete: () => void
+  onCopy?: () => void
 }) {
   const meta = fileTypeMeta(doc.mime_type, doc.filename)
   return (
@@ -486,7 +500,7 @@ function DocumentCard({
       className="group/card relative flex cursor-pointer flex-col items-center gap-2.5 rounded-xl bg-card p-4 text-center shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover"
     >
       <div className="absolute end-2 top-2 opacity-0 transition-opacity group-hover/card:opacity-100 group-focus-within/card:opacity-100">
-        <DocumentActionsMenu onEdit={onEdit} onDelete={onDelete} />
+        <DocumentActionsMenu onEdit={onEdit} onDelete={onDelete} onCopy={onCopy} />
       </div>
       <span className={cn('flex h-16 w-14 items-center justify-center rounded-lg', meta.className)}>
         <meta.icon size={26} />
@@ -504,11 +518,13 @@ function DocumentRow({
   onOpen,
   onEdit,
   onDelete,
+  onCopy,
 }: {
   doc: DocumentItem
   onOpen: () => void
   onEdit: () => void
   onDelete: () => void
+  onCopy?: () => void
 }) {
   const meta = fileTypeMeta(doc.mime_type, doc.filename)
   return (
@@ -530,7 +546,7 @@ function DocumentRow({
         {formatDate(doc.uploaded_at)}
       </span>
       <span className="shrink-0 text-xs text-muted-foreground">{formatBytes(doc.size)}</span>
-      <DocumentActionsMenu onEdit={onEdit} onDelete={onDelete} />
+      <DocumentActionsMenu onEdit={onEdit} onDelete={onDelete} onCopy={onCopy} />
     </div>
   )
 }
