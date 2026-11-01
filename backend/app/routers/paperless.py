@@ -1,9 +1,7 @@
 """Authenticated Paperless integration endpoints.
 
-Only origins explicitly approved by the server administrator are reachable.
-Set PAPERLESS_ALLOWED_ORIGINS as a comma-separated list of HTTP(S) origins.
+The administrator configures one shared Paperless endpoint and encrypted token.
 """
-import os
 
 from fastapi import APIRouter, Depends, HTTPException, File, Form, UploadFile, Query
 from fastapi.responses import Response
@@ -15,7 +13,7 @@ from app.models.user import User
 from app.services.paperless_client import PaperlessClient, PaperlessError
 from app.services import paperless_connection as store
 from app.utils.crypto import DecryptionError
-from app.utils.security import get_current_user_authenticated as get_current_user
+from app.utils.security import get_current_user_authenticated as get_current_user, require_admin
 
 router = APIRouter(prefix="/paperless", tags=["Paperless"])
 
@@ -25,21 +23,16 @@ class ConnectionInput(BaseModel):
     token: str = Field(min_length=1, max_length=1024)
 
 
-def _approved(url: str) -> bool:
-    allowed = {s.strip().rstrip("/") for s in os.environ.get(
-        "PAPERLESS_ALLOWED_ORIGINS", "").split(",") if s.strip()}
-    return bool(allowed) and url.rstrip("/") in allowed
-
-
 def _client(user: User) -> PaperlessClient:
     try:
-        saved = store.read_connection(user.id)
+        saved = store.read_connection(0)
+        if not saved:
+            # Backwards compatibility with previously configured per-user connections.
+            saved = store.read_connection(user.id)
     except (DecryptionError, ValueError, KeyError, OSError):
         raise HTTPException(409, "Paperless credentials need to be configured again")
     if not saved:
         raise HTTPException(404, "Paperless connection not configured")
-    if not _approved(saved["url"]):
-        raise HTTPException(403, "Paperless origin is not approved by the administrator")
     return PaperlessClient(saved["url"], saved["token"])
 
 
@@ -49,24 +42,22 @@ def _error(exc: PaperlessError) -> HTTPException:
 
 @router.get("/connection")
 def get_connection(user: User = Depends(get_current_user)):
-    return store.connection_status(user.id)
+    return store.connection_status(0)
 
 
 @router.put("/connection")
-def set_connection(payload: ConnectionInput, user: User = Depends(get_current_user)):
+def set_connection(payload: ConnectionInput, user: User = Depends(require_admin)):
     try:
         client = PaperlessClient(payload.url, payload.token)
     except ValueError:
         raise HTTPException(422, "Invalid Paperless URL or token")
-    if not _approved(client.base_url):
-        raise HTTPException(403, "Paperless origin is not approved by the administrator")
-    store.save_connection(user.id, client.base_url, payload.token)
+    store.save_connection(0, client.base_url, payload.token)
     return store.connection_status(user.id)
 
 
 @router.delete("/connection", status_code=204)
-def remove_connection(user: User = Depends(get_current_user)):
-    store.delete_connection(user.id)
+def remove_connection(user: User = Depends(require_admin)):
+    store.delete_connection(0)
 
 
 @router.get("/test")
