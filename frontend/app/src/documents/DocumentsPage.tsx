@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router-dom'
 import {
   FileText,
@@ -52,6 +53,7 @@ function formatBytes(size: number): string {
 type ViewMode = 'grid' | 'list'
 
 export function DocumentsPage() {
+  const { t } = useTranslation('nav')
   const [params, setParams] = useSearchParams()
   const [paperlessUploadOpen, setPaperlessUploadOpen] = useState(false)
   const [provider, setProvider] = useState<'local' | 'paperless'>('local')
@@ -149,8 +151,7 @@ export function DocumentsPage() {
   return (
     <PageContainer wide>
       <PageHeader
-        title="Documents"
-        description="Store and organize financial documents such as bank agreements, insurance policies, bills, and receipts."
+        title={t("items.documents")}
         action={
           <>
             <Button
