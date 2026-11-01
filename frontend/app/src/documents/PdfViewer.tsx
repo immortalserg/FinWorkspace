@@ -15,6 +15,7 @@ export function PdfViewer({ src }: { src: string }) {
   const viewerRef = useRef<HTMLDivElement>(null)
   const controllerRef = useRef<PDFViewer | null>(null)
   const findRef = useRef<PDFFindController | null>(null)
+  const findEventBusRef = useRef<EventBus | null>(null)
   const [pages, setPages] = useState(0)
   const [current, setCurrent] = useState(1)
   const [zoom, setZoom] = useState('page-width')
@@ -42,6 +43,7 @@ export function PdfViewer({ src }: { src: string }) {
     linkService.setViewer(viewer)
     controllerRef.current = viewer
     findRef.current = findController
+    findEventBusRef.current = eventBus
     setLoading(true)
     setError('')
     setPages(0)
@@ -86,9 +88,9 @@ export function PdfViewer({ src }: { src: string }) {
       eventBus.off('pagechanging', onPageChanging)
       controllerRef.current = null
       findRef.current = null
-      viewer.setDocument(null)
-      findController.setDocument(null)
-      linkService.setDocument(null)
+      findEventBusRef.current = null
+      // Destroying the loading task releases the document and its worker.
+      // PDF.js 5 type definitions do not accept null for setDocument.
       void task.destroy()
     }
   }, [src])
@@ -104,7 +106,8 @@ export function PdfViewer({ src }: { src: string }) {
   const search = (value: string) => {
     setQuery(value)
     if (!findRef.current || !pages) return
-    findRef.current.executeCommand('find', {
+    // PDF.js 5 find controller listens for find events on its EventBus.
+    findEventBusRef.current?.dispatch('find', { source: null, type: '',
       query: value, phraseSearch: true, caseSensitive: false,
       entireWord: false, highlightAll: true, findPrevious: false,
     })
