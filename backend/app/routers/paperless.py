@@ -5,7 +5,7 @@ Set PAPERLESS_ALLOWED_ORIGINS as a comma-separated list of HTTP(S) origins.
 """
 import os
 
-from fastapi import APIRouter, Depends, HTTPException, File, Form, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, File, Form, UploadFile, Query
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
@@ -174,9 +174,15 @@ async def delete_resource(
 
 
 @router.get("/{resource}")
-async def list_resource(resource: str, user: User = Depends(get_current_user)):
+async def list_resource(resource: str, user: User = Depends(get_current_user),
+                        page: int = Query(1, ge=1),
+                        page_size: int = Query(25, ge=1, le=100),
+                        search: str | None = Query(None, max_length=200)):
     try:
-        return await _client(user).list(resource)
+        params = {"page": page, "page_size": page_size}
+        if search:
+            params["search"] = search
+        return await _client(user).list(resource, params=params)
     except ValueError:
         raise HTTPException(404, "Unknown Paperless resource")
     except PaperlessError as exc:
