@@ -40,6 +40,7 @@ export interface UpdateDocumentInput {
   title?: string
   description?: string
   folder?: string
+  paperless_metadata?: LocalMetadata
 }
 
 function buildQuery(filters: DocumentFilters = {}): string {
