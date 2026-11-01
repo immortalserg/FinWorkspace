@@ -139,6 +139,41 @@ def _ensure_folder(index: dict[str, Any], folder_name: str) -> None:
         index["folders"].append(folder_name)
 
 
+
+
+_METADATA_KEYS = {"created", "document_type", "correspondent", "storage_path", "tags",
+                  "archive_serial_number", "custom_fields"}
+
+
+def _validate_metadata(metadata: Any) -> None:
+    if not isinstance(metadata, dict) or not metadata.keys() <= _METADATA_KEYS:
+        raise HTTPException(status_code=422, detail="Invalid document metadata")
+    if len(json.dumps(metadata, ensure_ascii=False)) > 262144:
+        raise HTTPException(status_code=413, detail="Document metadata too large")
+    if "tags" in metadata and (not isinstance(metadata["tags"], list) or
+                                not all(isinstance(tag, str) for tag in metadata["tags"])):
+        raise HTTPException(status_code=422, detail="Tags must be a list of names")
+    if "custom_fields" in metadata and not isinstance(metadata["custom_fields"], dict):
+        raise HTTPException(status_code=422, detail="Custom fields must be an object")
+
+
+@router.get("/metadata/definitions")
+def metadata_definitions(user: User = Depends(get_current_user)):
+    return _load_index(user.id).get("metadata_definitions", {})
+
+
+@router.put("/metadata/definitions")
+def save_metadata_definitions(body: dict, user: User = Depends(get_current_user)):
+    allowed = {"document_types", "correspondents", "storage_paths", "tags", "custom_fields"}
+    if not body.keys() <= allowed or any(not isinstance(v, list) for v in body.values()):
+        raise HTTPException(status_code=422, detail="Invalid metadata definitions")
+    if len(json.dumps(body, ensure_ascii=False)) > 262144:
+        raise HTTPException(status_code=413, detail="Metadata definitions too large")
+    index = _load_index(user.id)
+    index.setdefault("metadata_definitions", {}).update(body)
+    _save_index(user.id, index)
+    return index["metadata_definitions"]
+
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
@@ -212,6 +247,7 @@ def upload_document(
     title: str = Form(...),
     description: str = Form(""),
     folder: str = Form(""),
+    paperless_metadata: str = Form("{}"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -234,6 +270,12 @@ def upload_document(
         guessed, _ = mimetypes.guess_type(original_name)
         mime = guessed or mime
 
+    try:
+        metadata = json.loads(paperless_metadata)
+        _validate_metadata(metadata)
+    except (ValueError, TypeError) as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
     doc_id = str(uuid.uuid4())
     stored_name = f"{doc_id}{suffix}"
     dest = _user_dir(current_user.id) / stored_name
@@ -250,6 +292,7 @@ def upload_document(
         "size": len(content),
         "mime_type": mime,
         "uploaded_at": datetime.now(timezone.utc).isoformat(),
+        "paperless_metadata": metadata,
     }
 
     index = _load_index(current_user.id)
@@ -352,6 +395,10 @@ def update_document(
         doc["folder"] = folder_clean
         if folder_clean:
             _ensure_folder(index, folder_clean)
+
+    if "paperless_metadata" in body:
+        _validate_metadata(body["paperless_metadata"])
+        doc["paperless_metadata"] = body["paperless_metadata"]
 
     _save_index(current_user.id, index)
     return doc
