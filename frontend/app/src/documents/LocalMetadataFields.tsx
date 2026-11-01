@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { apiFetch } from '../lib/apiClient'
@@ -26,6 +27,8 @@ export function LocalMetadataFields({ value, onChange }: {
   const [definitions, setDefinitions] = useState<Definitions>({})
   const [newNames, setNewNames] = useState<Record<string, string>>({})
   const [tagParent, setTagParent] = useState('')
+  const [tagsOpen, setTagsOpen] = useState(false)
+  const [expandedTags, setExpandedTags] = useState<string[]>([])
   useEffect(() => {
     void apiFetch<Definitions>('/documents/metadata/definitions')
       .then(setDefinitions).catch(() => {})
@@ -68,12 +71,52 @@ export function LocalMetadataFields({ value, onChange }: {
       ))}
       <fieldset className="space-y-2">
         <legend className="text-sm">Tags</legend>
-        <div className="flex flex-wrap gap-2">
-          {Array.from(new Set([...(definitions.tags ?? []).map((x) => x.name), ...(value.tags ?? [])])).map((name) => (
-            <label key={name} className="flex items-center gap-1 text-sm">
-              <input type="checkbox" checked={(value.tags ?? []).includes(name)} onChange={(e) => onChange({ ...value, tags: e.target.checked ? [...(value.tags ?? []), name] : (value.tags ?? []).filter((x) => x !== name) })} />{(definitions.tags ?? []).find((tag) => tag.name === name)?.parent ? `${(definitions.tags ?? []).find((tag) => tag.name === name)?.parent} / ` : ''}{name}
-            </label>
-          ))}
+        <div className="relative">
+          <Button type="button" variant="outline" className="w-full justify-between text-start" aria-expanded={tagsOpen}
+            onClick={() => setTagsOpen((open) => !open)}>
+            <span className="truncate">{(value.tags ?? []).length ? `Selected tags: ${(value.tags ?? []).length}` : 'Select tags'}</span>
+            <span aria-hidden="true">{tagsOpen ? '▴' : '▾'}</span>
+          </Button>
+          {tagsOpen && (
+            <div className="mt-1 max-h-72 overflow-y-auto rounded-lg border bg-background p-2 shadow-sm">
+              {(() => {
+                const tags = [...(definitions.tags ?? [])]
+                for (const name of value.tags ?? []) {
+                  if (!tags.some((tag) => tag.name === name)) tags.push({ name })
+                }
+                const known = new Set(tags.map((tag) => tag.name))
+                const children = (parent: string | null) => tags.filter((tag) =>
+                  (tag.parent && known.has(tag.parent) ? tag.parent : null) === parent)
+                const renderBranch = (parent: string | null, depth: number, visited: Set<string>): ReactNode =>
+                  children(parent).filter((tag) => !visited.has(tag.name)).map((tag) => {
+                    const nextVisited = new Set([...visited, tag.name])
+                    const hasChildren = children(tag.name).some((child) => !nextVisited.has(child.name))
+                    const expanded = expandedTags.includes(tag.name)
+                    return (
+                      <div key={tag.name}>
+                        <div className="flex min-h-8 items-center gap-1 rounded px-1 hover:bg-muted/50" style={{ paddingInlineStart: `${depth * 16 + 4}px` }}>
+                          {hasChildren ? (
+                            <button type="button" className="flex size-6 shrink-0 items-center justify-center" aria-label={`${expanded ? 'Collapse' : 'Expand'} ${tag.name}`}
+                              onClick={() => setExpandedTags((current) => expanded ? current.filter((name) => name !== tag.name) : [...current, tag.name])}>
+                              {expanded ? '▾' : '▸'}
+                            </button>
+                          ) : <span className="inline-block w-6 shrink-0" />}
+                          <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 text-sm">
+                            <input type="checkbox" checked={(value.tags ?? []).includes(tag.name)}
+                              onChange={(event) => onChange({ ...value, tags: event.target.checked
+                                ? [...(value.tags ?? []), tag.name]
+                                : (value.tags ?? []).filter((name) => name !== tag.name) })} />
+                            <span className="truncate" title={tag.name}>{tag.name}</span>
+                          </label>
+                        </div>
+                        {hasChildren && expanded && renderBranch(tag.name, depth + 1, nextVisited)}
+                      </div>
+                    )
+                  })
+                return tags.length ? renderBranch(null, 0, new Set()) : <p className="p-2 text-xs text-muted-foreground">No tags yet</p>
+              })()}
+            </div>
+          )}
         </div>
         <select aria-label="Parent tag" className="w-full rounded border bg-background p-2 text-sm" value={tagParent} onChange={(e) => setTagParent(e.target.value)}>
           <option value="">No parent (root tag)</option>
