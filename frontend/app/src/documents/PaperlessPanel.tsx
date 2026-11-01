@@ -169,13 +169,25 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
     }
   }
 
+  useEffect(() => {
+    if (!previewUrl) return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        URL.revokeObjectURL(previewUrl)
+        setPreviewUrl(null)
+        setPreviewId(null)
+      }
+    }
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [previewUrl])
+
   const filtered = documents
 
   return (
     <div className="space-y-5 rounded-xl border p-5">
       <div>
         <h2 className="text-lg font-semibold">Paperless-ngx</h2>
-        <p className="text-sm text-muted-foreground">Documents remain stored in Paperless-ngx. Connection credentials are stored on the FinWorkspace server.</p>
       </div>
       {connection === null ? (
         <p>Loading connection…</p>
@@ -183,10 +195,6 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
         <p className="text-sm text-muted-foreground">Paperless-ngx is not configured. An administrator can connect it in Administration → Application settings.</p>
       ) : (
         <>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm">Connected: {connection.url}</span>
-            <Button variant="outline" size="sm" disabled={busy} onClick={() => void refresh()}>Refresh</Button>
-          </div>
           <div className="flex justify-end">
             <Button onClick={() => onUploadOpenChange(true)}>Upload document</Button>
           </div>
@@ -269,10 +277,10 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
         </div>
       )}
       {previewUrl && (
-        <div role="dialog" aria-modal="true" aria-label={`Preview Paperless document ${previewId}`} className="fixed inset-0 z-50 flex flex-col bg-background p-4">
-          <div className="mb-3 flex items-center justify-between">
+        <div role="dialog" aria-modal="true" aria-label={`Preview Paperless document ${previewId}`} className="fixed inset-0 z-[100] flex flex-col bg-background p-4">
+          <div className="relative z-10 mb-3 flex shrink-0 items-center justify-between gap-3">
             <span className="font-semibold">PDF preview · Document {previewId}</span>
-            <Button type="button" variant="outline" aria-label="Закрыть документ" onClick={() => { URL.revokeObjectURL(previewUrl); setPreviewUrl(null); setPreviewId(null) }}><X className="mr-2 h-4 w-4" />Закрыть</Button>
+            <Button type="button" variant="default" className="shrink-0" aria-label="Закрыть документ" onClick={() => { URL.revokeObjectURL(previewUrl); setPreviewUrl(null); setPreviewId(null) }}><X className="mr-2 h-4 w-4" />Закрыть</Button>
           </div>
           <iframe title="Paperless PDF preview" src={previewUrl} className="min-h-0 w-full flex-1 rounded border" />
         </div>
