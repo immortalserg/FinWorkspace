@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { X } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { apiFetch, getApiBaseUrl } from '../lib/apiClient'
@@ -300,7 +301,7 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
         <div role="dialog" aria-modal="true" aria-label={`Preview Paperless document ${previewId}`} className="fixed inset-0 z-50 flex flex-col bg-background p-4">
           <div className="mb-3 flex items-center justify-between">
             <span className="font-semibold">PDF preview · Document {previewId}</span>
-            <Button variant="outline" onClick={() => { URL.revokeObjectURL(previewUrl); setPreviewUrl(null); setPreviewId(null) }}>Close</Button>
+            <Button type="button" variant="outline" aria-label="Закрыть документ" onClick={() => { URL.revokeObjectURL(previewUrl); setPreviewUrl(null); setPreviewId(null) }}><X className="mr-2 h-4 w-4" />Закрыть</Button>
           </div>
           <iframe title="Paperless PDF preview" src={previewUrl} className="min-h-0 w-full flex-1 rounded border" />
         </div>
