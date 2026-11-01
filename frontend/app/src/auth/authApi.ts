@@ -79,3 +79,10 @@ export async function resendVerification(email: string): Promise<void> {
     body: JSON.stringify({ email }),
   })
 }
+
+export async function exchangeMobileSession(code: string): Promise<Token> {
+  return apiFetch<Token>('/auth/mobile-web-session/exchange', {
+    method: 'POST',
+    body: JSON.stringify({ code }),
+  })
+}
