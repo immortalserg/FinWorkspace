@@ -16,6 +16,7 @@ export function PaperlessPanel() {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
+  const [uploadOpen, setUploadOpen] = useState(false)
   const [file, setFile] = useState<File | null>(null)
   const [uploadTitle, setUploadTitle] = useState('')
   const [uploadTags, setUploadTags] = useState<number[]>([])
@@ -115,6 +116,7 @@ export function PaperlessPanel() {
       })
       if (!response.ok) throw new Error(String(response.status))
       setFile(null)
+      setUploadOpen(false)
       setUploadTitle('')
       setUploadTags([])
       setUploadType(null)
@@ -214,8 +216,15 @@ export function PaperlessPanel() {
             <Button variant="outline" size="sm" disabled={busy} onClick={() => void refresh()}>Refresh</Button>
             <Button variant="outline" size="sm" disabled={busy} onClick={() => void apiFetch('/paperless/connection', { method: 'DELETE' }).then(refresh).catch(() => toast.error('Disconnect failed'))}>Disconnect</Button>
           </div>
-          <div className="space-y-3 rounded-lg border p-3">
-            <h3 className="text-sm font-semibold">Upload document</h3>
+          <div className="flex justify-end">
+            <Button onClick={() => setUploadOpen(true)}>Upload document</Button>
+          </div>
+          {uploadOpen && <div role="dialog" aria-modal="true" aria-label="Upload document" className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+            <div className="max-h-[90vh] w-full max-w-2xl space-y-3 overflow-y-auto rounded-xl border bg-background p-5 shadow-xl">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold">Upload document</h3>
+              <Button variant="outline" onClick={() => setUploadOpen(false)}>Close</Button>
+            </div>
             <input aria-label="Choose document" type="file" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
             <input aria-label="Document title" placeholder="Document title (optional)" className="w-full rounded border bg-background p-2 text-sm" value={uploadTitle} onChange={(event) => setUploadTitle(event.target.value)} />
             <div className="grid gap-2 sm:grid-cols-3">
@@ -260,7 +269,8 @@ export function PaperlessPanel() {
               </div>
             </fieldset>
             <Button disabled={busy || !file} onClick={() => void upload()}>Upload to Paperless</Button>
-          </div>
+            </div>
+          </div>}
           <input aria-label="Search Paperless documents" className="w-full max-w-sm rounded border bg-background p-2" placeholder="Search Paperless documents…" value={search} onChange={(event) => { setPage(1); setSearch(event.target.value) }} />
           <div className="divide-y rounded-lg border">
             {filtered.map((doc) => (
