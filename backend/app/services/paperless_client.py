@@ -103,5 +103,26 @@ class PaperlessClient:
             files={"document": (filename, content, content_type)}, data=data,
         )
 
+    async def download(self, item_id: int, *, archived: bool = False) -> bytes:
+        """Download document binary without returning a remote URL to the browser."""
+        path = f"/api/documents/{int(item_id)}/download/"
+        params = {"original": "false"} if archived else {"original": "true"}
+        try:
+            async with httpx.AsyncClient(
+                base_url=self.base_url,
+                headers={"Authorization": f"Token {self._token}"},
+                timeout=httpx.Timeout(60.0, connect=5.0),
+                follow_redirects=False,
+                transport=self._transport,
+            ) as client:
+                response = await client.get(path, params=params)
+        except httpx.RequestError as exc:
+            raise PaperlessError(502, "Paperless server unavailable") from exc
+        if response.status_code >= 400 or response.is_redirect:
+            code = response.status_code
+            raise PaperlessError(code if 400 <= code < 500 else 502,
+                                 f"Paperless download failed (HTTP {code})")
+        return response.content
+
     async def tasks(self, *, params: dict | None = None) -> Any:
         return await self._request("GET", "/api/tasks/", params=params)
