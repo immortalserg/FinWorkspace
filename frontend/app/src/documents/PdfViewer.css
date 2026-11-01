@@ -22,3 +22,9 @@
   user-select: text;
   -webkit-touch-callout: default;
 }
+
+/* Permit one-finger panning but reserve pinch gestures for the PDF viewer. */
+.pdfjs-scroll-container {
+  touch-action: pan-x pan-y;
+  overscroll-behavior: contain;
+}
