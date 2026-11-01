@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { X } from 'lucide-react'
+import { FileText, MoreVertical, Trash2, X } from 'lucide-react'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { apiFetch, getApiBaseUrl } from '../lib/apiClient'
@@ -185,10 +186,7 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
   const filtered = documents
 
   return (
-    <div className="space-y-5 rounded-xl border p-5">
-      <div>
-        <h2 className="text-lg font-semibold">Paperless-ngx</h2>
-      </div>
+    <div className="space-y-4">
       {connection === null ? (
         <p>Loading connection…</p>
       ) : !connection.configured ? (
@@ -251,14 +249,31 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
             </div>
           </div>}
           <input aria-label="Search Paperless documents" className="w-full max-w-sm rounded border bg-background p-2" placeholder="Search Paperless documents…" value={search} onChange={(event) => { setPage(1); setSearch(event.target.value) }} />
-          <div className="divide-y rounded-lg border">
+          <div className="flex flex-col gap-1.5">
             {filtered.map((doc) => (
-              <div key={doc.id} className="flex items-center gap-3 p-3">
-                <span className="min-w-0 flex-1 truncate text-sm">{doc.title}</span>
-                <Button size="sm" variant="outline" onClick={() => void preview(doc.id)}>Preview</Button>
-                <Button size="sm" variant="outline" onClick={() => setEditingId(doc.id)}>Edit</Button>
-                <Button size="sm" variant="outline" onClick={() => void download(doc.id)}>Download</Button>
-                <Button size="sm" variant="destructive" onClick={() => void remove(doc.id)}>Delete</Button>
+              <div key={doc.id} role="button" tabIndex={0}
+                onClick={() => void preview(doc.id)}
+                onKeyDown={(event) => { if (event.key === 'Enter') void preview(doc.id) }}
+                className="group/row flex cursor-pointer items-center gap-3 rounded-lg bg-card px-3 py-2 shadow-xs transition-colors hover:bg-muted/50">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                  <FileText size={17} />
+                </span>
+                <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">{doc.title}</span>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button type="button" variant="secondary" size="icon-xs" className="shrink-0"
+                      aria-label="Document options" onClick={(event) => event.stopPropagation()}>
+                      <MoreVertical size={13} />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" onClick={(event) => event.stopPropagation()}>
+                    <DropdownMenuItem onClick={() => setEditingId(doc.id)}>Edit details</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => void download(doc.id)}>Download</DropdownMenuItem>
+                    <DropdownMenuItem variant="destructive" onClick={() => void remove(doc.id)}>
+                      <Trash2 />Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             ))}
             {!filtered.length && <p className="p-4 text-sm text-muted-foreground">No documents on this page.</p>}
