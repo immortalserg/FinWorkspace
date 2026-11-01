@@ -6,6 +6,7 @@ Set PAPERLESS_ALLOWED_ORIGINS as a comma-separated list of HTTP(S) origins.
 import os
 
 from fastapi import APIRouter, Depends, HTTPException, File, Form, UploadFile
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -117,6 +118,57 @@ async def upload_to_paperless(
 async def list_tasks(user: User = Depends(get_current_user)):
     try:
         return await _client(user).tasks()
+    except PaperlessError as exc:
+        raise _error(exc)
+
+
+
+@router.get("/documents/{item_id}/download")
+async def download_from_paperless(
+    item_id: int,
+    archived: bool = False,
+    user: User = Depends(get_current_user),
+):
+    try:
+        content = await _client(user).download(item_id, archived=archived)
+    except PaperlessError as exc:
+        raise _error(exc)
+
+    return Response(
+        content=content,
+        media_type="application/octet-stream",
+        headers={
+            "Content-Disposition": f'attachment; filename="paperless-{item_id}"',
+            "X-Content-Type-Options": "nosniff",
+            "Cache-Control": "no-store",
+        },
+    )
+
+
+@router.get("/{resource}/{item_id}")
+async def get_resource(
+    resource: str,
+    item_id: int,
+    user: User = Depends(get_current_user),
+):
+    try:
+        return await _client(user).get(resource, item_id)
+    except ValueError:
+        raise HTTPException(404, "Unknown Paperless resource")
+    except PaperlessError as exc:
+        raise _error(exc)
+
+
+@router.delete("/{resource}/{item_id}", status_code=204)
+async def delete_resource(
+    resource: str,
+    item_id: int,
+    user: User = Depends(get_current_user),
+):
+    try:
+        await _client(user).delete(resource, item_id)
+    except ValueError:
+        raise HTTPException(404, "Unknown Paperless resource")
     except PaperlessError as exc:
         raise _error(exc)
 
