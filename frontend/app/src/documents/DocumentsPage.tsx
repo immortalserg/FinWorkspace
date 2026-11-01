@@ -43,6 +43,7 @@ import { DocumentUploadDialog } from './DocumentUploadDialog'
 import { DocumentEditDialog } from './DocumentEditDialog'
 import { DocumentPreviewSheet } from './DocumentPreviewSheet'
 import { PaperlessPanel } from './PaperlessPanel'
+import { apiFetch } from '../lib/apiClient'
 
 function formatBytes(size: number): string {
   if (size < 1024) return `${size} B`
@@ -56,6 +57,19 @@ export function DocumentsPage() {
   const { t } = useTranslation('nav')
   const [params, setParams] = useSearchParams()
   const [paperlessUploadOpen, setPaperlessUploadOpen] = useState(false)
+  const [paperlessConfigured, setPaperlessConfigured] = useState(false)
+
+  useEffect(() => {
+    void apiFetch<{ configured: boolean }>('/paperless/connection')
+      .then((status) => setPaperlessConfigured(status.configured))
+      .catch(() => setPaperlessConfigured(false))
+  }, [])
+
+  function openUpload(destination: 'local' | 'paperless') {
+    setProvider(destination)
+    if (destination === 'paperless') setPaperlessUploadOpen(true)
+    else setUploadOpen(true)
+  }
   const [provider, setProvider] = useState<'local' | 'paperless'>('local')
   const [selectedFolder, setSelectedFolder] = useState<string>('')
   const [search, setSearch] = useState('')
@@ -69,8 +83,12 @@ export function DocumentsPage() {
 
   useEffect(() => {
     if (params.get('upload') !== '1') return
-    setProvider('paperless')
-    setPaperlessUploadOpen(true)
+    void apiFetch<{ configured: boolean }>('/paperless/connection')
+      .then((status) => {
+        setPaperlessConfigured(status.configured)
+        openUpload(status.configured ? 'paperless' : 'local')
+      })
+      .catch(() => openUpload('local'))
     setParams((previous) => {
       const next = new URLSearchParams(previous)
       next.delete('upload')
@@ -165,10 +183,21 @@ export function DocumentsPage() {
               <FolderPlus data-icon="inline-start" />
               <PageHeaderActionLabel>New folder</PageHeaderActionLabel>
             </Button>
-            <Button size="sm" onClick={() => setUploadOpen(true)}>
-              <FileText data-icon="inline-start" />
-              <PageHeaderActionLabel>Upload</PageHeaderActionLabel>
-            </Button>
+            {paperlessConfigured ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="sm"><FileText data-icon="inline-start" /><PageHeaderActionLabel>Upload</PageHeaderActionLabel></Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => openUpload('local')}>Upload to Local documents</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => openUpload('paperless')}>Upload to Paperless-ngx</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button size="sm" onClick={() => openUpload('local')}>
+                <FileText data-icon="inline-start" /><PageHeaderActionLabel>Upload</PageHeaderActionLabel>
+              </Button>
+            )}
           </>
         }
       />
