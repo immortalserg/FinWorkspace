@@ -141,7 +141,6 @@ async def preview_from_paperless(
             "Content-Disposition": f'inline; filename="paperless-{item_id}.pdf"',
             "X-Content-Type-Options": "nosniff",
             "Cache-Control": "no-store",
-            "Content-Security-Policy": "default-src 'none'; sandbox",
         },
     )
 
