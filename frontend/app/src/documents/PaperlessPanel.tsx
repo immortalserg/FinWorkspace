@@ -287,7 +287,7 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
         </div>
       )}
       <Sheet open={!!previewUrl} onOpenChange={(open) => { if (!open) closePreview() }}>
-        <SheetContent side="right" className="w-full sm:max-w-lg">
+        <SheetContent side="right" className="w-full sm:max-w-[50vw]">
           {previewUrl && previewId !== null && (
             <>
               <SheetHeader className="flex-row items-start gap-3 border-b pe-12">
