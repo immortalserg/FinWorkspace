@@ -82,13 +82,18 @@ export function DocumentsPage() {
   const folderInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    if (params.get('upload') !== '1') return
-    void apiFetch<{ configured: boolean }>('/paperless/connection')
-      .then((status) => {
-        setPaperlessConfigured(status.configured)
-        openUpload(status.configured ? 'paperless' : 'local')
-      })
-      .catch(() => openUpload('local'))
+    const requested = params.get('upload')
+    if (!requested || !['1', 'local', 'paperless'].includes(requested)) return
+    if (requested === 'local') {
+      openUpload('local')
+    } else {
+      void apiFetch<{ configured: boolean }>('/paperless/connection')
+        .then((status) => {
+          setPaperlessConfigured(status.configured)
+          openUpload(status.configured ? 'paperless' : 'local')
+        })
+        .catch(() => openUpload('local'))
+    }
     setParams((previous) => {
       const next = new URLSearchParams(previous)
       next.delete('upload')
