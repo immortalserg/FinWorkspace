@@ -38,7 +38,7 @@ export function DocumentPreviewSheet({
 
   return (
     <Sheet open={!!document} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-[50vw]" side="right">
+      <SheetContent className="w-full sm:!max-w-[50vw]" side="right">
         {document && meta && (
           <>
             <SheetHeader className="flex-row items-start gap-3 border-b pe-12">
