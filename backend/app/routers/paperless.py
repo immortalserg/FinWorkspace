@@ -5,7 +5,7 @@ Set PAPERLESS_ALLOWED_ORIGINS as a comma-separated list of HTTP(S) origins.
 """
 import os
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, File, Form, UploadFile
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -73,6 +73,42 @@ async def test_connection(user: User = Depends(get_current_user)):
     try:
         result = await _client(user).list("tags", params={"page_size": 1})
         return {"connected": True, "count": result.get("count") if isinstance(result, dict) else None}
+    except PaperlessError as exc:
+        raise _error(exc)
+
+
+@router.post("/upload")
+async def upload_to_paperless(
+    file: UploadFile = File(...),
+    metadata: str = Form("{}"),
+    user: User = Depends(get_current_user),
+):
+    import json
+    from app.config import settings
+
+    try:
+        attrs = json.loads(metadata)
+    except (TypeError, ValueError):
+        raise HTTPException(422, "Invalid document metadata")
+    if not isinstance(attrs, dict):
+        raise HTTPException(422, "Document metadata must be an object")
+    allowed = {"title", "created", "correspondent", "document_type",
+               "storage_path", "tags", "archive_serial_number", "custom_fields"}
+    if not attrs.keys() <= allowed:
+        raise HTTPException(422, "Unsupported document metadata")
+    limit = settings.DOCUMENTS_MAX_FILE_SIZE
+    content = await file.read(limit + 1)
+    if len(content) > limit:
+        raise HTTPException(413, "Document exceeds size limit")
+    if not content:
+        raise HTTPException(422, "Empty document")
+    try:
+        task_id = await _client(user).upload(
+            file.filename or "document", content,
+            content_type=file.content_type or "application/octet-stream",
+            metadata=attrs,
+        )
+        return {"task_id": task_id}
     except PaperlessError as exc:
         raise _error(exc)
 
