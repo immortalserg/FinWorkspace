@@ -12,7 +12,7 @@ export type LocalMetadata = {
   archive_serial_number?: number | null
   custom_fields?: Record<string, unknown>
 }
-type Definitions = Record<string, { name: string; data_type?: string }[]>
+type Definitions = Record<string, { name: string; data_type?: string; parent?: string | null }[]>
 const catalog = [
   ['document_types', 'Document type', 'document_type'],
   ['correspondents', 'Correspondent', 'correspondent'],
@@ -25,6 +25,7 @@ export function LocalMetadataFields({ value, onChange }: {
 }) {
   const [definitions, setDefinitions] = useState<Definitions>({})
   const [newNames, setNewNames] = useState<Record<string, string>>({})
+  const [tagParent, setTagParent] = useState('')
   useEffect(() => {
     void apiFetch<Definitions>('/documents/metadata/definitions')
       .then(setDefinitions).catch(() => {})
@@ -32,11 +33,12 @@ export function LocalMetadataFields({ value, onChange }: {
   async function addDefinition(key: string) {
     const name = (newNames[key] ?? '').trim()
     if (!name || (definitions[key] ?? []).some((x) => x.name.toLowerCase() === name.toLowerCase())) return
-    const next = { ...definitions, [key]: [...(definitions[key] ?? []), { name, ...(key === 'custom_fields' ? { data_type: 'string' } : {}) }] }
+    const next = { ...definitions, [key]: [...(definitions[key] ?? []), { name, ...(key === 'custom_fields' ? { data_type: 'string' } : {}), ...(key === 'tags' ? { parent: tagParent || null } : {}) }] }
     try {
       await apiFetch('/documents/metadata/definitions', { method: 'PUT', body: JSON.stringify(next) })
       setDefinitions(next)
       setNewNames((prev) => ({ ...prev, [key]: '' }))
+      if (key === 'tags') setTagParent('')
       if (key === 'tags') onChange({ ...value, tags: [...(value.tags ?? []), name] })
       else if (key !== 'custom_fields') {
         const field = catalog.find(([resource]) => resource === key)?.[2]
@@ -69,10 +71,14 @@ export function LocalMetadataFields({ value, onChange }: {
         <div className="flex flex-wrap gap-2">
           {Array.from(new Set([...(definitions.tags ?? []).map((x) => x.name), ...(value.tags ?? [])])).map((name) => (
             <label key={name} className="flex items-center gap-1 text-sm">
-              <input type="checkbox" checked={(value.tags ?? []).includes(name)} onChange={(e) => onChange({ ...value, tags: e.target.checked ? [...(value.tags ?? []), name] : (value.tags ?? []).filter((x) => x !== name) })} />{name}
+              <input type="checkbox" checked={(value.tags ?? []).includes(name)} onChange={(e) => onChange({ ...value, tags: e.target.checked ? [...(value.tags ?? []), name] : (value.tags ?? []).filter((x) => x !== name) })} />{(definitions.tags ?? []).find((tag) => tag.name === name)?.parent ? `${(definitions.tags ?? []).find((tag) => tag.name === name)?.parent} / ` : ''}{name}
             </label>
           ))}
         </div>
+        <select aria-label="Parent tag" className="w-full rounded border bg-background p-2 text-sm" value={tagParent} onChange={(e) => setTagParent(e.target.value)}>
+          <option value="">No parent (root tag)</option>
+          {(definitions.tags ?? []).map((tag) => <option key={tag.name} value={tag.name}>{tag.name}</option>)}
+        </select>
         <div className="flex gap-2">
           <Input aria-label="New tag" placeholder="New tag" value={newNames.tags ?? ''} onChange={(e) => setNewNames({ ...newNames, tags: e.target.value })} />
           <Button type="button" variant="outline" onClick={() => void addDefinition('tags')}>Add</Button>
