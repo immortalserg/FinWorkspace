@@ -17,6 +17,12 @@ export function PaperlessPanel() {
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
   const [file, setFile] = useState<File | null>(null)
+  const [uploadTitle, setUploadTitle] = useState('')
+  const [uploadTags, setUploadTags] = useState<number[]>([])
+  const [uploadType, setUploadType] = useState<number | null>(null)
+  const [uploadCorrespondent, setUploadCorrespondent] = useState<number | null>(null)
+  const [uploadPath, setUploadPath] = useState<number | null>(null)
+  const [references, setReferences] = useState<Record<string, { id: number; name: string }[]>>({})
   const [busy, setBusy] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
 
@@ -29,6 +35,9 @@ export function PaperlessPanel() {
       const result = await apiFetch<DocumentList>(`/paperless/documents?${query}`)
       setTotal(result.count ?? 0)
       setDocuments(result.results ?? [])
+      const keys = ['tags', 'document_types', 'correspondents', 'storage_paths']
+      const lists = await Promise.all(keys.map((key) => apiFetch<{ results: { id: number; name: string }[] }>(`/paperless/${key}?page_size=100`)))
+      setReferences(Object.fromEntries(keys.map((key, index) => [key, lists[index].results ?? []])))
     } else {
       setDocuments([])
     }
@@ -61,7 +70,13 @@ export function PaperlessPanel() {
     try {
       const form = new FormData()
       form.append('file', file)
-      form.append('metadata', JSON.stringify({ title: file.name }))
+      form.append('metadata', JSON.stringify({
+        title: uploadTitle.trim() || file.name,
+        tags: uploadTags,
+        ...(uploadType !== null ? { document_type: uploadType } : {}),
+        ...(uploadCorrespondent !== null ? { correspondent: uploadCorrespondent } : {}),
+        ...(uploadPath !== null ? { storage_path: uploadPath } : {}),
+      }))
       const auth = window.localStorage.getItem('token')
       const response = await fetch(`${getApiBaseUrl()}/paperless/upload`, {
         method: 'POST',
@@ -70,6 +85,11 @@ export function PaperlessPanel() {
       })
       if (!response.ok) throw new Error(String(response.status))
       setFile(null)
+      setUploadTitle('')
+      setUploadTags([])
+      setUploadType(null)
+      setUploadCorrespondent(null)
+      setUploadPath(null)
       toast.success('Document submitted for OCR processing')
       await refresh()
     } catch {
@@ -137,8 +157,35 @@ export function PaperlessPanel() {
             <Button variant="outline" size="sm" disabled={busy} onClick={() => void refresh()}>Refresh</Button>
             <Button variant="outline" size="sm" disabled={busy} onClick={() => void apiFetch('/paperless/connection', { method: 'DELETE' }).then(refresh).catch(() => toast.error('Disconnect failed'))}>Disconnect</Button>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="space-y-3 rounded-lg border p-3">
+            <h3 className="text-sm font-semibold">Upload document</h3>
             <input aria-label="Choose document" type="file" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
+            <input aria-label="Document title" placeholder="Document title (optional)" className="w-full rounded border bg-background p-2 text-sm" value={uploadTitle} onChange={(event) => setUploadTitle(event.target.value)} />
+            <div className="grid gap-2 sm:grid-cols-3">
+              {([
+                ['document_types', 'Document type', uploadType, setUploadType],
+                ['correspondents', 'Correspondent', uploadCorrespondent, setUploadCorrespondent],
+                ['storage_paths', 'Storage path', uploadPath, setUploadPath],
+              ] as const).map(([key, label, value, setter]) => (
+                <label key={key} className="text-sm">{label}
+                  <select className="mt-1 w-full rounded border bg-background p-2" value={value ?? ''} onChange={(event) => setter(event.target.value ? Number(event.target.value) : null)}>
+                    <option value="">Automatic / none</option>
+                    {(references[key] ?? []).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+                  </select>
+                </label>
+              ))}
+            </div>
+            <fieldset>
+              <legend className="text-sm">Tags</legend>
+              <div className="flex max-h-28 flex-wrap gap-3 overflow-y-auto">
+                {(references.tags ?? []).map((tag) => (
+                  <label key={tag.id} className="flex items-center gap-1 text-sm">
+                    <input type="checkbox" checked={uploadTags.includes(tag.id)} onChange={(event) => setUploadTags((current) => event.target.checked ? [...current, tag.id] : current.filter((id) => id !== tag.id))} />
+                    {tag.name}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
             <Button disabled={busy || !file} onClick={() => void upload()}>Upload to Paperless</Button>
           </div>
           <input aria-label="Search Paperless documents" className="w-full max-w-sm rounded border bg-background p-2" placeholder="Search Paperless documents…" value={search} onChange={(event) => { setPage(1); setSearch(event.target.value) }} />
