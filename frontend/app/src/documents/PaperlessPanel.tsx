@@ -188,9 +188,6 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
         <p className="text-sm text-muted-foreground">Paperless-ngx is not configured. An administrator can connect it in Administration → Application settings.</p>
       ) : (
         <>
-          <div className="flex justify-end">
-            <Button onClick={() => onUploadOpenChange(true)}>Upload document</Button>
-          </div>
           {openUpload && <div role="dialog" aria-modal="true" aria-label="Upload document" className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
             <div className="max-h-[90vh] w-full max-w-2xl space-y-3 overflow-y-auto rounded-xl border bg-background p-5 shadow-xl">
             <div className="flex items-center justify-between">
