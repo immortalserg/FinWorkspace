@@ -82,9 +82,52 @@ export function PdfViewer({ src }: { src: string }) {
     })
     resizeObserver.observe(container)
 
+    // Keep two-finger zoom inside the PDF instead of zooming the entire PWA.
+    // Use PDF.js scaling (not CSS transforms), so the selectable OCR layer
+    // remains aligned with the rendered document.
+    let pinch: { distance: number; scale: number; x: number; y: number; scrollLeft: number; scrollTop: number } | null = null
+    const distance = (touches: TouchList) => Math.hypot(
+      touches[0].clientX - touches[1].clientX,
+      touches[0].clientY - touches[1].clientY,
+    )
+    const onTouchStart = (event: TouchEvent) => {
+      if (event.touches.length !== 2 || !viewer.pdfDocument) return
+      const rect = container.getBoundingClientRect()
+      pinch = {
+        distance: distance(event.touches),
+        scale: viewer.currentScale,
+        x: (event.touches[0].clientX + event.touches[1].clientX) / 2 - rect.left,
+        y: (event.touches[0].clientY + event.touches[1].clientY) / 2 - rect.top,
+        scrollLeft: container.scrollLeft,
+        scrollTop: container.scrollTop,
+      }
+    }
+    const onTouchMove = (event: TouchEvent) => {
+      if (event.touches.length !== 2 || !pinch) return
+      event.preventDefault()
+      const next = Math.max(0.5, Math.min(4, pinch.scale * distance(event.touches) / pinch.distance))
+      if (!Number.isFinite(next)) return
+      viewer.currentScale = next
+      const ratio = next / pinch.scale
+      container.scrollLeft = (pinch.scrollLeft + pinch.x) * ratio - pinch.x
+      container.scrollTop = (pinch.scrollTop + pinch.y) * ratio - pinch.y
+      setZoom(Math.round(next * 100) + '%')
+    }
+    const onTouchEnd = (event: TouchEvent) => {
+      if (event.touches.length < 2) pinch = null
+    }
+    container.addEventListener('touchstart', onTouchStart, { passive: true })
+    container.addEventListener('touchmove', onTouchMove, { passive: false })
+    container.addEventListener('touchend', onTouchEnd)
+    container.addEventListener('touchcancel', onTouchEnd)
+
     return () => {
       disposed = true
       resizeObserver.disconnect()
+      container.removeEventListener('touchstart', onTouchStart)
+      container.removeEventListener('touchmove', onTouchMove)
+      container.removeEventListener('touchend', onTouchEnd)
+      container.removeEventListener('touchcancel', onTouchEnd)
       eventBus.off('pagesinit', onPagesInit)
       eventBus.off('pagechanging', onPageChanging)
       controllerRef.current = null
