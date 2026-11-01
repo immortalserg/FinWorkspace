@@ -1,20 +1,18 @@
 /*
- * PDF.js renders the bitmap and selectable text in the same page coordinate
- * system. Tailwind's global canvas max-width / height-auto reset can scale
- * the bitmap independently from the PDF.js text layer, causing selection
- * to drift further down/right across a page.
+ * PDF.js sets the page dimensions itself. Its page border (9px per side)
+ * is excluded from the content box. Tailwind's global box-sizing:border-box
+ * otherwise makes the absolutely positioned canvas/text layer disagree:
+ * the canvas is sized to the 613x875 content box while text uses 631x893.
  *
- * Scope the overrides to the embedded viewer; do not alter app-wide styles.
+ * Restore PDF.js sizing for the page, without changing app-wide defaults.
  */
+.pdfjs-scroll-container .pdfViewer .page {
+  box-sizing: content-box;
+}
+
 .pdfjs-scroll-container .pdfViewer .page canvas {
   max-width: none;
   max-height: none;
-  width: 100%;
-  height: 100%;
-}
-
-.pdfjs-scroll-container .pdfViewer .page .canvasWrapper {
-  overflow: hidden;
 }
 
 .pdfjs-scroll-container .pdfViewer .page .textLayer {
