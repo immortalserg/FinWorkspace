@@ -1,3 +1,5 @@
+import { PaperlessTagPicker, togglePaperlessTag } from './PaperlessTagPicker'
+import type { PaperlessTag } from './PaperlessTagPicker'
 import { useEffect, useState } from 'react'
 import { Download, FileText, FileUp, MoreVertical, PencilLine, Trash2 } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -25,11 +27,12 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
   const [dragOver, setDragOver] = useState(false)
   const [uploadTitle, setUploadTitle] = useState('')
   const [uploadTags, setUploadTags] = useState<number[]>([])
+  const [newTagParent, setNewTagParent] = useState<number | null>(null)
   const [uploadType, setUploadType] = useState<number | null>(null)
   const [uploadCorrespondent, setUploadCorrespondent] = useState<number | null>(null)
   const [uploadPath, setUploadPath] = useState<number | null>(null)
   const [newReferenceNames, setNewReferenceNames] = useState<Record<string, string>>({})
-  const [references, setReferences] = useState<Record<string, { id: number; name: string }[]>>({})
+  const [references, setReferences] = useState<Record<string, PaperlessTag[]>>({})
   const [busy, setBusy] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [previewId, setPreviewId] = useState<number | null>(null)
@@ -46,7 +49,7 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
       setTotal(result.count ?? 0)
       setDocuments(result.results ?? [])
       const keys = ['tags', 'document_types', 'correspondents', 'storage_paths']
-      const lists = await Promise.all(keys.map((key) => apiFetch<{ results: { id: number; name: string }[] }>(`/paperless/${key}?page_size=100`)))
+      const lists = await Promise.all(keys.map((key) => apiFetch<{ results: PaperlessTag[] }>(`/paperless/${key}?page_size=100`)))
       setReferences(Object.fromEntries(keys.map((key, index) => [key, lists[index].results ?? []])))
     } else {
       setDocuments([])
@@ -64,13 +67,16 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
     try {
       const created = await apiFetch<{ id: number; name: string }>(`/paperless/${resource}`, {
         method: 'POST',
-        body: JSON.stringify({ name }),
+        body: JSON.stringify(resource === 'tags' ? { name, parent: newTagParent } : { name }),
       })
       setReferences((current) => ({
         ...current,
         [resource]: [...(current[resource] ?? []), created],
       }))
-      if (resource === 'tags') setUploadTags((current) => [...current, created.id])
+      if (resource === 'tags') {
+        setUploadTags((current) => togglePaperlessTag([...references.tags ?? [], { ...created, parent: newTagParent }], current, created.id, true))
+        setNewTagParent(null)
+      }
       if (resource === 'document_types') setUploadType(created.id)
       if (resource === 'correspondents') setUploadCorrespondent(created.id)
       if (resource === 'storage_paths') setUploadPath(created.id)
@@ -270,14 +276,11 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
             </div>
             <fieldset>
               <legend className="text-sm">Tags</legend>
-              <div className="flex max-h-28 flex-wrap gap-3 overflow-y-auto">
-                {(references.tags ?? []).map((tag) => (
-                  <label key={tag.id} className="flex items-center gap-1 text-sm">
-                    <input type="checkbox" checked={uploadTags.includes(tag.id)} onChange={(event) => setUploadTags((current) => event.target.checked ? [...current, tag.id] : current.filter((id) => id !== tag.id))} />
-                    {tag.name}
-                  </label>
-                ))}
-              </div>
+              <PaperlessTagPicker tags={references.tags ?? []} selected={uploadTags} onChange={setUploadTags} />
+              <select aria-label="Parent tag" className="mt-2 w-full rounded border bg-background p-2 text-sm" value={newTagParent ?? ''} onChange={(event) => setNewTagParent(event.target.value ? Number(event.target.value) : null)}>
+                <option value="">No parent (root tag)</option>
+                {(references.tags ?? []).map((tag) => <option key={tag.id} value={tag.id}>{tag.name}</option>)}
+              </select>
               <div className="mt-2 flex gap-2">
                 <input aria-label="New upload tag" placeholder="Create a tag" className="min-w-0 flex-1 rounded border bg-background p-2 text-sm" value={newReferenceNames.tags ?? ''} onChange={(event) => setNewReferenceNames((current) => ({ ...current, tags: event.target.value }))} />
                 <Button variant="outline" size="sm" disabled={busy || !newReferenceNames.tags?.trim()} onClick={() => void createReference('tags')}>Add tag</Button>
