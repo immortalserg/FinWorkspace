@@ -8,6 +8,7 @@ import i18n from '../i18n/config'
 interface AuthContextValue {
   user: User | null
   isAuthenticated: boolean
+  acceptMobileSession: (code: string) => Promise<void>
   login: (email: string, password: string) => Promise<void>
   register: (input: authApi.RegisterInput) => Promise<void>
   logout: () => Promise<void>
@@ -115,6 +116,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     scheduleRefresh()
   }, [scheduleRefresh])
 
+  const acceptMobileSession = useCallback(async (code: string) => {
+    const tokenResponse = await authApi.exchangeMobileSession(code)
+    window.localStorage.setItem('token', tokenResponse.access_token)
+    window.localStorage.setItem('refresh_token', tokenResponse.refresh_token)
+    try {
+      const me = await authApi.getMe()
+      window.localStorage.setItem('user', JSON.stringify(me))
+      setUser(me)
+      scheduleRefresh()
+    } catch (error) {
+      clearStoredSession()
+      throw error
+    }
+  }, [scheduleRefresh])
+
   const registerUser = useCallback(async (input: authApi.RegisterInput) => {
     await authApi.register(input)
   }, [])
@@ -131,7 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated: !!user, login, register: registerUser, logout }}
+      value={{ user, isAuthenticated: !!user, login, acceptMobileSession, register: registerUser, logout }}
     >
       {children}
     </AuthContext.Provider>
