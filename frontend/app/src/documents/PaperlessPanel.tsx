@@ -92,13 +92,10 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
         ...(uploadCorrespondent !== null ? { correspondent: uploadCorrespondent } : {}),
         ...(uploadPath !== null ? { storage_path: uploadPath } : {}),
       }))
-      const auth = window.localStorage.getItem('token')
-      const response = await fetch(`${getApiBaseUrl()}/paperless/upload`, {
+      await apiFetch<{ task_id: string }>('/paperless/upload', {
         method: 'POST',
-        headers: auth ? { Authorization: `Bearer ${auth}` } : {},
         body: form,
       })
-      if (!response.ok) throw new Error(String(response.status))
       setFile(null)
       onUploadOpenChange(false)
       setUploadTitle('')
@@ -107,9 +104,9 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
       setUploadCorrespondent(null)
       setUploadPath(null)
       toast.success('Document submitted for OCR processing')
-      await refresh()
-    } catch {
-      toast.error('Paperless upload failed')
+      void refresh().catch(() => toast.error('Document uploaded, but the Paperless list could not be refreshed'))
+    } catch (error) {
+      toast.error(error instanceof Error ? `Paperless upload failed: ${error.message}` : 'Paperless upload failed')
     } finally {
       setBusy(false)
     }
