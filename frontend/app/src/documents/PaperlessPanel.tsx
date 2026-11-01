@@ -25,6 +25,9 @@ export function PaperlessPanel() {
   const [newReferenceNames, setNewReferenceNames] = useState<Record<string, string>>({})
   const [references, setReferences] = useState<Record<string, { id: number; name: string }[]>>({})
   const [busy, setBusy] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [previewId, setPreviewId] = useState<number | null>(null)
+  const [ocrTasks, setOcrTasks] = useState<unknown>(null)
   const [editingId, setEditingId] = useState<number | null>(null)
 
   async function refresh() {
@@ -123,6 +126,33 @@ export function PaperlessPanel() {
       toast.error('Paperless upload failed')
     } finally {
       setBusy(false)
+    }
+  }
+
+  async function preview(id: number) {
+    try {
+      const auth = window.localStorage.getItem('token')
+      const response = await fetch(`${getApiBaseUrl()}/paperless/documents/${id}/preview`, {
+        headers: auth ? { Authorization: `Bearer ${auth}` } : {},
+      })
+      if (!response.ok) throw new Error(String(response.status))
+      const url = URL.createObjectURL(await response.blob())
+      setPreviewUrl((previous) => {
+        if (previous) URL.revokeObjectURL(previous)
+        return url
+      })
+      setPreviewId(id)
+    } catch {
+      toast.error('Archived PDF preview unavailable')
+    }
+  }
+
+  async function loadTasks() {
+    try {
+      const result = await apiFetch<unknown>('/paperless/tasks')
+      setOcrTasks(result)
+    } catch {
+      toast.error('Could not load OCR tasks')
     }
   }
 
@@ -236,6 +266,7 @@ export function PaperlessPanel() {
             {filtered.map((doc) => (
               <div key={doc.id} className="flex items-center gap-3 p-3">
                 <span className="min-w-0 flex-1 truncate text-sm">{doc.title}</span>
+                <Button size="sm" variant="outline" onClick={() => void preview(doc.id)}>Preview</Button>
                 <Button size="sm" variant="outline" onClick={() => setEditingId(doc.id)}>Edit</Button>
                 <Button size="sm" variant="outline" onClick={() => void download(doc.id)}>Download</Button>
                 <Button size="sm" variant="destructive" onClick={() => void remove(doc.id)}>Delete</Button>
@@ -249,6 +280,21 @@ export function PaperlessPanel() {
             <Button variant="outline" size="sm" disabled={page * 25 >= total} onClick={() => setPage((value) => value + 1)}>Next</Button>
           </div>
         </>
+      )}
+      {connection?.configured && (
+        <div className="space-y-2">
+          <Button size="sm" variant="outline" onClick={() => void loadTasks()}>Check OCR tasks</Button>
+          {ocrTasks !== null && <pre className="max-h-48 overflow-auto rounded border p-3 text-xs">{JSON.stringify(ocrTasks, null, 2)}</pre>}
+        </div>
+      )}
+      {previewUrl && (
+        <div role="dialog" aria-modal="true" aria-label={`Preview Paperless document ${previewId}`} className="fixed inset-0 z-50 flex flex-col bg-background p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <span className="font-semibold">PDF preview · Document {previewId}</span>
+            <Button variant="outline" onClick={() => { URL.revokeObjectURL(previewUrl); setPreviewUrl(null); setPreviewId(null) }}>Close</Button>
+          </div>
+          <iframe title="Paperless PDF preview" sandbox="" src={previewUrl} className="min-h-0 w-full flex-1 rounded border" />
+        </div>
       )}
       {editingId !== null && <PaperlessEditDialog documentId={editingId} onClose={() => setEditingId(null)} onSaved={() => void refresh()} />}
     </div>
