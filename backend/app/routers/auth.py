@@ -61,6 +61,41 @@ def _send_verification_email(db: Session, user: User, request: Request) -> None:
     )
 
 
+@router.get("/setup-status")
+def setup_status(db: Session = Depends(get_db)):
+    """Public flag used to show first-run setup; does not expose user details."""
+    return {"setup_required": db.query(User.id).first() is None}
+
+
+@router.post("/setup", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+def setup_first_admin(user_data: UserCreate, request: Request, db: Session = Depends(get_db)):
+    """Create the first administrator exactly once, without an invite code."""
+    from sqlalchemy import text
+
+    enforce_rate_limit(request, email=user_data.email)
+    # SQLite: serialize concurrent setup requests before checking for users.
+    if db.bind is not None and db.bind.dialect.name == "sqlite":
+        db.execute(text("BEGIN IMMEDIATE"))
+    if db.query(User.id).first() is not None:
+        raise HTTPException(status_code=409, detail="Initial setup already completed")
+    if not user_data.full_name.strip():
+        raise HTTPException(status_code=422, detail="Administrator name is required")
+    if len(user_data.password) < 8:
+        raise HTTPException(status_code=422, detail="Password must be at least 8 characters")
+    admin = User(
+        email=user_data.email,
+        full_name=user_data.full_name,
+        hashed_password=get_password_hash(user_data.password),
+        is_admin=True,
+        is_active=True,
+        email_verified=True,
+    )
+    db.add(admin)
+    db.commit()
+    db.refresh(admin)
+    return admin
+
+
 @router.post(
     "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
 )
