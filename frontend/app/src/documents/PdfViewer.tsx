@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import * as pdfjs from 'pdfjs-dist'
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
+import 'pdfjs-dist/web/pdf_viewer.css'
 
 pdfjs.GlobalWorkerOptions.workerSrc = workerUrl
 
@@ -32,6 +33,11 @@ export function PdfViewer({ src }: { src: string }) {
           const unscaled = page.getViewport({ scale: 1 })
           const scale = Math.min(2, Math.max(0.5, (host.clientWidth - 16) / unscaled.width))
           const viewport = page.getViewport({ scale })
+          const wrapper = document.createElement('div')
+          wrapper.className = 'relative mx-auto mb-3 bg-white shadow-sm'
+          wrapper.style.width = `${viewport.width}px`
+          wrapper.style.maxWidth = '100%'
+          wrapper.style.aspectRatio = `${viewport.width} / ${viewport.height}`
           const canvas = document.createElement('canvas')
           const context = canvas.getContext('2d')
           if (!context) throw new Error('Canvas unavailable')
@@ -39,13 +45,25 @@ export function PdfViewer({ src }: { src: string }) {
           canvas.width = Math.ceil(viewport.width * ratio)
           canvas.height = Math.ceil(viewport.height * ratio)
           canvas.style.width = '100%'
-          canvas.style.maxWidth = viewport.width + 'px'
+          canvas.style.display = 'block'
           canvas.style.height = 'auto'
-          canvas.className = 'mx-auto mb-3 block bg-white shadow-sm'
-          host.appendChild(canvas)
+          wrapper.appendChild(canvas)
+          host.appendChild(wrapper)
           canvases.push(canvas)
           const render = page.render({ canvas, canvasContext: context, viewport, transform: ratio === 1 ? undefined : [ratio, 0, 0, ratio, 0, 0] })
           await render.promise
+          if (cancelled) break
+          const textContainer = document.createElement('div')
+          textContainer.className = 'textLayer'
+          textContainer.style.setProperty('--scale-factor', String(scale))
+          wrapper.appendChild(textContainer)
+          const textLayer = new pdfjs.TextLayer({
+            textContentSource: page.streamTextContent(),
+            container: textContainer,
+            viewport,
+          })
+          await textLayer.render()
+          if (cancelled) break
           page.cleanup()
         }
       } catch (error) {
