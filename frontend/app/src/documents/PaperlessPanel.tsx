@@ -295,9 +295,22 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
           </Dialog>
           <div className="flex flex-wrap items-center gap-2 rounded-xl border bg-card p-3">
             <InputGroup className="h-8 min-w-40 flex-[1_1_12rem] sm:max-w-xs">
-              <InputGroupAddon><Search size={15} /></InputGroupAddon>
-              <InputGroupInput aria-label="Search Paperless documents" placeholder="Search documents…" value={search} onChange={(event) => { setPage(1); setSearch(event.target.value) }} />
-              {search && <InputGroupAddon align="inline-end"><InputGroupButton onClick={() => { setPage(1); setSearch('') }} aria-label="Clear search"><X size={13} /></InputGroupButton></InputGroupAddon>}
+              <InputGroupAddon>
+                <Search size={15} />
+              </InputGroupAddon>
+              <InputGroupInput
+                aria-label="Search Paperless documents"
+                placeholder="Search documents…"
+                value={search}
+                onChange={(event) => { setPage(1); setSearch(event.target.value) }}
+              />
+              {search && (
+                <InputGroupAddon align="inline-end">
+                  <InputGroupButton onClick={() => { setPage(1); setSearch('') }} aria-label="Clear search">
+                    <X size={13} />
+                  </InputGroupButton>
+                </InputGroupAddon>
+              )}
             </InputGroup>
             <select aria-label="Filter by storage path" className="h-8 max-w-48 rounded border bg-background px-2 text-sm" value={selectedPath} onChange={(event) => { setPage(1); setSelectedPath(event.target.value) }}>
               <option value="">All folders</option>
@@ -307,7 +320,9 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
               <option value="">All tags</option>
               {(references.tags ?? []).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
             </select>
-            <span className="text-xs text-muted-foreground">{total} documents</span>
+            <div className="ms-auto flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">{total} documents</span>
+            </div>
           </div>
           <div className="flex flex-col gap-1.5">
             {filtered.map((doc) => (
