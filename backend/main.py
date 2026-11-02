@@ -21,6 +21,7 @@ from app.routers import (
     categories,
     debts,
     documents,
+    paperless,
     goals,
     import_wizard,
     investments,
@@ -257,6 +258,7 @@ app.include_router(investments.router, prefix="/api")
 app.include_router(investor_profile.router, prefix="/api")
 app.include_router(scenarios.router, prefix="/api")
 app.include_router(documents.router, prefix="/api")
+app.include_router(paperless.router, prefix="/api")
 app.include_router(notifications.router, prefix="/api")
 app.include_router(rules.router, prefix="/api")
 app.include_router(trackers.router, prefix="/api")

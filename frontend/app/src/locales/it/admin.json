@@ -87,6 +87,14 @@
     "pemDeleting": "Eliminazione…",
     "pemDeleted": "File PEM eliminato. La sincronizzazione bancaria è stata disattivata.",
     "pemDeleteFailed": "Impossibile eliminare il file PEM.",
-    "confirmPemDelete": "Eliminare la chiave PEM salvata? La sincronizzazione bancaria verrà disattivata."
+    "confirmPemDelete": "Eliminare la chiave PEM salvata? La sincronizzazione bancaria verrà disattivata.",
+    "paperlessDescription": "Connessione Paperless-ngx condivisa per tutti gli utenti. Solo gli amministratori possono configurarla.",
+    "paperlessUrl": "URL server Paperless",
+    "paperlessToken": "Token API Paperless",
+    "paperlessConnect": "Connetti Paperless",
+    "paperlessDisconnect": "Disconnetti Paperless",
+    "paperlessSaved": "Connessione Paperless salvata",
+    "paperlessRemoved": "Connessione Paperless rimossa",
+    "paperlessConfirmRemove": "Disconnettere Paperless per tutti gli utenti?"
   }
 }

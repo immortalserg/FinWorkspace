@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -20,7 +20,8 @@ import {
 const registerSchema = z.object({
   email: z.string().email('Enter a valid email'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
-  invite_code: z.string().min(1, 'Invite code is required'),
+  invite_code: z.string().optional(),
+  full_name: z.string().optional(),
 })
 
 type RegisterForm = z.infer<typeof registerSchema>
@@ -45,6 +46,7 @@ function passwordScore(value: string) {
 export function RegisterPage() {
   const { t } = useTranslation('auth')
   const navigate = useNavigate()
+  const [setupRequired, setSetupRequired] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const [passwordValue, setPasswordValue] = useState('')
@@ -54,12 +56,21 @@ export function RegisterPage() {
     formState: { errors, isSubmitting },
   } = useForm<RegisterForm>({ resolver: zodResolver(registerSchema) })
 
+  useEffect(() => {
+    void authApi.setupStatus().then((status) => setSetupRequired(status.setup_required)).catch(() => {})
+  }, [])
+
   const score = useMemo(() => passwordScore(passwordValue), [passwordValue])
 
   const onSubmit = handleSubmit(async (data) => {
     setServerError(null)
     try {
-      await authApi.register(data)
+      if (setupRequired) {
+        await authApi.setupFirstAdmin({ email: data.email, password: data.password, full_name: data.full_name?.trim() || '' })
+      } else {
+        if (!data.invite_code?.trim()) { setServerError('Invite code is required'); return }
+        await authApi.register({ ...data, invite_code: data.invite_code })
+      }
       navigate('/login')
     } catch {
       setServerError(t('register.serverError'))
@@ -112,12 +123,20 @@ export function RegisterPage() {
     >
       <div className="mb-7">
         <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-          {t('register.heading')}
+          {setupRequired ? 'Create first administrator' : t('register.heading')}
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">{t('register.subtitle')}</p>
       </div>
 
       <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
+        {setupRequired && (
+          <div className="space-y-1.5">
+            <Label htmlFor="full_name">Administrator name</Label>
+            <InputGroup className="h-11 bg-muted">
+              <InputGroupInput id="full_name" autoComplete="name" placeholder="Full name" {...registerField('full_name')} />
+            </InputGroup>
+          </div>
+        )}
         <div className="space-y-1.5">
           <Label htmlFor="email">{t('register.emailLabel')}</Label>
           <InputGroup className="h-11 bg-muted dark:bg-muted/70">
@@ -203,7 +222,7 @@ export function RegisterPage() {
           )}
         </div>
 
-        <div className="space-y-1.5">
+        {!setupRequired && <div className="space-y-1.5">
           <Label htmlFor="invite_code">{t('register.inviteCodeLabel')}</Label>
           <InputGroup className="h-11 bg-muted dark:bg-muted/70">
             <InputGroupAddon>
@@ -226,6 +245,8 @@ export function RegisterPage() {
             </p>
           )}
         </div>
+
+        }
 
         {serverError && (
           <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">

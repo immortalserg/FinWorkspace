@@ -1,0 +1,30 @@
+/*
+ * PDF.js sets the page dimensions itself. Its page border (9px per side)
+ * is excluded from the content box. Tailwind's global box-sizing:border-box
+ * otherwise makes the absolutely positioned canvas/text layer disagree:
+ * the canvas is sized to the 613x875 content box while text uses 631x893.
+ *
+ * Restore PDF.js sizing for the page, without changing app-wide defaults.
+ */
+.pdfjs-scroll-container .pdfViewer .page {
+  box-sizing: content-box;
+}
+
+.pdfjs-scroll-container .pdfViewer .page canvas {
+  max-width: none;
+  max-height: none;
+}
+
+.pdfjs-scroll-container .pdfViewer .page .textLayer {
+  max-width: none;
+  max-height: none;
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
+/* Permit one-finger panning but reserve pinch gestures for the PDF viewer. */
+.pdfjs-scroll-container {
+  touch-action: pan-x pan-y;
+  overscroll-behavior: contain;
+}

@@ -87,6 +87,14 @@
     "pemDeleting": "Wird gelöscht…",
     "pemDeleted": "PEM-Datei gelöscht. Die Banksynchronisierung wurde deaktiviert.",
     "pemDeleteFailed": "PEM-Datei konnte nicht gelöscht werden.",
-    "confirmPemDelete": "Gespeicherten PEM-Schlüssel löschen? Die Banksynchronisierung wird deaktiviert."
+    "confirmPemDelete": "Gespeicherten PEM-Schlüssel löschen? Die Banksynchronisierung wird deaktiviert.",
+    "paperlessDescription": "Gemeinsame Paperless-ngx-Verbindung für alle Benutzer. Nur Administratoren können sie konfigurieren.",
+    "paperlessUrl": "Paperless-Server-URL",
+    "paperlessToken": "Paperless-API-Token",
+    "paperlessConnect": "Paperless verbinden",
+    "paperlessDisconnect": "Paperless trennen",
+    "paperlessSaved": "Paperless-Verbindung gespeichert",
+    "paperlessRemoved": "Paperless-Verbindung entfernt",
+    "paperlessConfirmRemove": "Paperless für alle Benutzer trennen?"
   }
 }

@@ -87,6 +87,14 @@
     "pemDeleting": "Διαγραφή…",
     "pemDeleted": "Το αρχείο PEM διαγράφηκε. Ο τραπεζικός συγχρονισμός απενεργοποιήθηκε.",
     "pemDeleteFailed": "Δεν ήταν δυνατή η διαγραφή του αρχείου PEM.",
-    "confirmPemDelete": "Να διαγραφεί το αποθηκευμένο κλειδί PEM; Ο τραπεζικός συγχρονισμός θα απενεργοποιηθεί."
+    "confirmPemDelete": "Να διαγραφεί το αποθηκευμένο κλειδί PEM; Ο τραπεζικός συγχρονισμός θα απενεργοποιηθεί.",
+    "paperlessDescription": "Κοινή σύνδεση Paperless-ngx για όλους τους χρήστες. Ρυθμίζεται μόνο από διαχειριστές.",
+    "paperlessUrl": "URL διακομιστή Paperless",
+    "paperlessToken": "Διακριτικό API Paperless",
+    "paperlessConnect": "Σύνδεση Paperless",
+    "paperlessDisconnect": "Αποσύνδεση Paperless",
+    "paperlessSaved": "Η σύνδεση Paperless αποθηκεύτηκε",
+    "paperlessRemoved": "Η σύνδεση Paperless αφαιρέθηκε",
+    "paperlessConfirmRemove": "Αποσύνδεση Paperless για όλους τους χρήστες;"
   }
 }

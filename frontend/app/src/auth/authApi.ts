@@ -23,6 +23,14 @@ export interface RegisterInput {
   invite_code: string
 }
 
+export async function setupStatus(): Promise<{ setup_required: boolean }> {
+  return apiFetch('/auth/setup-status')
+}
+
+export async function setupFirstAdmin(input: { email: string; full_name: string; password: string }): Promise<User> {
+  return apiFetch('/auth/setup', { method: 'POST', body: JSON.stringify(input) })
+}
+
 export async function login(email: string, password: string): Promise<Token> {
   return apiFetch<Token>('/auth/login', {
     method: 'POST',
