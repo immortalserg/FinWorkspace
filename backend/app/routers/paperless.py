@@ -328,7 +328,57 @@ async def copy_from_local(doc_id: str, user: User = Depends(get_current_user)):
         task = await client.upload(doc["filename"], path.read_bytes(),
                                    content_type=doc.get("mime_type") or "application/octet-stream",
                                    metadata=attrs)
-        return {"task_id": task, "message": "Document submitted to Paperless for processing"}
+        if doc.get("content", "").strip():
+            # Do not overwrite OCR while Paperless is still processing.
+            doc["paperless_pending_content"] = {"task_id": task, "content": doc["content"]}
+            local._save_index(user.id, index)
+        return {"task_id": task, "content_pending": bool(doc.get("content", "").strip()),
+                "message": "Document submitted to Paperless for processing"}
+    except PaperlessError as exc:
+        raise _error(exc)
+
+
+@router.post("/finalize-content/{doc_id}")
+async def finalize_content(doc_id: str, user: User = Depends(get_current_user)):
+    """Apply saved local OCR text after Paperless has finished processing an upload.
+
+    The caller retries while processing is pending. The pending marker survives
+    restarts, and is removed only after Paperless confirms the content update.
+    """
+    from app.routers import documents as local
+    import re
+    index = local._load_index(user.id)
+    doc = local._get_doc(index["documents"], doc_id)
+    if not doc:
+        raise HTTPException(404, "Local document not found")
+    pending = doc.get("paperless_pending_content")
+    if not pending:
+        return {"status": "not_pending"}
+    client = _client(user)
+    try:
+        tasks = await client.tasks()
+        items = tasks if isinstance(tasks, list) else tasks.get("results", []) if isinstance(tasks, dict) else []
+        task = next((item for item in items if str(item.get("task_id") or item.get("id")) == str(pending["task_id"])), None)
+        if not task:
+            return {"status": "pending"}
+        if task.get("status") in ("FAILURE", "REVOKED"):
+            return {"status": "failed"}
+        if task.get("status") not in ("SUCCESS",):
+            return {"status": "pending"}
+        result = task.get("result")
+        # Paperless tasks normally return the document ID as an integer or a
+        # string such as "Success. New document id 123 created".
+        match = re.search(r"(?:document\s+id\s+)?(\d+)\s*(?:created)?\s*$", str(result or ""), re.I)
+        if not match:
+            return {"status": "pending", "reason": "document_id_unavailable"}
+        item_id = int(match.group(1))
+        remote = await client.get("documents", item_id)
+        if not isinstance(remote, dict) or remote.get("id") != item_id:
+            return {"status": "pending"}
+        await client.update("documents", item_id, {"content": pending["content"]})
+        doc.pop("paperless_pending_content", None)
+        local._save_index(user.id, index)
+        return {"status": "completed", "document_id": item_id}
     except PaperlessError as exc:
         raise _error(exc)
 
