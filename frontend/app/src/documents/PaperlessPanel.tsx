@@ -14,13 +14,15 @@ import { PdfViewer } from './PdfViewer'
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 
 type Connection = { configured: boolean; url: string | null }
-type PaperlessDoc = { id: number; title: string; created?: string }
+type PaperlessDoc = { id: number; title: string; created?: string; tags?: number[]; storage_path?: number | null }
 type DocumentList = { count: number; results: PaperlessDoc[]; next?: string | null }
 
 export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload: boolean; onUploadOpenChange: (open: boolean) => void }) {
   const [connection, setConnection] = useState<Connection | null>(null)
   const [documents, setDocuments] = useState<PaperlessDoc[]>([])
   const [search, setSearch] = useState('')
+  const [selectedTag, setSelectedTag] = useState('')
+  const [selectedPath, setSelectedPath] = useState('')
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
   const [file, setFile] = useState<File | null>(null)
@@ -45,6 +47,8 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
     if (status.configured) {
       const query = new URLSearchParams({ page: String(page), page_size: '25' })
       if (search.trim()) query.set('search', search.trim())
+      if (selectedTag) query.set('tags__id', selectedTag)
+      if (selectedPath) query.set('storage_path__id', selectedPath)
       const result = await apiFetch<DocumentList>(`/paperless/documents?${query}`)
       setTotal(result.count ?? 0)
       setDocuments(result.results ?? [])
@@ -58,7 +62,7 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
 
   useEffect(() => {
     void refresh().catch(() => toast.error('Could not load Paperless connection'))
-  }, [page, search])
+  }, [page, search, selectedTag, selectedPath])
 
   async function createReference(resource: string) {
     const name = (newReferenceNames[resource] ?? '').trim()
@@ -288,7 +292,18 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
             </fieldset>
             </div>
           </Dialog>
-          <input aria-label="Search Paperless documents" className="w-full max-w-sm rounded border bg-background p-2" placeholder="Search Paperless documents…" value={search} onChange={(event) => { setPage(1); setSearch(event.target.value) }} />
+          <div className="flex flex-wrap items-center gap-2 rounded-xl border bg-card p-3">
+            <input aria-label="Search Paperless documents" className="h-8 min-w-40 flex-1 rounded border bg-background px-2 text-sm" placeholder="Search documents…" value={search} onChange={(event) => { setPage(1); setSearch(event.target.value) }} />
+            <select aria-label="Filter by storage path" className="h-8 max-w-48 rounded border bg-background px-2 text-sm" value={selectedPath} onChange={(event) => { setPage(1); setSelectedPath(event.target.value) }}>
+              <option value="">All folders</option>
+              {(references.storage_paths ?? []).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+            </select>
+            <select aria-label="Filter by tag" className="h-8 max-w-48 rounded border bg-background px-2 text-sm" value={selectedTag} onChange={(event) => { setPage(1); setSelectedTag(event.target.value) }}>
+              <option value="">All tags</option>
+              {(references.tags ?? []).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+            </select>
+            <span className="text-xs text-muted-foreground">{total} documents</span>
+          </div>
           <div className="flex flex-col gap-1.5">
             {filtered.map((doc) => (
               <div key={doc.id} role="button" tabIndex={0}
