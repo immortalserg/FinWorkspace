@@ -546,11 +546,18 @@ async def delete_resource(
 async def list_resource(resource: str, user: User = Depends(get_current_user),
                         page: int = Query(1, ge=1),
                         page_size: int = Query(25, ge=1, le=100),
-                        search: str | None = Query(None, max_length=200)):
+                        search: str | None = Query(None, max_length=200),
+                        tags__id: int | None = Query(None, ge=1),
+                        storage_path__id: int | None = Query(None, ge=1)):
     try:
         params = {"page": page, "page_size": page_size}
         if search:
             params["search"] = search
+        if resource == "documents":
+            if tags__id is not None:
+                params["tags__id"] = tags__id
+            if storage_path__id is not None:
+                params["storage_path__id"] = storage_path__id
         return await _client(user).list(resource, params=params)
     except ValueError:
         raise HTTPException(404, "Unknown Paperless resource")
