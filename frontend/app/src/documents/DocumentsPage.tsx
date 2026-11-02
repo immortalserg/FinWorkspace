@@ -245,7 +245,7 @@ export function DocumentsPage() {
         {/* Documents area */}
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex flex-wrap items-center gap-2 rounded-xl border bg-card p-3">
-            <InputGroup className="h-8 max-w-xs flex-1">
+            <InputGroup className="h-8 min-w-40 flex-[1_1_12rem] sm:max-w-xs">
               <InputGroupAddon>
                 <Search size={15} />
               </InputGroupAddon>
