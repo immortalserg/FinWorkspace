@@ -389,7 +389,8 @@ async def copy_to_local(item_id: int, user: User = Depends(get_current_user)):
                  "description": "", "filename": filename, "stored_name": stored_name,
                  "folder": "", "size": len(content), "mime_type": mime,
                  "uploaded_at": datetime.now(timezone.utc).isoformat(),
-                 "paperless_metadata": metadata}
+                 "paperless_metadata": metadata,
+                 "content": str(doc.get("content") or "")[:1000000]}
         for key, items in definitions.items():
             existing = index.setdefault("metadata_definitions", {}).setdefault(key, [])
             names = {item["name"].casefold() for item in existing}
