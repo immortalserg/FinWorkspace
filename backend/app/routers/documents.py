@@ -317,13 +317,14 @@ def list_documents(
         docs = [d for d in docs if d.get("folder", "").lower() == folder.lower()]
 
     if search:
-        q = search.lower()
+        q = search.casefold()
         docs = [
             d for d in docs
             if q in d.get("title", "").lower()
             or q in d.get("description", "").lower()
             or q in d.get("filename", "").lower()
             or q in d.get("folder", "").lower()
+            or q in d.get("content", "").casefold()
         ]
 
     return sorted(docs, key=lambda d: d.get("uploaded_at", ""), reverse=True)
@@ -395,6 +396,12 @@ def update_document(
         doc["folder"] = folder_clean
         if folder_clean:
             _ensure_folder(index, folder_clean)
+
+    if "content" in body:
+        content = body["content"]
+        if not isinstance(content, str) or len(content.encode("utf-8")) > 2 * 1024 * 1024:
+            raise HTTPException(status_code=422, detail="Document content must be text up to 2 MB")
+        doc["content"] = content
 
     if "paperless_metadata" in body:
         _validate_metadata(body["paperless_metadata"])
