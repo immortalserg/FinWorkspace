@@ -9,6 +9,8 @@ import { PencilEdit02Icon } from '@hugeicons/core-free-icons'
 import { apiFetch } from '../lib/apiClient'
 
 type Option = PaperlessTag
+type CustomField = { id: number; name: string; data_type?: string; extra_data?: unknown }
+type CustomValue = { field: number; value: unknown }
 type Collection = { results: Option[] }
 type Resource = 'tags' | 'document_types' | 'correspondents' | 'storage_paths'
 type DocumentDetails = {
@@ -18,6 +20,7 @@ type DocumentDetails = {
   correspondent: number | null
   storage_path: number | null
   tags: number[]
+  custom_fields?: CustomValue[]
 }
 
 const resources: { key: Resource; label: string; field: keyof DocumentDetails }[] = [
@@ -40,16 +43,19 @@ export function PaperlessEditDialog({
   const [newNames, setNewNames] = useState<Partial<Record<Resource, string>>>({})
   const [busy, setBusy] = useState(false)
   const [newTagParent, setNewTagParent] = useState<number | null>(null)
+  const [customFields, setCustomFields] = useState<CustomField[]>([])
 
   useEffect(() => {
     let active = true
     Promise.all([
       apiFetch<DocumentDetails>(`/paperless/documents/${documentId}`),
+      apiFetch<{ results: CustomField[] }>('/paperless/custom_fields?page_size=100'),
       ...(['tags', 'document_types', 'correspondents', 'storage_paths'] as Resource[])
         .map((key) => apiFetch<Collection>(`/paperless/${key}?page_size=100`)),
-    ]).then(([doc, tags, types, correspondents, paths]) => {
+    ]).then(([doc, fields, tags, types, correspondents, paths]) => {
       if (!active) return
       setDetails(doc as DocumentDetails)
+      setCustomFields((fields as { results: CustomField[] }).results ?? [])
       setOptions({
         tags: (tags as Collection).results ?? [],
         document_types: (types as Collection).results ?? [],
@@ -102,6 +108,7 @@ export function PaperlessEditDialog({
           correspondent: details.correspondent,
           storage_path: details.storage_path,
           tags: details.tags,
+          custom_fields: details.custom_fields ?? [],
         }),
       })
       toast.success('Document metadata saved')
@@ -147,6 +154,35 @@ export function PaperlessEditDialog({
                 <input aria-label="New tag" placeholder="New tag" className="min-w-0 flex-1 rounded border bg-background p-2 text-sm" value={newNames.tags ?? ''} onChange={(event) => setNewNames({ ...newNames, tags: event.target.value })} />
                 <Button size="sm" variant="outline" disabled={busy || !newNames.tags?.trim()} onClick={() => void createOption('tags')}>Create tag</Button>
               </div>
+            </fieldset>
+            <fieldset className="space-y-2">
+              <legend className="text-sm">Custom fields</legend>
+              {customFields.map((field) => {
+                const current = details.custom_fields?.find((item) => item.field === field.id)?.value
+                const setValue = (value: unknown) => setDetails({
+                  ...details,
+                  custom_fields: [
+                    ...(details.custom_fields ?? []).filter((item) => item.field !== field.id),
+                    { field: field.id, value },
+                  ],
+                })
+                return (
+                  <label key={field.id} className="block text-sm">{field.name}
+                    {field.data_type === 'boolean' ? (
+                      <input className="ms-2" type="checkbox" checked={current === true}
+                        onChange={(event) => setValue(event.target.checked)} />
+                    ) : (
+                      <Input className="mt-1"
+                        type={field.data_type === 'date' ? 'date' : ['integer', 'float', 'monetary'].includes(field.data_type ?? '') ? 'number' : 'text'}
+                        step={field.data_type === 'integer' ? '1' : 'any'}
+                        value={current == null ? '' : String(current)}
+                        onChange={(event) => setValue(event.target.value === '' ? null
+                          : ['integer', 'float'].includes(field.data_type ?? '') ? Number(event.target.value)
+                          : event.target.value)} />
+                    )}
+                  </label>
+                )
+              })}
             </fieldset>
           </>
         )}
