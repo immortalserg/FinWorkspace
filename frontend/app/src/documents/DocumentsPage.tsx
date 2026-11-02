@@ -128,7 +128,8 @@ export function DocumentsPage() {
       (doc) =>
         doc.title.toLowerCase().includes(q) ||
         doc.description.toLowerCase().includes(q) ||
-        doc.filename.toLowerCase().includes(q),
+        doc.filename.toLowerCase().includes(q) ||
+        (doc.content ?? '').toLowerCase().includes(q),
     )
   }, [documents, search])
 
