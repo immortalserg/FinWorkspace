@@ -38,6 +38,7 @@ export interface UploadDocumentInput {
 }
 
 export interface UpdateDocumentInput {
+  content?: string
   title?: string
   description?: string
   folder?: string
