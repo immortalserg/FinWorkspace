@@ -17,6 +17,7 @@ Everything you need to install, run, operate and extend **FinWorkspace**. If you
 
 | Guide | What's inside |
 |---|---|
+| [Paperless-ngx](integrations/paperless-ngx.md) | External document management, local documents, and integration scope |
 | [Bank connection (Enable Banking)](bank-sync.md) | Step-by-step PSD2 bank sync setup, consent renewal, troubleshooting |
 | [AI advisor](ai-advisor.md) | OpenRouter setup, model picker, cost caps, tools, skills, investor profile |
 | [Investments](investments.md) | Freedom24 and Binance sync, analytics, comparison, backtesting, research |
