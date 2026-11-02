@@ -67,8 +67,30 @@ export function DocumentsPage() {
 
   async function copyToPaperless(doc: DocumentItem) {
     try {
-      await apiFetch(`/paperless/copy-from-local/${encodeURIComponent(doc.id)}`, { method: 'POST' })
-      toast.success('Document submitted to Paperless for OCR processing')
+      const result = await apiFetch<{ content_pending?: boolean }>(`/paperless/copy-from-local/${encodeURIComponent(doc.id)}`, { method: 'POST' })
+      toast.success(result.content_pending
+        ? 'Document submitted; saved text will transfer after processing'
+        : 'Document submitted to Paperless for OCR processing')
+      if (result.content_pending) {
+        // Processing may take several minutes. Retrying is safe: the backend
+        // clears the pending marker only after a successful content update.
+        for (let attempt = 0; attempt < 90; attempt++) {
+          await new Promise((resolve) => window.setTimeout(resolve, 5000))
+          try {
+            const status = await apiFetch<{ status: string }>(`/paperless/finalize-content/${encodeURIComponent(doc.id)}`, { method: 'POST' })
+            if (status.status === 'completed') {
+              toast.success('Recognized text copied to Paperless')
+              break
+            }
+            if (status.status === 'failed' || status.status === 'not_pending') {
+              toast.error('Paperless text transfer did not complete')
+              break
+            }
+          } catch {
+            // Leave the pending marker intact for a later retry.
+          }
+        }
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Copy to Paperless failed')
     }
