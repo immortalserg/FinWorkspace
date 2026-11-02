@@ -27,6 +27,8 @@ export function LocalMetadataFields({ value, onChange }: {
   const [definitions, setDefinitions] = useState<Definitions>({})
   const [newNames, setNewNames] = useState<Record<string, string>>({})
   const [tagParent, setTagParent] = useState('')
+  const [newFieldType, setNewFieldType] = useState('string')
+  const [fieldToAdd, setFieldToAdd] = useState('')
   const [tagsOpen, setTagsOpen] = useState(false)
   const [expandedTags, setExpandedTags] = useState<string[]>([])
   useEffect(() => {
@@ -65,12 +67,13 @@ export function LocalMetadataFields({ value, onChange }: {
   async function addDefinition(key: string) {
     const name = (newNames[key] ?? '').trim()
     if (!name || (definitions[key] ?? []).some((x) => x.name.toLowerCase() === name.toLowerCase())) return
-    const next = { ...definitions, [key]: [...(definitions[key] ?? []), { name, ...(key === 'custom_fields' ? { data_type: 'string' } : {}), ...(key === 'tags' ? { parent: tagParent || null } : {}) }] }
+    const next = { ...definitions, [key]: [...(definitions[key] ?? []), { name, ...(key === 'custom_fields' ? { data_type: newFieldType } : {}), ...(key === 'tags' ? { parent: tagParent || null } : {}) }] }
     try {
       await apiFetch('/documents/metadata/definitions', { method: 'PUT', body: JSON.stringify(next) })
       setDefinitions(next)
       setNewNames((prev) => ({ ...prev, [key]: '' }))
       if (key === 'tags') setTagParent('')
+      if (key === 'custom_fields') setNewFieldType('string')
       if (key === 'tags') {
         const selected = new Set([...(value.tags ?? []), name])
         let parent = tagParent
@@ -169,17 +172,37 @@ export function LocalMetadataFields({ value, onChange }: {
       </label>
       <fieldset className="space-y-2">
         <legend className="text-sm">Custom fields</legend>
-        {(definitions.custom_fields ?? []).map((field) => (
+        {(definitions.custom_fields ?? []).filter((field) => Object.prototype.hasOwnProperty.call(value.custom_fields ?? {}, field.name)).map((field) => (
           <label key={field.name} className="block text-sm">{field.name}
             {field.data_type === 'boolean' ? (
               <input className="ms-2" type="checkbox" checked={Boolean(value.custom_fields?.[field.name])} onChange={(e) => onChange({ ...value, custom_fields: { ...value.custom_fields, [field.name]: e.target.checked } })} />
             ) : (
-              <Input className="mt-1" type={field.data_type === 'date' ? 'date' : field.data_type === 'integer' || field.data_type === 'float' ? 'number' : 'text'}
+              <Input className="mt-1" type={field.data_type === 'date' ? 'date' : field.data_type === 'integer' || field.data_type === 'float' || field.data_type === 'monetary' ? 'number' : 'text'}
                 value={String(value.custom_fields?.[field.name] ?? '')}
                 onChange={(e) => onChange({ ...value, custom_fields: { ...value.custom_fields, [field.name]: field.data_type === 'integer' || field.data_type === 'float' ? (e.target.value === '' ? null : Number(e.target.value)) : e.target.value } })} />
             )}
           </label>
         ))}
+        <div className="flex gap-2">
+          <select aria-label="Add existing custom field" className="min-w-0 flex-1 rounded border bg-background p-2 text-sm" value={fieldToAdd} onChange={(e) => setFieldToAdd(e.target.value)}>
+            <option value="">Select an existing field</option>
+            {(definitions.custom_fields ?? []).filter((field) => !Object.prototype.hasOwnProperty.call(value.custom_fields ?? {}, field.name)).map((field) => <option key={field.name} value={field.name}>{field.name}</option>)}
+          </select>
+          <Button type="button" variant="outline" disabled={!fieldToAdd} onClick={() => {
+            const field = (definitions.custom_fields ?? []).find((item) => item.name === fieldToAdd)
+            if (field) onChange({ ...value, custom_fields: { ...value.custom_fields, [field.name]: field.data_type === 'boolean' ? false : null } })
+            setFieldToAdd('')
+          }}>Add field</Button>
+        </div>
+        <select aria-label="New custom field type" className="w-full rounded border bg-background p-2 text-sm" value={newFieldType} onChange={(e) => setNewFieldType(e.target.value)}>
+          <option value="string">Text</option>
+          <option value="integer">Integer</option>
+          <option value="float">Decimal number</option>
+          <option value="monetary">Monetary</option>
+          <option value="date">Date</option>
+          <option value="boolean">Yes / No</option>
+          <option value="url">URL</option>
+        </select>
         <div className="flex gap-2">
           <Input aria-label="New custom field" placeholder="New custom field" value={newNames.custom_fields ?? ''} onChange={(e) => setNewNames({ ...newNames, custom_fields: e.target.value })} />
           <Button type="button" variant="outline" onClick={() => void addDefinition('custom_fields')}>Add</Button>
