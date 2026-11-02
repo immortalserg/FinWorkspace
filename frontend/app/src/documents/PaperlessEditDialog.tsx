@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Dialog } from '../ui/Dialog'
 import { PencilEdit02Icon } from '@hugeicons/core-free-icons'
 import { apiFetch } from '../lib/apiClient'
@@ -16,6 +17,7 @@ type Resource = 'tags' | 'document_types' | 'correspondents' | 'storage_paths'
 type DocumentDetails = {
   id: number
   title: string
+  content?: string
   document_type: number | null
   correspondent: number | null
   storage_path: number | null
@@ -45,6 +47,7 @@ export function PaperlessEditDialog({
   const [newTagParent, setNewTagParent] = useState<number | null>(null)
   const [customFields, setCustomFields] = useState<CustomField[]>([])
   const [fieldToAdd, setFieldToAdd] = useState('')
+  const [tab, setTab] = useState<'details' | 'content'>('details')
 
   useEffect(() => {
     let active = true
@@ -105,6 +108,7 @@ export function PaperlessEditDialog({
         method: 'PATCH',
         body: JSON.stringify({
           title: details.title,
+          content: details.content ?? '',
           document_type: details.document_type,
           correspondent: details.correspondent,
           storage_path: details.storage_path,
@@ -127,6 +131,11 @@ export function PaperlessEditDialog({
       <div className="space-y-4">
         {!details ? <p>Loading metadata…</p> : (
           <>
+            <div className="flex gap-2" role="tablist" aria-label="Document editor tabs">
+              <Button type="button" variant={tab === 'details' ? 'default' : 'outline'} onClick={() => setTab('details')}>Properties</Button>
+              <Button type="button" variant={tab === 'content' ? 'default' : 'outline'} onClick={() => setTab('content')}>Content (OCR)</Button>
+            </div>
+            {tab === 'details' ? <>
             <label className="block text-sm">Title
               <Input className="mt-1" value={details.title} onChange={(event) => setDetails({ ...details, title: event.target.value })} />
             </label>
@@ -196,6 +205,9 @@ export function PaperlessEditDialog({
                 }}>Add field</Button>
               </div>
             </fieldset>
+            </> : <label className="block text-sm">Recognized text
+              <Textarea className="mt-2 min-h-72 font-mono text-sm" value={details.content ?? ''} onChange={(event) => setDetails({ ...details, content: event.target.value })} placeholder="No recognized text yet" />
+            </label>}
           </>
         )}
       </div>
