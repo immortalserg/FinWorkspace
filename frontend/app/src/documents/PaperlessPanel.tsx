@@ -1,7 +1,7 @@
 import { PaperlessTagPicker, togglePaperlessTag } from './PaperlessTagPicker'
 import type { PaperlessTag } from './PaperlessTagPicker'
 import { useEffect, useState } from 'react'
-import { Download, FileText, FileUp, MoreVertical, PencilLine, Trash2 } from 'lucide-react'
+import { Download, FileText, FileUp, MoreVertical, PencilLine, Search, Trash2, X } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -9,6 +9,7 @@ import { apiFetch, getApiBaseUrl } from '../lib/apiClient'
 import { PaperlessEditDialog } from './PaperlessEditDialog'
 import { Dialog } from '../ui/Dialog'
 import { Input } from '@/components/ui/input'
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
 import { fileTypeMeta } from './fileTypeMeta'
 import { PdfViewer } from './PdfViewer'
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet'
@@ -293,7 +294,11 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
             </div>
           </Dialog>
           <div className="flex flex-wrap items-center gap-2 rounded-xl border bg-card p-3">
-            <input aria-label="Search Paperless documents" className="h-8 min-w-40 flex-1 rounded border bg-background px-2 text-sm" placeholder="Search documents…" value={search} onChange={(event) => { setPage(1); setSearch(event.target.value) }} />
+            <InputGroup className="h-8 min-w-40 flex-[1_1_12rem] sm:max-w-xs">
+              <InputGroupAddon><Search size={15} /></InputGroupAddon>
+              <InputGroupInput aria-label="Search Paperless documents" placeholder="Search documents…" value={search} onChange={(event) => { setPage(1); setSearch(event.target.value) }} />
+              {search && <InputGroupAddon align="inline-end"><InputGroupButton onClick={() => { setPage(1); setSearch('') }} aria-label="Clear search"><X size={13} /></InputGroupButton></InputGroupAddon>}
+            </InputGroup>
             <select aria-label="Filter by storage path" className="h-8 max-w-48 rounded border bg-background px-2 text-sm" value={selectedPath} onChange={(event) => { setPage(1); setSelectedPath(event.target.value) }}>
               <option value="">All folders</option>
               {(references.storage_paths ?? []).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
