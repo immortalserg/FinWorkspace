@@ -6,6 +6,14 @@ Releases that add database migrations or new `.env` settings say so, so you know
 
 ## [Unreleased]
 
+### Added
+- Optional Paperless-ngx integration with document browsing, search, filters, metadata editing and transfer between Paperless-ngx and local documents.
+- Local document OCR content editing and searching.
+
+### Changed
+- Unified Local Documents and Paperless-ngx list and search layouts, including responsive mobile search controls.
+
+
 ## [1.5.0] - 2026-10-31
 
 No database migrations and no new `.env` settings.
