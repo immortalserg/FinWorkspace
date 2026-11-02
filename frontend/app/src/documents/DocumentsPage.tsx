@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router-dom'
 import {
   FileText,
-  Folder,
   FolderPlus,
   MoreVertical,
   Search,
@@ -12,7 +11,6 @@ import {
   X,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   DropdownMenu,
@@ -25,7 +23,6 @@ import { PageContainer } from '../ui/PageContainer'
 import { PageHeader, PageHeaderActionLabel } from '../ui/PageHeader'
 import { EmptyState } from '../ui/EmptyState'
 import { useConfirm } from '../ui/useConfirm'
-import { cn } from '@/lib/utils'
 import { formatDate } from '../lib/format'
 import { fileTypeMeta } from './fileTypeMeta'
 import type { DocumentItem } from './documentsApi'
@@ -133,7 +130,7 @@ export function DocumentsPage() {
   const { data: documents, isLoading } = useDocuments(
     selectedFolder ? { folder: selectedFolder } : {},
   )
-  const { data: foldersData, isLoading: foldersLoading } = useDocumentFolders()
+  const { data: foldersData } = useDocumentFolders()
   const deleteDocument = useDeleteDocument()
   const createFolder = useCreateFolder()
   const deleteFolderMutation = useDeleteFolder()
@@ -242,51 +239,11 @@ export function DocumentsPage() {
         <Button variant={provider === 'paperless' ? 'default' : 'outline'} onClick={() => setProvider('paperless')}>Paperless-ngx</Button>
       </div>
       {provider === 'paperless' ? <PaperlessPanel openUpload={paperlessUploadOpen} onUploadOpenChange={setPaperlessUploadOpen} /> : (
-      <div className="glass-panel flex flex-col overflow-hidden rounded-xl border lg:flex-row">
-        {/* Folder rail — horizontal chips on mobile, sidebar on desktop */}
-        <div className="flex shrink-0 gap-1.5 overflow-x-auto border-b p-3 lg:w-56 lg:flex-col lg:overflow-visible lg:border-b-0 lg:border-e lg:p-3">
-          <FolderRailItem
-            label="All documents"
-            count={totalCount}
-            active={selectedFolder === ''}
-            onClick={() => setSelectedFolder('')}
-          />
-          {foldersLoading &&
-            [1, 2, 3].map((i) => <Skeleton key={i} className="h-8 w-full shrink-0 rounded-lg lg:w-full" />)}
-          {folders.map((folder) => (
-            <FolderRailItem
-              key={folder.name}
-              label={folder.name}
-              count={folder.count}
-              active={selectedFolder === folder.name}
-              onClick={() => setSelectedFolder(folder.name)}
-              onDelete={() => handleDeleteFolder(folder.name)}
-            />
-          ))}
-          {addingFolder && (
-            <div className="flex shrink-0 items-center gap-1 lg:w-full">
-              <input
-                ref={folderInputRef}
-                value={folderDraft}
-                onChange={(e) => setFolderDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') submitFolderDraft()
-                  if (e.key === 'Escape') {
-                    setAddingFolder(false)
-                    setFolderDraft('')
-                  }
-                }}
-                onBlur={submitFolderDraft}
-                placeholder="Folder name…"
-                className="h-8 w-36 min-w-0 rounded-lg border border-primary bg-muted px-2.5 text-sm outline-none lg:w-full"
-              />
-            </div>
-          )}
-        </div>
-
+      <div className="flex flex-col">
+        {/* Folder creation stays available without a permanent sidebar. */}
         {/* Documents area */}
         <div className="flex min-w-0 flex-1 flex-col">
-          <div className="flex flex-wrap items-center gap-2 border-b p-3">
+          <div className="flex flex-wrap items-center gap-2 rounded-xl border bg-card p-3">
             <InputGroup className="h-8 max-w-xs flex-1">
               <InputGroupAddon>
                 <Search size={15} />
@@ -304,11 +261,26 @@ export function DocumentsPage() {
                 </InputGroupAddon>
               )}
             </InputGroup>
+            <select aria-label="Filter by folder" className="h-8 max-w-48 rounded border bg-background px-2 text-sm" value={selectedFolder} onChange={(event) => setSelectedFolder(event.target.value)}>
+              <option value="">All folders ({totalCount})</option>
+              {folders.map((folder) => <option key={folder.name} value={folder.name}>{folder.name} ({folder.count})</option>)}
+            </select>
             <select aria-label="Filter by tag" className="h-8 max-w-48 rounded border bg-background px-2 text-sm" value={selectedTag} onChange={(event) => setSelectedTag(event.target.value)}>
               <option value="">All tags</option>
               {availableTags.map((tag) => <option key={tag} value={tag}>{tag}</option>)}
             </select>
 
+            {addingFolder && (
+              <input ref={folderInputRef} value={folderDraft} onChange={(e) => setFolderDraft(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') submitFolderDraft(); if (e.key === 'Escape') { setAddingFolder(false); setFolderDraft('') } }}
+                onBlur={submitFolderDraft} placeholder="Folder name…" aria-label="New folder name"
+                className="h-8 w-36 rounded border border-primary bg-background px-2 text-sm" />
+            )}
+            {selectedFolder && (
+              <Button variant="ghost" size="sm" onClick={() => void handleDeleteFolder(selectedFolder)} title="Delete selected folder">
+                <Trash2 size={14} /> Delete folder
+              </Button>
+            )}
             <div className="ms-auto flex items-center gap-2">
               <span className="text-xs text-muted-foreground">
                 {isLoading ? '' : `${filtered.length} document${filtered.length === 1 ? '' : 's'}`}
@@ -372,67 +344,6 @@ export function DocumentsPage() {
       />
       {confirmDialog}
     </PageContainer>
-  )
-}
-
-function FolderRailItem({
-  label,
-  count,
-  active,
-  onClick,
-  onDelete,
-}: {
-  label: string
-  count: number
-  active: boolean
-  onClick: () => void
-  onDelete?: () => void
-}) {
-  return (
-    <div
-      className={cn(
-        'group/folder flex shrink-0 items-center gap-1 rounded-lg lg:w-full',
-        active ? 'bg-primary/12' : 'hover:bg-muted',
-      )}
-    >
-      <button
-        type="button"
-        onClick={onClick}
-        className={cn(
-          'flex min-w-0 flex-1 items-center gap-2 rounded-lg px-2.5 py-1.5 text-start text-sm transition-colors',
-          active ? 'font-medium text-primary' : 'text-foreground',
-        )}
-      >
-        <Folder size={15} className="shrink-0" />
-        <span className="truncate">{label}</span>
-        <Badge
-          variant="outline"
-          className={cn('ms-auto shrink-0', active && 'border-primary/30 bg-primary/10 text-primary')}
-        >
-          {count}
-        </Badge>
-      </button>
-      {onDelete && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon-xs"
-              className="me-1 shrink-0 opacity-0 group-hover/folder:opacity-100 focus-visible:opacity-100"
-              aria-label={`Folder options for ${label}`}
-            >
-              <MoreVertical size={13} />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem variant="destructive" onClick={onDelete}>
-              <Trash2 />
-              Delete folder
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
-    </div>
   )
 }
 
