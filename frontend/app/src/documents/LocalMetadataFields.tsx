@@ -73,7 +73,10 @@ export function LocalMetadataFields({ value, onChange }: {
       setDefinitions(next)
       setNewNames((prev) => ({ ...prev, [key]: '' }))
       if (key === 'tags') setTagParent('')
-      if (key === 'custom_fields') setNewFieldType('string')
+      if (key === 'custom_fields') {
+        onChange({ ...value, custom_fields: { ...value.custom_fields, [name]: newFieldType === 'boolean' ? false : null } })
+        setNewFieldType('string')
+      }
       if (key === 'tags') {
         const selected = new Set([...(value.tags ?? []), name])
         let parent = tagParent
