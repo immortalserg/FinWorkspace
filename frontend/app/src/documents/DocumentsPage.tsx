@@ -6,8 +6,6 @@ import {
   FileText,
   Folder,
   FolderPlus,
-  Grid2x2,
-  List,
   MoreVertical,
   Search,
   Trash2,
@@ -16,7 +14,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,7 +48,6 @@ function formatBytes(size: number): string {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`
 }
 
-type ViewMode = 'grid' | 'list'
 
 export function DocumentsPage() {
   const { t } = useTranslation('nav')
@@ -104,7 +100,7 @@ export function DocumentsPage() {
   const [provider, setProvider] = useState<'local' | 'paperless'>('local')
   const [selectedFolder, setSelectedFolder] = useState<string>('')
   const [search, setSearch] = useState('')
-  const [view, setView] = useState<ViewMode>('grid')
+  const [selectedTag, setSelectedTag] = useState('')
   const [uploadOpen, setUploadOpen] = useState(false)
   const [editingDoc, setEditingDoc] = useState<DocumentItem | null>(null)
   const [previewDoc, setPreviewDoc] = useState<DocumentItem | null>(null)
@@ -145,16 +141,18 @@ export function DocumentsPage() {
   const filtered = useMemo(() => {
     if (!documents) return []
     const q = search.trim().toLowerCase()
-    if (!q) return documents
     return documents.filter(
       (doc) =>
+        (!selectedTag || (doc.paperless_metadata?.tags ?? []).includes(selectedTag)) &&
+        (!q || (
         doc.title.toLowerCase().includes(q) ||
         doc.description.toLowerCase().includes(q) ||
         doc.filename.toLowerCase().includes(q) ||
-        (doc.content ?? '').toLowerCase().includes(q),
+        (doc.content ?? '').toLowerCase().includes(q)),
     )
-  }, [documents, search])
+  }, [documents, search, selectedTag])
 
+  const availableTags = useMemo(() => [...new Set((documents ?? []).flatMap((doc) => doc.paperless_metadata?.tags ?? []))].sort((a, b) => a.localeCompare(b)), [documents])
   const folders = foldersData?.folders ?? []
   const totalCount = foldersData?.total ?? documents?.length ?? 0
 
@@ -306,42 +304,21 @@ export function DocumentsPage() {
                 </InputGroupAddon>
               )}
             </InputGroup>
+            <select aria-label="Filter by tag" className="h-8 max-w-48 rounded border bg-background px-2 text-sm" value={selectedTag} onChange={(event) => setSelectedTag(event.target.value)}>
+              <option value="">All tags</option>
+              {availableTags.map((tag) => <option key={tag} value={tag}>{tag}</option>)}
+            </select>
 
             <div className="ms-auto flex items-center gap-2">
               <span className="text-xs text-muted-foreground">
                 {isLoading ? '' : `${filtered.length} document${filtered.length === 1 ? '' : 's'}`}
               </span>
-              <ToggleGroup
-                type="single"
-                variant="outline"
-                spacing={0}
-                value={view}
-                onValueChange={(v) => v && setView(v as ViewMode)}
-              >
-                <ToggleGroupItem value="grid" aria-label="Grid view" size="icon-sm">
-                  <Grid2x2 size={14} />
-                </ToggleGroupItem>
-                <ToggleGroupItem value="list" aria-label="List view" size="icon-sm">
-                  <List size={14} />
-                </ToggleGroupItem>
-              </ToggleGroup>
+
             </div>
           </div>
 
           <div className="flex-1 p-4">
-            {isLoading && (
-              <div
-                className={
-                  view === 'grid'
-                    ? 'grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5'
-                    : 'flex flex-col gap-2'
-                }
-              >
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <Skeleton key={i} className={view === 'grid' ? 'h-32 w-full rounded-xl' : 'h-14 w-full rounded-lg'} />
-                ))}
-              </div>
-            )}
+            {isLoading && <div className="flex flex-col gap-2">{[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-14 w-full rounded-lg" />)}</div>}
 
             {isEmpty && (
               <EmptyState
@@ -363,22 +340,7 @@ export function DocumentsPage() {
               />
             )}
 
-            {!isLoading && filtered.length > 0 && view === 'grid' && (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
-                {filtered.map((doc) => (
-                  <DocumentCard
-                    key={doc.id}
-                    doc={doc}
-                    onOpen={() => setPreviewDoc(doc)}
-                    onEdit={() => setEditingDoc(doc)}
-                    onDelete={() => handleDeleteDoc(doc)}
-                    onCopy={paperlessConfigured ? () => void copyToPaperless(doc) : undefined}
-                  />
-                ))}
-              </div>
-            )}
-
-            {!isLoading && filtered.length > 0 && view === 'list' && (
+            {!isLoading && filtered.length > 0 && (
               <div className="flex flex-col gap-1.5">
                 {filtered.map((doc) => (
                   <DocumentRow
