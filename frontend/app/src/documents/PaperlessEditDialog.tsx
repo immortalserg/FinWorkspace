@@ -44,6 +44,7 @@ export function PaperlessEditDialog({
   const [busy, setBusy] = useState(false)
   const [newTagParent, setNewTagParent] = useState<number | null>(null)
   const [customFields, setCustomFields] = useState<CustomField[]>([])
+  const [fieldToAdd, setFieldToAdd] = useState('')
 
   useEffect(() => {
     let active = true
@@ -108,7 +109,7 @@ export function PaperlessEditDialog({
           correspondent: details.correspondent,
           storage_path: details.storage_path,
           tags: details.tags,
-          custom_fields: details.custom_fields ?? [],
+          custom_fields: (details.custom_fields ?? []).filter((item) => item.value !== null && item.value !== ''),
         }),
       })
       toast.success('Document metadata saved')
@@ -157,7 +158,7 @@ export function PaperlessEditDialog({
             </fieldset>
             <fieldset className="space-y-2">
               <legend className="text-sm">Custom fields</legend>
-              {customFields.map((field) => {
+              {customFields.filter((field) => details.custom_fields?.some((item) => item.field === field.id)).map((field) => {
                 const current = details.custom_fields?.find((item) => item.field === field.id)?.value
                 const setValue = (value: unknown) => setDetails({
                   ...details,
@@ -183,6 +184,17 @@ export function PaperlessEditDialog({
                   </label>
                 )
               })}
+              <div className="flex gap-2">
+                <select aria-label="Add existing custom field" className="min-w-0 flex-1 rounded border bg-background p-2 text-sm" value={fieldToAdd} onChange={(event) => setFieldToAdd(event.target.value)}>
+                  <option value="">Select an existing field</option>
+                  {customFields.filter((field) => !(details.custom_fields ?? []).some((item) => item.field === field.id)).map((field) => <option key={field.id} value={field.id}>{field.name}</option>)}
+                </select>
+                <Button type="button" variant="outline" disabled={!fieldToAdd} onClick={() => {
+                  const field = customFields.find((item) => item.id === Number(fieldToAdd))
+                  if (field) setDetails({ ...details, custom_fields: [...(details.custom_fields ?? []), { field: field.id, value: field.data_type === 'boolean' ? false : null }] })
+                  setFieldToAdd('')
+                }}>Add field</Button>
+              </div>
             </fieldset>
           </>
         )}
