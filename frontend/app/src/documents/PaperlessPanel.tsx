@@ -294,7 +294,7 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
             </div>
           </Dialog>
           <div className="flex flex-wrap items-center gap-2 rounded-xl border bg-card p-3">
-            <InputGroup className="h-8 min-w-40 flex-[1_1_12rem] sm:max-w-xs">
+            <InputGroup className="h-8 w-full min-w-0 shrink-0 sm:w-auto sm:min-w-40 sm:flex-[1_1_12rem] sm:max-w-xs">
               <InputGroupAddon>
                 <Search size={15} />
               </InputGroupAddon>
