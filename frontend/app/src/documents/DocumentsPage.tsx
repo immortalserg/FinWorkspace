@@ -290,7 +290,7 @@ export function DocumentsPage() {
             </div>
           </div>
 
-          <div className="flex-1 p-4">
+          <div className="flex-1 pt-4">
             {isLoading && <div className="flex flex-col gap-2">{[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-14 w-full rounded-lg" />)}</div>}
 
             {isEmpty && (
