@@ -12,6 +12,7 @@ export interface DocumentItem {
   mime_type: string
   uploaded_at: string
   paperless_metadata?: LocalMetadata
+  content?: string
 }
 
 export interface DocumentFolder {
