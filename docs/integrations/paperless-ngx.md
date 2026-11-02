@@ -1,6 +1,15 @@
 # Paperless-ngx integration
 
-Status: implementation plan (not yet enabled).
+Status: integration implemented on `feature/paperless-ngx-integration`; release pending. The scope below includes planned capabilities and is not a checklist of shipped features.
+
+## Currently available
+- Optional connection to an external Paperless-ngx server through FinWorkspace settings.
+- Paperless document list, search, tag and storage-path filters, preview, upload, download and metadata editing.
+- Local Documents remains available separately, with its own folder and tag filters.
+- Copy documents between local storage and Paperless-ngx, including OCR text handling.
+- Responsive document lists and search controls for mobile screens.
+
+The integration has been manually checked, including mobile use. Automated CI and Docker release builds still need verification before release.
 
 ## Architecture
 - Optional external Paperless-ngx instance, including Home Assistant add-on; no embedded Paperless container.
