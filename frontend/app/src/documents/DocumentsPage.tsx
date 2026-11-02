@@ -462,42 +462,6 @@ function DocumentActionsMenu({ onEdit, onDelete, onCopy }: { onEdit: () => void;
   )
 }
 
-function DocumentCard({
-  doc,
-  onOpen,
-  onEdit,
-  onDelete,
-  onCopy,
-}: {
-  doc: DocumentItem
-  onOpen: () => void
-  onEdit: () => void
-  onDelete: () => void
-  onCopy?: () => void
-}) {
-  const meta = fileTypeMeta(doc.mime_type, doc.filename)
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={onOpen}
-      onKeyDown={(e) => e.key === 'Enter' && onOpen()}
-      className="group/card relative flex cursor-pointer flex-col items-center gap-2.5 rounded-xl bg-card p-4 text-center shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover"
-    >
-      <div className="absolute end-2 top-2 opacity-0 transition-opacity group-hover/card:opacity-100 group-focus-within/card:opacity-100">
-        <DocumentActionsMenu onEdit={onEdit} onDelete={onDelete} onCopy={onCopy} />
-      </div>
-      <span className={cn('flex h-16 w-14 items-center justify-center rounded-lg', meta.className)}>
-        <meta.icon size={26} />
-      </span>
-      <p className="line-clamp-2 w-full text-xs font-medium leading-tight text-foreground" title={doc.title}>
-        {doc.title}
-      </p>
-      <p className="text-[0.65rem] text-muted-foreground">{formatBytes(doc.size)}</p>
-    </div>
-  )
-}
-
 function DocumentRow({
   doc,
   onOpen,
