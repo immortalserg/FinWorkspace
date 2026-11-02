@@ -25,6 +25,8 @@ export function DocumentEditDialog({ document, onOpenChange }: DocumentEditDialo
   const [description, setDescription] = useState('')
   const [metadata, setMetadata] = useState<LocalMetadata>({})
   const [folder, setFolder] = useState('')
+  const [content, setContent] = useState('')
+  const [tab, setTab] = useState<'details' | 'content'>('details')
 
   useEffect(() => {
     if (document) {
@@ -32,6 +34,8 @@ export function DocumentEditDialog({ document, onOpenChange }: DocumentEditDialo
       setDescription(document.description)
       setMetadata(document.paperless_metadata ?? {})
       setFolder(document.folder)
+      setContent(document.content ?? '')
+      setTab('details')
     }
   }, [document])
 
@@ -41,7 +45,7 @@ export function DocumentEditDialog({ document, onOpenChange }: DocumentEditDialo
     try {
       await updateDocument.mutateAsync({
         id: document.id,
-        input: { title: title.trim(), description: description.trim(), folder, paperless_metadata: metadata },
+        input: { title: title.trim(), description: description.trim(), folder, paperless_metadata: metadata, content },
       })
       toast.success('Document updated')
       onOpenChange(false)
@@ -71,7 +75,11 @@ export function DocumentEditDialog({ document, onOpenChange }: DocumentEditDialo
       }
     >
       <form id={formId} onSubmit={onSubmit} noValidate>
-        <FieldGroup>
+        <div className="mb-3 flex gap-2" role="tablist" aria-label="Document editor tabs">
+          <Button type="button" variant={tab === 'details' ? 'default' : 'outline'} onClick={() => setTab('details')}>Properties</Button>
+          <Button type="button" variant={tab === 'content' ? 'default' : 'outline'} onClick={() => setTab('content')}>Content (OCR)</Button>
+        </div>
+        {tab === 'details' ? <FieldGroup>
           <Field>
             <FieldLabel htmlFor="edit-doc-title">Title</FieldLabel>
             <Input id="edit-doc-title" value={title} onChange={(e) => setTitle(e.target.value)} required />
@@ -90,7 +98,9 @@ export function DocumentEditDialog({ document, onOpenChange }: DocumentEditDialo
             <FolderPicker value={folder} onChange={setFolder} folders={foldersData?.folders ?? []} />
           </Field>
           <LocalMetadataFields value={metadata} onChange={setMetadata} />
-        </FieldGroup>
+        </FieldGroup> : <label className="block text-sm">Recognized text
+          <Textarea className="mt-2 min-h-72 font-mono text-sm" value={content} onChange={(event) => setContent(event.target.value)} placeholder="No recognized text yet" />
+        </label>}
       </form>
     </Dialog>
   )
