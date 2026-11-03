@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
+import { TransactionAllocationsEditor } from './TransactionAllocationsEditor'
 import { SplitFields, splitRemainderCents, toCents } from './SplitFields'
 import type { SplitPartDraft } from './SplitFields'
 import { HugeiconsIcon } from '@hugeicons/react'
@@ -573,6 +574,13 @@ export function TransactionFormDialog({
               </div>
             )}
           </Field>
+
+          {transaction && transaction.type !== 'transfer' && (
+            <TransactionAllocationsEditor
+              transaction={transaction}
+              categoryOptions={categoryOptions}
+            />
+          )}
 
           <Field data-invalid={errors.description ? true : undefined}>
             <FieldLabel htmlFor="description">{t('form.fields.description')}</FieldLabel>
