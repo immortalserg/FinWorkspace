@@ -101,6 +101,7 @@ export function TransactionsPage() {
 
   const [searchInput, setSearchInput] = useState('')
   const [sorting, setSorting] = useState<SortingState>([])
+  const [showAllCategories, setShowAllCategories] = useState(false)
   const [addDialogOpen, setAddDialogOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [detailDialogOpen, setDetailDialogOpen] = useState(false)
@@ -200,10 +201,11 @@ export function TransactionsPage() {
     onLinkReimbursement: handleLinkReimbursement,
   }
 
+  const categoryColors = useMemo(() => Object.fromEntries(categories.map(category => [category.id, category.color])), [categories])
   const columns = useMemo(
-    () => createColumns(rowHandlers, t, i18n.resolvedLanguage || i18n.language || 'en'),
+    () => createColumns(rowHandlers, t, i18n.resolvedLanguage || i18n.language || 'en', showAllCategories, categoryColors),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [t, i18n.resolvedLanguage, i18n.language],
+    [t, i18n.resolvedLanguage, i18n.language, showAllCategories, categoryColors],
   )
 
   const pageCount = transactionData
@@ -323,7 +325,13 @@ export function TransactionsPage() {
             t('page.count', { count: transactionData?.total ?? 0 })
           )}
         </div>
-        <DataTableViewOptions table={table} />
+        <div className="flex items-center gap-2">
+          <Button type="button" size="sm" variant={showAllCategories ? 'secondary' : 'outline'}
+            aria-pressed={showAllCategories} onClick={() => setShowAllCategories(value => !value)}>
+            {t('page.showAllCategories', { defaultValue: 'Все категории' })}
+          </Button>
+          <DataTableViewOptions table={table} />
+        </div>
       </div>
 
       {isLoading ? (
