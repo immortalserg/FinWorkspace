@@ -5,8 +5,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
 import { TransactionAllocationsEditor } from './TransactionAllocationsEditor'
-import { SplitFields, splitRemainderCents, toCents } from './SplitFields'
-import type { SplitPartDraft } from './SplitFields'
 import { HugeiconsIcon } from '@hugeicons/react'
 import {
   ArrowDownLeft01Icon,
@@ -48,7 +46,6 @@ import { ICON_MAP, type IconKey } from '../categories/categoryIcons'
 import {
   useCreateTransaction,
   useSetTransactionTrackers,
-  useSplitTransaction,
   useUpdateTransaction,
 } from './useTransactions'
 import type { Transaction, TransactionType } from './transactionsApi'
@@ -161,11 +158,6 @@ export function TransactionFormDialog({
   // vs. when the bank cleared it; splitting is offered for the amount so the
   // money can still be spread across categories.
   const isBankSynced = Boolean(transaction?.is_bank_synced)
-  const splitTransaction = useSplitTransaction()
-  const [splitting, setSplitting] = useState(false)
-  const [splitParts, setSplitParts] = useState<SplitPartDraft[]>([])
-  const totalCents = transaction ? Math.round(transaction.amount * 100) : 0
-  const splitBalanced = splitRemainderCents(splitParts, totalCents) === 0
 
   // Reset form when dialog opens/closes or transaction changes
   useEffect(() => {
@@ -202,8 +194,6 @@ export function TransactionFormDialog({
       }
     }
     if (open) {
-      setSplitting(false)
-      setSplitParts([])
       setCreateRuleFromTx(false)
       setRuleNeedle(transaction?.description ?? '')
       const alreadyDebtLinked = Boolean(transaction?.debt_payment_id)
@@ -227,23 +217,6 @@ export function TransactionFormDialog({
     }
   }, [isTransfer, setValue])
 
-  async function handleSplit() {
-    if (!transaction) return
-    try {
-      await splitTransaction.mutateAsync({
-        id: transaction.id,
-        parts: splitParts.map((part) => ({
-          amount: toCents(part.amount) / 100,
-          category_id: part.categoryId ? Number(part.categoryId) : null,
-        })),
-      })
-      toast.success(t('form.split.done', { count: splitParts.length }))
-      onOpenChange(false)
-    } catch (err) {
-      // The API explains mismatched totals precisely — show that, not a generic error.
-      toast.error(err instanceof Error ? err.message : t('form.toast.updateError'))
-    }
-  }
 
   const onSubmit = handleSubmit(async (data) => {
     try {
@@ -509,70 +482,7 @@ export function TransactionFormDialog({
             </InputGroup>
             <FieldError errors={[errors.amount]} />
 
-            {isBankSynced && !splitting && (
-              <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2">
-                <span className="text-xs text-muted-foreground">
-                  {t('form.split.lockedHint')}
-                </span>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setSplitting(true)
-                    // Seed with the whole amount plus an empty row, so the user
-                    // only has to move money from the first part to the second.
-                    setSplitParts([
-                      {
-                        amount: (totalCents / 100).toFixed(2),
-                        categoryId: transaction?.category_id
-                          ? String(transaction.category_id)
-                          : '',
-                      },
-                      { amount: '', categoryId: '' },
-                    ])
-                  }}
-                >
-                  {t('form.split.start')}
-                </Button>
-              </div>
-            )}
 
-            {isBankSynced && splitting && (
-              <div className="mt-2 flex flex-col gap-2">
-                <p className="text-xs text-muted-foreground">
-                  {t('form.split.help', {
-                    total: (totalCents / 100).toFixed(2),
-                    currency: t('form.fields.currency'),
-                  })}
-                </p>
-                <SplitFields
-                  parts={splitParts}
-                  onChange={setSplitParts}
-                  totalCents={totalCents}
-                  categoryOptions={categoryOptions}
-                  currency={t('form.fields.currency')}
-                />
-                <div className="flex justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSplitting(false)}
-                  >
-                    {t('form.split.cancel')}
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    disabled={!splitBalanced || splitTransaction.isPending}
-                    onClick={() => void handleSplit()}
-                  >
-                    {t('form.split.confirm')}
-                  </Button>
-                </div>
-              </div>
-            )}
           </Field>
 
           {transaction && transaction.type !== 'transfer' && (
