@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,6 +10,7 @@ type Link = { id: number; source: 'local' | 'paperless'; document_id: string; ti
 type Choice = { id: string; title: string; source: 'local' | 'paperless' }
 
 export function TransactionDocuments({ transactionId }: { transactionId: number }) {
+  const { t } = useTranslation('transactions')
   const [links, setLinks] = useState<Link[]>([])
   const [choices, setChoices] = useState<Choice[]>([])
   const [source, setSource] = useState<'local' | 'paperless'>('local')
@@ -25,7 +27,7 @@ export function TransactionDocuments({ transactionId }: { transactionId: number 
   }
 
   useEffect(() => {
-    void refresh().catch(() => toast.error('Could not load transaction documents'))
+    void refresh().catch(() => toast.error(t('documents.loadError')))
     setAdding(false)
     setChoices([])
     setSearch('')
@@ -57,9 +59,9 @@ export function TransactionDocuments({ transactionId }: { transactionId: number 
       })
       await refresh()
       setAdding(false)
-      toast.success('Документ прикреплён')
+      toast.success(t('documents.attached'))
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Не удалось прикрепить документ')
+      toast.error(error instanceof Error ? error.message : t('documents.attachError'))
     } finally { setBusy(false) }
   }
 
@@ -77,7 +79,7 @@ export function TransactionDocuments({ transactionId }: { transactionId: number 
         setUploading(false)
         setUploadFile(null)
         setUploadTitle('')
-        toast.success('Документ загружен и прикреплён')
+        toast.success(t('documents.uploaded'))
       } else {
         const form = new FormData()
         form.append('file', uploadFile)
@@ -87,10 +89,10 @@ export function TransactionDocuments({ transactionId }: { transactionId: number 
         setUploading(false)
         setUploadFile(null)
         setUploadTitle('')
-        toast.success('Документ отправлен в Paperless на обработку')
+        toast.success(t('documents.sentToPaperless'))
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Не удалось загрузить документ')
+      toast.error(error instanceof Error ? error.message : t('documents.uploadError'))
     } finally { setBusy(false) }
   }
 
@@ -104,7 +106,7 @@ export function TransactionDocuments({ transactionId }: { transactionId: number 
         const tasks = Array.isArray(response) ? response : (response as { results?: unknown[] })?.results ?? []
         const task = (tasks as Array<Record<string, unknown>>).find(item => String(item.task_id ?? item.id) === pendingTask)
         if (task?.status === 'FAILURE' || task?.status === 'REVOKED') {
-          toast.error('Paperless не смог обработать документ')
+          toast.error(t('documents.processingError'))
           setPendingTask(null)
           return
         }
@@ -118,7 +120,7 @@ export function TransactionDocuments({ transactionId }: { transactionId: number 
             if (!active) return
             await refresh()
             setPendingTask(null)
-            toast.success('Документ Paperless прикреплён')
+            toast.success(t('documents.paperlessAttached'))
             return
           }
         }
@@ -136,7 +138,7 @@ export function TransactionDocuments({ transactionId }: { transactionId: number 
     try {
       await apiFetch(`/transactions/${transactionId}/documents/${id}`, { method: 'DELETE' })
       await refresh()
-    } catch { toast.error('Не удалось удалить связь') }
+    } catch { toast.error(t('documents.unlinkError')) }
     finally { setBusy(false) }
   }
 
@@ -154,18 +156,18 @@ export function TransactionDocuments({ transactionId }: { transactionId: number 
       const blob = await response.blob()
       const url = URL.createObjectURL(blob)
       const tab = window.open(url, '_blank', 'noopener,noreferrer')
-      if (!tab) toast.error('Разрешите всплывающие окна для просмотра')
+      if (!tab) toast.error(t('documents.popupError'))
       // Keep the blob URL alive while the opened viewer loads.
       setTimeout(() => URL.revokeObjectURL(url), 60000)
-    } catch { toast.error('Не удалось открыть документ') }
+    } catch { toast.error(t('documents.previewError')) }
   }
 
   return (
     <section className="space-y-2 border-t border-border/60 pt-3">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-sm font-medium">Документы</span>
+        <span className="text-sm font-medium">{t('documents.title')}</span>
         <Button type="button" size="sm" variant="outline" onClick={() => setAdding(value => !value)}>
-          {adding ? 'Отмена' : '+ Прикрепить'}
+          {adding ? t('documents.cancel') : `+ ${t('documents.attach')}`}
         </Button>
       </div>
       {links.map(link => (
@@ -173,24 +175,24 @@ export function TransactionDocuments({ transactionId }: { transactionId: number 
           <button type="button" className="min-w-0 truncate text-left underline" onClick={() => void preview(link)}>
             {link.title} {link.source === 'paperless' ? '(Paperless)' : ''}
           </button>
-          <Button type="button" variant="ghost" size="sm" disabled={busy} onClick={() => void detach(link.id)}>Удалить связь</Button>
+          <Button type="button" variant="ghost" size="sm" disabled={busy} onClick={() => void detach(link.id)}>{t('documents.unlink')}</Button>
         </div>
       ))}
-      {pendingTask && <p className="text-xs text-muted-foreground">Paperless обрабатывает документ. Не закрывайте окно до завершения прикрепления.</p>}
+      {pendingTask && <p className="text-xs text-muted-foreground">{t('documents.processing')} {t('documents.keepOpen')}</p>}
       {adding && (
         <div className="space-y-2 rounded-md border p-2">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-medium text-muted-foreground">Хранилище:</span>
+            <span className="text-xs font-medium text-muted-foreground">{t('documents.storage')}</span>
             <div className="inline-flex rounded-md border border-border bg-muted/50 p-1 gap-1" role="group" aria-label="Хранилище документов">
               <Button type="button" size="sm" variant={source === 'local' ? 'default' : 'ghost'} aria-pressed={source === 'local'} className={source === 'local' ? 'shadow-sm' : 'text-muted-foreground'} onClick={() => setSource('local')}>FinWorkspace</Button>
               <Button type="button" size="sm" variant={source === 'paperless' ? 'default' : 'ghost'} aria-pressed={source === 'paperless'} className={source === 'paperless' ? 'shadow-sm' : 'text-muted-foreground'} onClick={() => setSource('paperless')}>Paperless</Button>
             </div>
           </div>
-          <div className="flex border-b border-border" role="tablist" aria-label="Способ прикрепления">
-            <button type="button" role="tab" aria-selected={!uploading} className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${!uploading ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`} onClick={() => setUploading(false)}>Существующий</button>
-            <button type="button" role="tab" aria-selected={uploading} className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${uploading ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`} onClick={() => setUploading(true)}>Загрузить новый</button>
+          <div className="flex border-b border-border" role="tablist" aria-label={t('documents.method')}>
+            <button type="button" role="tab" aria-selected={!uploading} className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${!uploading ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`} onClick={() => setUploading(false)}>{t('documents.existing')}</button>
+            <button type="button" role="tab" aria-selected={uploading} className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${uploading ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`} onClick={() => setUploading(true)}>{t('documents.uploadNew')}</button>
           </div>
-          {uploading ? <div className="space-y-2"><Input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx" onChange={event => { const file = event.target.files?.[0] ?? null; setUploadFile(file); setUploadTitle(file?.name ?? "") }} /><Input placeholder="Название документа" value={uploadTitle} onChange={event => setUploadTitle(event.target.value)} /><Button type="button" size="sm" disabled={busy || !uploadFile || Boolean(pendingTask)} onClick={() => void uploadAndAttach()}>Загрузить и прикрепить</Button></div> : <><Input placeholder="Поиск документа" value={search} onChange={event => setSearch(event.target.value)} />
+          {uploading ? <div className="space-y-2"><Input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx" onChange={event => { const file = event.target.files?.[0] ?? null; setUploadFile(file); setUploadTitle(file?.name ?? "") }} /><Input placeholder={t('documents.documentTitle')} value={uploadTitle} onChange={event => setUploadTitle(event.target.value)} /><Button type="button" size="sm" disabled={busy || !uploadFile || Boolean(pendingTask)} onClick={() => void uploadAndAttach()}>{t('documents.uploadAttach')}</Button></div> : <><Input placeholder={t('documents.search')} value={search} onChange={event => setSearch(event.target.value)} />
           <div className="max-h-48 space-y-1 overflow-y-auto">
             {choices.map(choice => (
               <Button key={choice.source + choice.id} type="button" variant="ghost" className="w-full justify-start truncate"
