@@ -314,5 +314,20 @@
     "unlinkError": "Impossible de dissocier le document",
     "popupError": "Autorisez les fenêtres contextuelles pour l’aperçu",
     "previewError": "Impossible d’ouvrir le document"
+  },
+  "allocation": {
+    "title": "Répartition par catégories",
+    "originalAmount": "Montant initial : {{amount}}",
+    "primaryAmount": "Catégorie principale : {{amount}}",
+    "additionalCategory": "Catégorie supplémentaire",
+    "amount": "Montant",
+    "note": "Note",
+    "remove": "Supprimer",
+    "addCategory": "+ Catégorie",
+    "exceedsOriginal": "Le montant réparti dépasse le montant initial.",
+    "invalidAmount": "Sélectionnez une catégorie et un montant positif avec deux décimales maximum",
+    "exceedsTransaction": "La répartition dépasse le montant de la transaction",
+    "choosePrimary": "Sélectionnez une catégorie principale",
+    "primaryCategory": "Catégorie principale"
   }
 }
