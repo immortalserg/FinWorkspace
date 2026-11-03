@@ -232,7 +232,7 @@ describe('exporting from the page', () => {
     ])
 
     // jsdom implements neither of these.
-    const createObjectURL = vi.fn((_blob: Blob) => 'blob:fake')
+    const createObjectURL = vi.fn((blob: Blob) => { void blob; return 'blob:fake' })
     const revokeObjectURL = vi.fn()
     vi.stubGlobal('URL', { ...URL, createObjectURL, revokeObjectURL })
     const click = vi
