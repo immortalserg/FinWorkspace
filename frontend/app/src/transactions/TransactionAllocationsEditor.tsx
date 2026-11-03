@@ -1,11 +1,22 @@
+import { useTranslation } from 'react-i18next'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Select } from '../ui/Select'
 import type { TransactionAllocation } from './transactionsApi'
 
 export type AllocationRow = { categoryId: string; amount: string; notes: string }
-export const allocationRows = (allocations: TransactionAllocation[] = []): AllocationRow[] =>
-  allocations.map(a => ({ categoryId: String(a.category_id), amount: String(Number(a.amount)), notes: a.notes ?? '' }))
+export const decimalSeparator = (locale: string): string =>
+  new Intl.NumberFormat(locale).formatToParts(1.1).find(part => part.type === 'decimal')?.value ?? '.'
+
+export const normalizeDecimalSeparator = (value: string, locale: string): string =>
+  value.replace(/[.,]/g, decimalSeparator(locale))
+
+export const allocationRows = (allocations: TransactionAllocation[] = [], locale = 'en'): AllocationRow[] =>
+  allocations.map(a => ({
+    categoryId: String(a.category_id),
+    amount: normalizeDecimalSeparator(String(Number(a.amount)), locale),
+    notes: a.notes ?? '',
+  }))
 
 export function parseAllocations(rows: AllocationRow[], total: number, primaryCategory: string) {
   const sum = rows.reduce((value, row) => value + Math.round(Number(row.amount.replace(',', '.')) * 100), 0)
@@ -24,6 +35,8 @@ export function TransactionAllocationsEditor({ rows, onChange, total, categoryOp
   total: number
   categoryOptions: Array<{ value: string; label: string }>
 }) {
+  const { i18n } = useTranslation()
+  const locale = i18n.resolvedLanguage || i18n.language || 'en'
   const allocated = rows.reduce((sum, row) => sum + (Number(row.amount.replace(',', '.')) || 0), 0)
   const update = (index: number, patch: Partial<AllocationRow>) =>
     onChange(rows.map((row, i) => i === index ? { ...row, ...patch } : row))
@@ -40,7 +53,7 @@ export function TransactionAllocationsEditor({ rows, onChange, total, categoryOp
               options={categoryOptions} placeholder="Дополнительная категория" />
           </div>
           <Input className="w-24" inputMode="decimal" value={row.amount} placeholder="Сумма"
-            onChange={e => update(index, { amount: e.target.value })} />
+            onChange={e => update(index, { amount: normalizeDecimalSeparator(e.target.value, locale) })} />
           <Input className="min-w-28 flex-1" value={row.notes} placeholder="Примечание"
             onChange={e => update(index, { notes: e.target.value })} />
           <Button type="button" variant="ghost" onClick={() => onChange(rows.filter((_, i) => i !== index))}>Удалить</Button>
