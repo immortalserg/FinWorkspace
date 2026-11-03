@@ -57,6 +57,17 @@ export function useDeleteTransaction() {
   })
 }
 
+export function useUpdateTransactionAllocations() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, allocations }: {
+      id: number
+      allocations: Array<{ category_id: number; amount: number; notes?: string | null }>
+    }) => transactionsApi.updateTransactionAllocations(id, allocations),
+    onSuccess: () => invalidateFinanceQueries(queryClient),
+  })
+}
+
 export function useSplitTransaction() {
   const queryClient = useQueryClient()
   return useMutation({
