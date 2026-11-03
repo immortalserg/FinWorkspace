@@ -18,6 +18,7 @@ import { Amount, CategoryChip, flowOfType } from '../ui/money'
 import { formatDate } from '../lib/format'
 import { cn } from '@/lib/utils'
 import { ReimbursementList } from './ReimbursementList'
+import { TransactionDocuments } from './TransactionDocuments'
 import { useUnmarkTransfer } from './useTransactions'
 import { canLinkReimbursement, type Transaction } from './transactionsApi'
 
@@ -244,6 +245,7 @@ export function TransactionDetailDialog({
             </Row>
           )}
         </div>
+        <TransactionDocuments transactionId={transaction.id} />
       </div>
     </Dialog>
   )
