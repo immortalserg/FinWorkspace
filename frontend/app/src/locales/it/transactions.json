@@ -288,5 +288,31 @@
       "incomeHint_one": "{{amount}} used a pay back {{count}} spesa",
       "incomeHint_other": "{{amount}} used a pay back {{count}} spese"
     }
+  },
+  "documents": {
+    "title": "Documenti",
+    "attach": "Allega",
+    "cancel": "Annulla",
+    "unlink": "Rimuovi collegamento",
+    "storage": "Archivio:",
+    "method": "Metodo di allegato",
+    "existing": "Esistente",
+    "uploadNew": "Carica nuovo",
+    "search": "Cerca documento",
+    "documentTitle": "Titolo del documento",
+    "uploadAttach": "Carica e allega",
+    "keepOpen": "Mantieni aperta questa finestra fino al completamento.",
+    "processing": "Paperless sta elaborando il documento.",
+    "loadError": "Impossibile caricare i documenti della transazione",
+    "attached": "Documento allegato",
+    "attachError": "Impossibile allegare il documento",
+    "uploaded": "Documento caricato e allegato",
+    "sentToPaperless": "Documento inviato a Paperless per l’elaborazione",
+    "uploadError": "Impossibile caricare il documento",
+    "processingError": "Paperless non è riuscito a elaborare il documento",
+    "paperlessAttached": "Documento Paperless allegato",
+    "unlinkError": "Impossibile rimuovere il collegamento",
+    "popupError": "Consenti i popup per l’anteprima",
+    "previewError": "Impossibile aprire il documento"
   }
 }
