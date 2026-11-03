@@ -179,11 +179,17 @@ export function TransactionDocuments({ transactionId }: { transactionId: number 
       {pendingTask && <p className="text-xs text-muted-foreground">Paperless обрабатывает документ. Не закрывайте окно до завершения прикрепления.</p>}
       {adding && (
         <div className="space-y-2 rounded-md border p-2">
-          <div className="flex gap-2">
-            <Button type="button" size="sm" variant={source === 'local' ? 'secondary' : 'outline'} onClick={() => setSource('local')}>FinWorkspace</Button>
-            <Button type="button" size="sm" variant={source === 'paperless' ? 'secondary' : 'outline'} onClick={() => setSource('paperless')}>Paperless</Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium text-muted-foreground">Хранилище:</span>
+            <div className="inline-flex rounded-md border border-border bg-muted/50 p-1 gap-1" role="group" aria-label="Хранилище документов">
+              <Button type="button" size="sm" variant={source === 'local' ? 'default' : 'ghost'} aria-pressed={source === 'local'} className={source === 'local' ? 'shadow-sm' : 'text-muted-foreground'} onClick={() => setSource('local')}>FinWorkspace</Button>
+              <Button type="button" size="sm" variant={source === 'paperless' ? 'default' : 'ghost'} aria-pressed={source === 'paperless'} className={source === 'paperless' ? 'shadow-sm' : 'text-muted-foreground'} onClick={() => setSource('paperless')}>Paperless</Button>
+            </div>
           </div>
-          <div className="flex gap-2"><Button type="button" size="sm" variant={!uploading ? "secondary" : "outline"} onClick={() => setUploading(false)}>Из документов</Button><Button type="button" size="sm" variant={uploading ? "secondary" : "outline"} onClick={() => setUploading(true)}>Загрузить новый</Button></div>
+          <div className="flex border-b border-border" role="tablist" aria-label="Способ прикрепления">
+            <button type="button" role="tab" aria-selected={!uploading} className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${!uploading ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`} onClick={() => setUploading(false)}>Существующий</button>
+            <button type="button" role="tab" aria-selected={uploading} className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${uploading ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`} onClick={() => setUploading(true)}>Загрузить новый</button>
+          </div>
           {uploading ? <div className="space-y-2"><Input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx" onChange={event => { const file = event.target.files?.[0] ?? null; setUploadFile(file); setUploadTitle(file?.name ?? "") }} /><Input placeholder="Название документа" value={uploadTitle} onChange={event => setUploadTitle(event.target.value)} /><Button type="button" size="sm" disabled={busy || !uploadFile || Boolean(pendingTask)} onClick={() => void uploadAndAttach()}>Загрузить и прикрепить</Button></div> : <><Input placeholder="Поиск документа" value={search} onChange={event => setSearch(event.target.value)} />
           <div className="max-h-48 space-y-1 overflow-y-auto">
             {choices.map(choice => (
