@@ -183,7 +183,7 @@ export function TransactionDocuments({ transactionId }: { transactionId: number 
         <div className="space-y-2 rounded-md border p-2">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-medium text-muted-foreground">{t('documents.storage')}</span>
-            <div className="inline-flex rounded-md border border-border bg-muted/50 p-1 gap-1" role="group" aria-label="Хранилище документов">
+            <div className="inline-flex rounded-md border border-border bg-muted/50 p-1 gap-1" role="group" aria-label={t('documents.storage')}>
               <Button type="button" size="sm" variant={source === 'local' ? 'default' : 'ghost'} aria-pressed={source === 'local'} className={source === 'local' ? 'shadow-sm' : 'text-muted-foreground'} onClick={() => setSource('local')}>FinWorkspace</Button>
               <Button type="button" size="sm" variant={source === 'paperless' ? 'default' : 'ghost'} aria-pressed={source === 'paperless'} className={source === 'paperless' ? 'shadow-sm' : 'text-muted-foreground'} onClick={() => setSource('paperless')}>Paperless</Button>
             </div>
