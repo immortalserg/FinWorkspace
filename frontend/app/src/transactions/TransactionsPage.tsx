@@ -77,7 +77,7 @@ function buildDatePresets(
 }
 
 export function TransactionsPage() {
-  const { t } = useTranslation('transactions')
+  const { t, i18n } = useTranslation('transactions')
   const [searchParams] = useSearchParams()
   const accountFromUrl = searchParams.get('account_id')
   const datePresets = useMemo(() => buildDatePresets(t), [t])
@@ -201,9 +201,9 @@ export function TransactionsPage() {
   }
 
   const columns = useMemo(
-    () => createColumns(rowHandlers, t),
+    () => createColumns(rowHandlers, t, i18n.resolvedLanguage || i18n.language || 'en'),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [t],
+    [t, i18n.resolvedLanguage, i18n.language],
   )
 
   const pageCount = transactionData
