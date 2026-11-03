@@ -895,9 +895,28 @@ async def list_transaction_documents(
         raise HTTPException(status_code=404, detail="Transaction not found")
     from app.routers import documents as local
     local_docs = {doc["id"]: doc for doc in local._load_index(current_user.id)["documents"]}
+    paperless_links = [link for link in tx.documents if link.source == "paperless"]
+    paperless_titles = {}
+    if paperless_links:
+        from app.routers.paperless import _client
+        from app.services.paperless_client import PaperlessError
+        try:
+            client = _client(current_user)
+            for link in paperless_links:
+                try:
+                    document = await client.get("documents", int(link.document_id))
+                    paperless_titles[link.document_id] = document.get("title") or f"Paperless #{link.document_id}"
+                except (PaperlessError, ValueError, TypeError):
+                    paperless_titles[link.document_id] = f"Paperless #{link.document_id}"
+        except HTTPException:
+            pass
+
     results = []
     for link in tx.documents:
-        title = local_docs.get(link.document_id, {}).get("title", link.document_id) if link.source == "local" else f"Paperless #{link.document_id}"
+        if link.source == "local":
+            title = local_docs.get(link.document_id, {}).get("title", link.document_id)
+        else:
+            title = paperless_titles.get(link.document_id, f"Paperless #{link.document_id}")
         results.append({"id": link.id, "source": link.source, "document_id": link.document_id, "title": title})
     return results
 
