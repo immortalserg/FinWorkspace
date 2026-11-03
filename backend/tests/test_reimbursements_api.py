@@ -61,7 +61,7 @@ def test_other_users_data_is_404(client, db, seed_user):
     assert client.delete("/api/transactions/reimbursements/999").status_code == 404
 
 
-def test_linked_row_cannot_be_split_or_made_a_transfer(client, db, seed_user):
+def test_linked_row_cannot_use_legacy_split_or_be_made_a_transfer(client, db, seed_user):
     expense, income = _pair(db, seed_user)
     _link(client, expense, income)
     other_account = make_account(db, seed_user, name="Savings")
@@ -76,7 +76,7 @@ def test_linked_row_cannot_be_split_or_made_a_transfer(client, db, seed_user):
     )
     edit = client.put(f"/api/transactions/{expense.id}", json={"amount": 20.0})
 
-    assert (split.status_code, retag.status_code, edit.status_code) == (409, 409, 409)
+    assert (split.status_code, retag.status_code, edit.status_code) == (410, 409, 409)
 
 
 def test_unlink_returns_204_and_restores_amounts(client, db, seed_user):
