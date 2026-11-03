@@ -15,7 +15,7 @@ from app.schemas import (
     IncomeReport, BalanceHistoryReport,
     SavedReportCreate, SavedReportResponse
 )
-from app.models import User, Transaction, Category, SavedReport, Account, Budget, Debt, DebtPayment
+from app.models import User, Transaction, TransactionAllocation, Category, SavedReport, Account, Budget, Debt, DebtPayment
 from app.routers.budgets import calculate_budget_progress
 
 router = APIRouter(prefix="/reports", tags=["Reports"])
@@ -43,6 +43,45 @@ def _apply_filters(query, account_ids: Optional[str], category_ids: Optional[str
     if cat_list:
         query = query.filter(Transaction.category_id.in_(cat_list))
     return query
+
+
+
+def _category_totals(db, user_id, tx_type, start_date, end_date, account_ids=None, category_ids=None):
+    """Category distribution, counting the original transaction only once.
+
+    Reimbursements reduce effective totals. Additional allocations take their
+    proportional share of the effective amount; the primary category receives
+    the remaining effective amount.
+    """
+    from collections import defaultdict
+    totals = defaultdict(float)
+    counts = defaultdict(set)
+    query = db.query(Transaction).filter(
+        Transaction.user_id == user_id,
+        Transaction.type == tx_type,
+        Transaction.date >= start_date,
+        Transaction.date <= end_date,
+    )
+    account_filter = _parse_id_list(account_ids)
+    category_filter = _parse_id_list(category_ids)
+    if account_filter:
+        query = query.filter(Transaction.account_id.in_(account_filter))
+    for tx in query.all():
+        if not tx.amount:
+            continue
+        effective = float(tx.effective_amount)
+        factor = effective / float(tx.amount)
+        allocated = 0.0
+        for allocation in tx.allocations:
+            share = float(allocation.amount) * factor
+            allocated += share
+            if category_filter is None or allocation.category_id in category_filter:
+                totals[allocation.category_id] += share
+                counts[allocation.category_id].add(tx.id)
+        if tx.category_id is not None and (category_filter is None or tx.category_id in category_filter):
+            totals[tx.category_id] += effective - allocated
+            counts[tx.category_id].add(tx.id)
+    return totals, counts
 
 
 @router.get("/types")
@@ -76,26 +115,10 @@ def get_spending_report(
     if not end_date:
         end_date = date.today()
     
-    # Build query
-    query = db.query(
-        Category.name,
-        func.sum(Transaction.effective_amount).label("total")
-    ).join(Transaction).filter(
-        Transaction.user_id == current_user.id,
-        Transaction.type == "expense",
-        Transaction.date >= start_date,
-        Transaction.date <= end_date
-    )
-    
-    # Apply filters
-    query = _apply_filters(query, account_ids, category_ids)
-
-    results = query.group_by(Category.name).all()
-
-    labels = [r.name for r in results]
-    data = [float(r.total) for r in results]
-
-    return SpendingReport(labels=labels, data=data)
+    totals, _ = _category_totals(db, current_user.id, "expense", start_date, end_date, account_ids, category_ids)
+    categories = db.query(Category).filter(Category.user_id == current_user.id, Category.id.in_(list(totals))).all()
+    names = {category.id: category.name for category in categories}
+    return SpendingReport(labels=[names[key] for key in totals if key in names], data=[round(value, 2) for key, value in totals.items() if key in names])
 
 
 @router.get("/income", response_model=IncomeReport)
@@ -113,22 +136,10 @@ def get_income_report(
     if not end_date:
         end_date = date.today()
 
-    query = db.query(
-        Category.name,
-        func.sum(Transaction.effective_amount).label("total")
-    ).join(Transaction).filter(
-        Transaction.user_id == current_user.id,
-        Transaction.type == "income",
-        Transaction.date >= start_date,
-        Transaction.date <= end_date
-    )
-    query = _apply_filters(query, account_ids, category_ids)
-    results = query.group_by(Category.name).all()
-
-    labels = [r.name for r in results]
-    data = [float(r.total) for r in results]
-
-    return {"labels": labels, "data": data}
+    totals, _ = _category_totals(db, current_user.id, "income", start_date, end_date, account_ids, category_ids)
+    categories = db.query(Category).filter(Category.user_id == current_user.id, Category.id.in_(list(totals))).all()
+    names = {category.id: category.name for category in categories}
+    return {"labels": [names[key] for key in totals if key in names], "data": [round(value, 2) for key, value in totals.items() if key in names]}
 
 
 @router.get("/cashflow", response_model=CashflowReport)
@@ -216,31 +227,13 @@ def get_category_breakdown(
     if not end_date:
         end_date = date.today()
 
-    query = db.query(
-        Category.name,
-        Category.color,
-        func.sum(Transaction.effective_amount).label("total"),
-        func.count(Transaction.id).label("count")
-    ).join(Transaction).filter(
-        Transaction.user_id == current_user.id,
-        Transaction.type == type,
-        Transaction.date >= start_date,
-        Transaction.date <= end_date
-    )
-    query = _apply_filters(query, account_ids, category_ids)
-    results = query.group_by(Category.id).all()
-
-    return {
-        "categories": [
-            {
-                "name": r.name,
-                "color": r.color,
-                "amount": float(r.total),
-                "count": r.count
-            }
-            for r in results
-        ]
-    }
+    totals, counts = _category_totals(db, current_user.id, type, start_date, end_date, account_ids, category_ids)
+    categories = db.query(Category).filter(Category.user_id == current_user.id, Category.id.in_(list(totals))).all()
+    by_id = {category.id: category for category in categories}
+    return {"categories": [
+        {"name": by_id[key].name, "color": by_id[key].color, "amount": round(value, 2), "count": len(counts[key])}
+        for key, value in totals.items() if key in by_id
+    ]}
 
 
 @router.get("/trend", response_model=TrendReport)
