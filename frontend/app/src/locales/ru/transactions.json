@@ -44,7 +44,8 @@
     "toast": {
       "deleted": "Транзакция удалена",
       "deleteError": "Не удалось удалить транзакцию. Попробуйте ещё раз."
-    }
+    },
+    "showAllCategories": "Все категории"
   },
   "datePresets": {
     "thisMonth": "Этот месяц",
