@@ -314,5 +314,20 @@
     "unlinkError": "Could not unlink document",
     "popupError": "Allow pop-ups to preview documents",
     "previewError": "Could not open document"
+  },
+  "allocation": {
+    "title": "Category allocation",
+    "originalAmount": "Original amount: {{amount}}",
+    "primaryAmount": "Primary category: {{amount}}",
+    "additionalCategory": "Additional category",
+    "amount": "Amount",
+    "note": "Note",
+    "remove": "Remove",
+    "addCategory": "+ Category",
+    "exceedsOriginal": "Allocated amount exceeds the original.",
+    "invalidAmount": "Select a category and a positive amount with up to two decimal places",
+    "exceedsTransaction": "Allocation exceeds the transaction amount",
+    "choosePrimary": "Select a primary category",
+    "primaryCategory": "Primary category"
   }
 }
