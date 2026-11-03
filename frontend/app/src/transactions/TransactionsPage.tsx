@@ -285,7 +285,6 @@ export function TransactionsPage() {
     <PageContainer wide className="flex flex-col gap-4">
       <PageHeader
         title={t('page.title')}
-        description={t('page.description')}
         className="mb-2"
         action={
           <>
