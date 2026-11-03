@@ -22,7 +22,7 @@ from app.schemas import (
     ReimbursementCandidate,
     ReimbursementCreate,
 )
-from app.models import User, Transaction, TransactionReimbursement, TransactionAllocation, Account, Category, DebtPayment
+from app.models import User, Transaction, TransactionReimbursement, TransactionAllocation, TransactionDocument, Account, Category, DebtPayment
 from app.models.recurring_expense import RecurringExpensePayment
 from app.models.tracker import TrackerTransaction
 from app.schemas.tracker import TrackerAssignment
@@ -873,3 +873,83 @@ def bulk_delete_transactions(
 
     return {"message": f"Deleted {len(transactions)} transactions"}
 
+
+
+# Document links are references only; deleting a link never deletes a document.
+from pydantic import BaseModel
+
+
+class TransactionDocumentLinkInput(BaseModel):
+    source: str
+    document_id: str
+
+
+@router.get("/{transaction_id}/documents")
+async def list_transaction_documents(
+    transaction_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_authenticated),
+):
+    tx = db.query(Transaction).filter(Transaction.id == transaction_id, Transaction.user_id == current_user.id).first()
+    if tx is None:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    from app.routers import documents as local
+    local_docs = {doc["id"]: doc for doc in local._load_index(current_user.id)["documents"]}
+    results = []
+    for link in tx.documents:
+        title = local_docs.get(link.document_id, {}).get("title", link.document_id) if link.source == "local" else f"Paperless #{link.document_id}"
+        results.append({"id": link.id, "source": link.source, "document_id": link.document_id, "title": title})
+    return results
+
+
+@router.post("/{transaction_id}/documents", status_code=201)
+async def link_transaction_document(
+    transaction_id: int,
+    payload: TransactionDocumentLinkInput,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_authenticated),
+):
+    tx = db.query(Transaction).filter(Transaction.id == transaction_id, Transaction.user_id == current_user.id).first()
+    if tx is None:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    if payload.source not in ("local", "paperless") or not payload.document_id.strip() or len(payload.document_id) > 100:
+        raise HTTPException(status_code=422, detail="Invalid document reference")
+    if payload.source == "local":
+        from app.routers import documents as local
+        if not local._get_doc(local._load_index(current_user.id)["documents"], payload.document_id):
+            raise HTTPException(status_code=404, detail="Document not found")
+    else:
+        if not payload.document_id.isdecimal() or int(payload.document_id) <= 0:
+            raise HTTPException(status_code=422, detail="Invalid Paperless document id")
+        from app.routers.paperless import _client, _error
+        from app.services.paperless_client import PaperlessError
+        try:
+            await _client(current_user).get("documents", int(payload.document_id))
+        except PaperlessError as exc:
+            raise _error(exc)
+    existing = db.query(TransactionDocument).filter_by(transaction_id=transaction_id, source=payload.source, document_id=payload.document_id).first()
+    if existing:
+        return {"id": existing.id, "source": existing.source, "document_id": existing.document_id}
+    link = TransactionDocument(transaction_id=transaction_id, source=payload.source, document_id=payload.document_id)
+    db.add(link)
+    db.commit()
+    db.refresh(link)
+    return {"id": link.id, "source": link.source, "document_id": link.document_id}
+
+
+@router.delete("/{transaction_id}/documents/{link_id}", status_code=204)
+def unlink_transaction_document(
+    transaction_id: int,
+    link_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_authenticated),
+):
+    link = db.query(TransactionDocument).join(Transaction).filter(
+        TransactionDocument.id == link_id,
+        TransactionDocument.transaction_id == transaction_id,
+        Transaction.user_id == current_user.id,
+    ).first()
+    if link is None:
+        raise HTTPException(status_code=404, detail="Document link not found")
+    db.delete(link)
+    db.commit()
