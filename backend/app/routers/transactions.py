@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, desc, or_
 from typing import List, Optional
 from datetime import datetime, date
+from decimal import Decimal, InvalidOperation
 
 from app.database import get_db
 from app.utils import linked_accounts
@@ -15,12 +16,13 @@ from app.schemas import (
     BulkTransactionUpdate,
     BulkTransactionDelete,
     TransactionSplitRequest,
+    TransactionAllocationsUpdate,
     PairTransferRequest,
     RetagTransferRequest,
     ReimbursementCandidate,
     ReimbursementCreate,
 )
-from app.models import User, Transaction, TransactionReimbursement, Account, Category, DebtPayment
+from app.models import User, Transaction, TransactionReimbursement, TransactionAllocation, Account, Category, DebtPayment
 from app.models.recurring_expense import RecurringExpensePayment
 from app.models.tracker import TrackerTransaction
 from app.schemas.tracker import TrackerAssignment
@@ -110,6 +112,8 @@ def _serialize_transaction(db: Session, tx: Transaction) -> dict:
         ],
         "reimbursed_amount": tx.reimbursed_amount,
         "effective_amount": tx.effective_amount,
+        "allocations": [{"id": item.id, "category_id": item.category_id, "category_name": item.category.name if item.category else None, "amount": float(item.amount), "notes": item.notes} for item in tx.allocations],
+        "primary_category_amount": round(tx.amount - sum(float(item.amount) for item in tx.allocations), 2),
         "reimbursements": [
             _reimbursement_link(link, tx) for link in ReimbursementService.links_for(db, tx)
         ],
@@ -546,6 +550,61 @@ def set_trackers(
 
     set_transaction_trackers(db, current_user.id, transaction, payload.tracker_ids)
 
+    return _serialize_transaction(db, transaction)
+
+
+@router.put("/{transaction_id}/allocations", response_model=TransactionResponse)
+def update_transaction_allocations(
+    transaction_id: int,
+    payload: TransactionAllocationsUpdate,
+    current_user: User = Depends(get_current_user_authenticated),
+    db: Session = Depends(get_db),
+):
+    """Replace additional category allocations, preserving the bank-owned transaction."""
+    transaction = db.query(Transaction).filter(
+        Transaction.id == transaction_id, Transaction.user_id == current_user.id
+    ).first()
+    if transaction is None:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    if transaction.type == "transfer":
+        raise HTTPException(status_code=400, detail="Transfers cannot have category allocations")
+    if payload.allocations and transaction.category_id is None:
+        raise HTTPException(status_code=400, detail="Choose a primary category first")
+
+    total = Decimal("0.00")
+    for item in payload.allocations:
+        try:
+            amount = Decimal(str(item.amount))
+        except InvalidOperation:
+            raise HTTPException(status_code=400, detail="Invalid allocation amount")
+        if not amount.is_finite() or amount <= 0 or amount != amount.quantize(Decimal("0.01")):
+            raise HTTPException(status_code=400, detail="Allocation must be positive with at most two decimal places")
+        total += amount
+
+    if total > Decimal(str(transaction.amount)).quantize(Decimal("0.01")):
+        raise HTTPException(status_code=400, detail="Allocations exceed transaction amount")
+
+    category_ids = {item.category_id for item in payload.allocations}
+    owned_ids = {
+        row_id for (row_id,) in db.query(Category.id).filter(
+            Category.user_id == current_user.id, Category.id.in_(category_ids)
+        ).all()
+    } if category_ids else set()
+    if category_ids != owned_ids:
+        raise HTTPException(status_code=404, detail="Allocation category not found")
+
+    transaction.allocations.clear()
+    db.flush()
+    transaction.allocations.extend([
+        TransactionAllocation(
+            category_id=item.category_id,
+            amount=Decimal(str(item.amount)),
+            notes=item.notes,
+        )
+        for item in payload.allocations
+    ])
+    db.commit()
+    db.refresh(transaction)
     return _serialize_transaction(db, transaction)
 
 
