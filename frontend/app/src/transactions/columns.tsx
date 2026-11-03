@@ -78,7 +78,6 @@ export function createColumns(
           description,
           notes,
           type,
-          is_imported,
           is_pending,
           debt_name,
           recurring_expense_name,
@@ -110,14 +109,13 @@ export function createColumns(
                   </span>
                 )}
               </div>
-              {(notes || debt_name || recurring_expense_name || is_imported) && (
+              {(notes || debt_name || recurring_expense_name) && (
                 <span className="truncate text-xs text-muted-foreground">
                   {[
                     debt_name && t('columns.debtPrefix', { name: debt_name }),
                     recurring_expense_name &&
                       t('columns.recurringPrefix', { name: recurring_expense_name }),
                     notes,
-                    is_imported && t('columns.imported'),
                   ]
                     .filter(Boolean)
                     .join(' · ')}
@@ -143,6 +141,13 @@ export function createColumns(
         }
         return <CategoryChip name={category_name} color={category_color} />
       },
+      meta: { cellClassName: 'min-w-[6rem] max-w-[8rem]', headerClassName: '' },
+    },
+    {
+      id: 'imported',
+      accessorFn: (transaction) => transaction.is_imported,
+      header: ({ column }) => <DataTableColumnHeader column={column} title={t('columns.imported')} />,
+      cell: ({ row }) => <span className="text-xs text-muted-foreground">{row.original.is_imported ? t('columns.imported') : '—'}</span>,
       meta: { cellClassName: 'hidden sm:table-cell', headerClassName: 'hidden sm:table-cell' },
     },
     {
