@@ -30,18 +30,20 @@ const FLOW_ICON = {
   move: Exchange01Icon,
 } as const
 
-function splitDate(iso: string) {
+function splitDate(iso: string, language: string) {
+  const locale = language === 'lu' ? 'lb-LU' : language
   const date = new Date(iso)
   if (Number.isNaN(date.getTime())) return { day: iso, weekday: '' }
   return {
-    day: new Intl.DateTimeFormat('el-GR', { day: '2-digit', month: 'short' }).format(date),
-    weekday: new Intl.DateTimeFormat('en-GB', { weekday: 'short' }).format(date),
+    day: new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'short' }).format(date),
+    weekday: new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(date),
   }
 }
 
 export function createColumns(
   handlers: TransactionRowHandlers,
   t: Translate,
+  language = 'en',
 ): ColumnDef<Transaction>[] {
   const FLOW_LABEL = {
     in: t('columns.flowLabel.in'),
@@ -54,7 +56,7 @@ export function createColumns(
       accessorKey: 'date',
       header: ({ column }) => <DataTableColumnHeader column={column} title={t('columns.date')} />,
       cell: ({ row }) => {
-        const { day, weekday } = splitDate(row.original.date)
+        const { day, weekday } = splitDate(row.original.date, language)
         return (
           <div className="flex flex-col leading-tight">
             <span className="text-sm font-medium tabular-nums">{day}</span>
@@ -180,7 +182,7 @@ export function createColumns(
       cell: ({ row }) => {
         const { amount, effective_amount, reimbursed_amount, reimbursements, type, date } =
           row.original
-        const { day } = splitDate(date)
+        const { day } = splitDate(date, language)
         const flow = flowOfType(type)
         const reimbursed = reimbursed_amount > 0
         // An income that was entirely used to pay someone back no longer counts as income.
