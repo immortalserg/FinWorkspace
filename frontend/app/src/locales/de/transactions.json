@@ -288,5 +288,31 @@
       "incomeHint_one": "{{amount}} used bis pay back {{count}} Ausgabe",
       "incomeHint_other": "{{amount}} used bis pay back {{count}} Ausgaben"
     }
+  },
+  "documents": {
+    "title": "Dokumente",
+    "attach": "Anhängen",
+    "cancel": "Abbrechen",
+    "unlink": "Verknüpfung entfernen",
+    "storage": "Speicherort:",
+    "method": "Anhangmethode",
+    "existing": "Vorhandenes",
+    "uploadNew": "Neu hochladen",
+    "search": "Dokument suchen",
+    "documentTitle": "Dokumenttitel",
+    "uploadAttach": "Hochladen und anhängen",
+    "keepOpen": "Lassen Sie dieses Fenster bis zum Abschluss geöffnet.",
+    "processing": "Paperless verarbeitet das Dokument.",
+    "loadError": "Transaktionsdokumente konnten nicht geladen werden",
+    "attached": "Dokument angehängt",
+    "attachError": "Dokument konnte nicht angehängt werden",
+    "uploaded": "Dokument hochgeladen und angehängt",
+    "sentToPaperless": "Dokument zur Verarbeitung an Paperless gesendet",
+    "uploadError": "Dokument konnte nicht hochgeladen werden",
+    "processingError": "Paperless konnte das Dokument nicht verarbeiten",
+    "paperlessAttached": "Paperless-Dokument angehängt",
+    "unlinkError": "Verknüpfung konnte nicht entfernt werden",
+    "popupError": "Erlauben Sie Pop-ups für die Vorschau",
+    "previewError": "Dokument konnte nicht geöffnet werden"
   }
 }
