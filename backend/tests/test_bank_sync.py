@@ -749,211 +749,160 @@ def test_manual_transaction_is_not_reported_as_synced(client, db, seed_user):
 # --- splitting a transaction ----------------------------------------------
 
 
-def test_split_divides_the_amount_across_parts(client, db, seed_user, synced_tx):
+# Category allocations keep the bank-owned transaction intact.  The retired
+# POST /split API must not be used for new allocation tests.
+
+
+def _allocate(client, tx, allocations):
+    return client.put(
+        f"/api/transactions/{tx.id}/allocations",
+        json={"allocations": allocations},
+    )
+
+
+def _categories(db, user):
     from tests.factories import make_category
 
-    groceries = make_category(db, seed_user, name="Groceries")
-    household = make_category(db, seed_user, name="Household")
+    primary = make_category(db, user, name="Primary")
+    secondary = make_category(db, user, name="Secondary")
+    return primary, secondary
 
-    response = client.post(
-        f"/api/transactions/{synced_tx.id}/split",
-        json={
-            "parts": [
-                {"amount": 40.0, "category_id": groceries.id},
-                {"amount": 20.0, "category_id": household.id},
-            ]
-        },
-    )
+
+def test_allocation_divides_amount_across_categories(client, db, seed_user, synced_tx):
+    primary, secondary = _categories(db, seed_user)
+    synced_tx.category_id = primary.id
+    db.commit()
+
+    response = _allocate(client, synced_tx, [{"amount": 20.0, "category_id": secondary.id}])
     assert response.status_code == 200, response.json()
-    parts = response.json()
-    assert [p["amount"] for p in parts] == [40.0, 20.0]
-    assert [p["category_id"] for p in parts] == [groceries.id, household.id]
+    body = response.json()
+    assert body["amount"] == 60.0
+    assert body["category_id"] == primary.id
+    assert len(body["allocations"]) == 1
+    assert body["allocations"][0]["category_id"] == secondary.id
+    assert body["allocations"][0]["amount"] == 20.0
+    assert body["description"] == synced_tx.description
+    assert db.query(Transaction).filter(Transaction.id == synced_tx.id).count() == 1
 
 
-def test_split_preserves_the_total(client, db, synced_tx):
-    original = synced_tx.amount
-    client.post(
-        f"/api/transactions/{synced_tx.id}/split",
-        json={"parts": [{"amount": 25.0}, {"amount": 20.0}, {"amount": 15.0}]},
-    )
+def test_allocation_preserves_total_and_bank_identity(client, db, seed_user, synced_tx):
+    primary, secondary = _categories(db, seed_user)
+    synced_tx.category_id = primary.id
+    original_id, original_amount, original_external = synced_tx.id, synced_tx.amount, synced_tx.external_id
+    db.commit()
+    response = _allocate(client, synced_tx, [{"amount": 25.0, "category_id": secondary.id}])
+    assert response.status_code == 200, response.json()
     db.expire_all()
-    total = sum(
-        t.amount
-        for t in db.query(Transaction).filter(Transaction.account_id == synced_tx.account_id)
-    )
-    assert round(total, 2) == round(original, 2)
-
-
-def test_split_keeps_description_and_date(client, db, synced_tx):
-    response = client.post(
-        f"/api/transactions/{synced_tx.id}/split",
-        json={"parts": [{"amount": 30.0}, {"amount": 30.0}]},
-    )
-    parts = response.json()
-    assert {p["description"] for p in parts} == {synced_tx.description}
-    assert len({p["date"] for p in parts}) == 1
-
-
-def test_split_reuses_the_original_row_so_dedup_still_holds(client, db, synced_tx):
-    """The original carries external_id; deleting it would re-import the charge."""
-    original_id = synced_tx.id
-    original_external = synced_tx.external_id
-
-    client.post(
-        f"/api/transactions/{synced_tx.id}/split",
-        json={"parts": [{"amount": 30.0}, {"amount": 30.0}]},
-    )
-    db.expire_all()
-
     kept = db.get(Transaction, original_id)
-    assert kept is not None, "the original row must survive a split"
+    assert kept.amount == original_amount
     assert kept.external_id == original_external
-    assert kept.amount == 30.0
+    assert kept.id == original_id
+    assert db.query(Transaction).filter(Transaction.external_id.like("%:split:%")).count() == 0
 
 
-def test_split_parts_get_ids_no_bank_can_produce(client, db, synced_tx):
-    client.post(
-        f"/api/transactions/{synced_tx.id}/split",
-        json={"parts": [{"amount": 30.0}, {"amount": 30.0}]},
-    )
-    db.expire_all()
-    extras = (
-        db.query(Transaction)
-        .filter(Transaction.external_id.like("%:split:%"))
-        .all()
-    )
-    assert len(extras) == 1
-    assert extras[0].external_id == f"{synced_tx.external_id}:split:1"
-
-
-def test_resyncing_after_a_split_does_not_duplicate(db, linked_account, synced_tx):
-    """The bank re-sends the original charge; dedup must still recognise it."""
-    synced_tx.amount = 30.0
-    db.add(
-        Transaction(
-            user_id=synced_tx.user_id,
-            account_id=synced_tx.account_id,
-            amount=30.0,
-            type="expense",
-            description=synced_tx.description,
-            date=synced_tx.date,
-            external_id=f"{synced_tx.external_id}:split:1",
-        )
-    )
+def test_allocation_replaces_previous_allocations(client, db, seed_user, synced_tx):
+    primary, secondary = _categories(db, seed_user)
+    synced_tx.category_id = primary.id
     db.commit()
-    before = db.query(Transaction).count()
-
-    rows = [svc.normalize_transaction(raw_tx(), linked_account)]
-    assert svc._write_transactions(db, linked_account, rows) == 0
-    db.commit()
-    assert db.query(Transaction).count() == before
-
-
-def test_split_rejects_parts_that_do_not_add_up(client, synced_tx):
-    response = client.post(
-        f"/api/transactions/{synced_tx.id}/split",
-        json={"parts": [{"amount": 10.0}, {"amount": 20.0}]},
-    )
-    assert response.status_code == 400
-    assert "add up" in response.json()["detail"]
-
-
-def test_split_requires_at_least_two_parts(client, synced_tx):
-    response = client.post(
-        f"/api/transactions/{synced_tx.id}/split",
-        json={"parts": [{"amount": 60.0}]},
-    )
-    assert response.status_code == 422
-
-
-def test_split_rejects_zero_or_negative_parts(client, synced_tx):
-    response = client.post(
-        f"/api/transactions/{synced_tx.id}/split",
-        json={"parts": [{"amount": 60.0}, {"amount": 0}]},
-    )
-    assert response.status_code == 422
-
-
-def test_split_handles_amounts_that_do_not_sum_exactly_in_floats(client, db, seed_user, linked_account):
-    """0.1 + 0.2 != 0.3 in binary floats; cents comparison must not care."""
-    tx = make_transaction(db, seed_user, linked_account, amount=0.3)
-    tx.external_id = f"{linked_account.id}:F1"
-    db.commit()
-
-    response = client.post(
-        f"/api/transactions/{tx.id}/split",
-        json={"parts": [{"amount": 0.1}, {"amount": 0.2}]},
-    )
+    assert _allocate(client, synced_tx, [{"amount": 20.0, "category_id": secondary.id}]).status_code == 200
+    response = _allocate(client, synced_tx, [{"amount": 30.0, "category_id": secondary.id}])
     assert response.status_code == 200, response.json()
+    assert [row["amount"] for row in response.json()["allocations"]] == [30.0]
+    response = _allocate(client, synced_tx, [])
+    assert response.status_code == 200
+    assert response.json()["allocations"] == []
 
 
-def test_split_rejects_a_transfer(client, db, seed_user):
+def test_allocation_rejects_excess_total(client, db, seed_user, synced_tx):
+    primary, secondary = _categories(db, seed_user)
+    synced_tx.category_id = primary.id
+    db.commit()
+    response = _allocate(client, synced_tx, [{"amount": 61.0, "category_id": secondary.id}])
+    assert response.status_code == 400
+    assert "exceed" in response.json()["detail"].lower()
+
+
+@pytest.mark.parametrize("amount,status", [(0, 422), (-1, 422), (1.001, 400)])
+def test_allocation_rejects_invalid_amount(client, db, seed_user, synced_tx, amount, status):
+    primary, secondary = _categories(db, seed_user)
+    synced_tx.category_id = primary.id
+    db.commit()
+    assert _allocate(client, synced_tx, [{"amount": amount, "category_id": secondary.id}]).status_code == status
+
+
+def test_allocation_accepts_decimal_cents(client, db, seed_user, linked_account):
+    primary, secondary = _categories(db, seed_user)
+    tx = make_transaction(db, seed_user, linked_account, amount=0.3)
+    tx.category_id = primary.id
+    db.commit()
+    response = _allocate(client, tx, [{"amount": 0.1, "category_id": secondary.id}])
+    assert response.status_code == 200, response.json()
+    assert response.json()["amount"] == 0.3
+
+
+def test_allocation_rejects_transfer(client, db, seed_user):
     source = make_account(db, seed_user, name="A", type="cash")
     dest = make_account(db, seed_user, name="B", type="cash")
+    primary, secondary = _categories(db, seed_user)
     tx = make_transaction(db, seed_user, source, amount=50.0, type="transfer")
     tx.destination_account_id = dest.id
     db.commit()
-
-    response = client.post(
-        f"/api/transactions/{tx.id}/split",
-        json={"parts": [{"amount": 25.0}, {"amount": 25.0}]},
-    )
-    assert response.status_code == 400
+    assert _allocate(client, tx, [{"amount": 25.0, "category_id": secondary.id}]).status_code == 400
 
 
-def test_split_rejects_a_category_from_another_user(client, db, synced_tx):
-    from tests.factories import make_category
+def test_allocation_requires_primary_category(client, db, seed_user, synced_tx):
+    _, secondary = _categories(db, seed_user)
+    assert _allocate(client, synced_tx, [{"amount": 20.0, "category_id": secondary.id}]).status_code == 400
 
+
+def test_allocation_rejects_foreign_category(client, db, seed_user, synced_tx):
+    primary, _ = _categories(db, seed_user)
+    synced_tx.category_id = primary.id
     other = User(email="thief@example.com", hashed_password="x", is_active=True)
     db.add(other)
     db.commit()
-    theirs = make_category(db, other, name="Theirs")
-
-    response = client.post(
-        f"/api/transactions/{synced_tx.id}/split",
-        json={"parts": [{"amount": 30.0, "category_id": theirs.id}, {"amount": 30.0}]},
-    )
-    assert response.status_code == 404
+    from tests.factories import make_category
+    foreign = make_category(db, other, name="Foreign")
+    assert _allocate(client, synced_tx, [{"amount": 20.0, "category_id": foreign.id}]).status_code == 404
 
 
-def test_split_cannot_touch_another_users_transaction(client, db):
+def test_allocation_rejects_foreign_transaction(client, db, seed_user):
     other = User(email="victim2@example.com", hashed_password="x", is_active=True)
     db.add(other)
     db.commit()
     their_account = make_account(db, other, name="Theirs")
     their_tx = make_transaction(db, other, their_account, amount=50.0)
-
-    response = client.post(
-        f"/api/transactions/{their_tx.id}/split",
-        json={"parts": [{"amount": 25.0}, {"amount": 25.0}]},
-    )
-    assert response.status_code == 404
+    assert _allocate(client, their_tx, []).status_code == 404
 
 
-def test_split_leaves_the_account_balance_alone(client, db, linked_account, synced_tx):
+def test_allocation_leaves_balance_unchanged(client, db, seed_user, linked_account, synced_tx):
+    primary, secondary = _categories(db, seed_user)
+    synced_tx.category_id = primary.id
     linked_account.balance = 500.0
     db.commit()
-
-    client.post(
-        f"/api/transactions/{synced_tx.id}/split",
-        json={"parts": [{"amount": 30.0}, {"amount": 30.0}]},
-    )
+    assert _allocate(client, synced_tx, [{"amount": 30.0, "category_id": secondary.id}]).status_code == 200
     db.refresh(linked_account)
-    # The total is unchanged by construction, so the balance must not move.
     assert linked_account.balance == 500.0
 
 
-def test_split_can_be_applied_to_a_manual_transaction(client, db, seed_user):
+def test_allocation_works_for_manual_transaction(client, db, seed_user):
     account = make_account(db, seed_user, name="Cash", type="cash")
+    primary, secondary = _categories(db, seed_user)
     tx = make_transaction(db, seed_user, account, amount=100.0)
+    tx.category_id = primary.id
+    db.commit()
+    response = _allocate(client, tx, [{"amount": 40.0, "category_id": secondary.id}])
+    assert response.status_code == 200, response.json()
+    assert response.json()["is_bank_synced"] is False
+    assert response.json()["amount"] == 100.0
 
+
+def test_legacy_split_endpoint_is_disabled(client, synced_tx):
     response = client.post(
-        f"/api/transactions/{tx.id}/split",
-        json={"parts": [{"amount": 60.0}, {"amount": 40.0}]},
+        f"/api/transactions/{synced_tx.id}/split",
+        json={"parts": [{"amount": 30.0}, {"amount": 30.0}]},
     )
-    assert response.status_code == 200
-    # Manual rows have no external_id, so parts get none either.
-    assert all(p["is_bank_synced"] is False for p in response.json())
+    assert response.status_code == 410
 
 
 # --- re-authorisation reopens the full-history window ----------------------
