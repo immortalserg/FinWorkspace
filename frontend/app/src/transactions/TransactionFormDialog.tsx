@@ -736,7 +736,7 @@ export function TransactionFormDialog({
 
           <Field data-invalid={errors.date ? true : undefined}>
             <FieldLabel htmlFor="date">{t('form.fields.date')}</FieldLabel>
-            <Input id="date" type="date" {...register('date')} />
+            <Input id="date" type="date" lang={i18n.resolvedLanguage === 'lu' ? 'lb-LU' : (i18n.resolvedLanguage || i18n.language)} {...register('date')} />
             <FieldError errors={[errors.date]} />
           </Field>
 
