@@ -288,5 +288,31 @@
       "incomeHint_one": "{{amount}} used to pay back {{count}} expense",
       "incomeHint_other": "{{amount}} used to pay back {{count}} expenses"
     }
+  },
+  "documents": {
+    "title": "Documents",
+    "attach": "Attach",
+    "cancel": "Cancel",
+    "unlink": "Unlink",
+    "storage": "Storage:",
+    "method": "Attachment method",
+    "existing": "Existing",
+    "uploadNew": "Upload new",
+    "search": "Search documents",
+    "documentTitle": "Document title",
+    "uploadAttach": "Upload and attach",
+    "keepOpen": "Keep this window open until attachment is complete.",
+    "processing": "Paperless is processing the document.",
+    "loadError": "Could not load transaction documents",
+    "attached": "Document attached",
+    "attachError": "Could not attach document",
+    "uploaded": "Document uploaded and attached",
+    "sentToPaperless": "Document sent to Paperless for processing",
+    "uploadError": "Could not upload document",
+    "processingError": "Paperless could not process the document",
+    "paperlessAttached": "Paperless document attached",
+    "unlinkError": "Could not unlink document",
+    "popupError": "Allow pop-ups to preview documents",
+    "previewError": "Could not open document"
   }
 }
