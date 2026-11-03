@@ -9,7 +9,7 @@ export const allocationRows = (allocations: TransactionAllocation[] = []): Alloc
 
 export function parseAllocations(rows: AllocationRow[], total: number, primaryCategory: string) {
   const sum = rows.reduce((value, row) => value + Math.round(Number(row.amount.replace(',', '.')) * 100), 0)
-  if (rows.some(row => !row.categoryId || !/^\\d+([.,]\\d{1,2})?$/.test(row.amount.trim()) ||
+  if (rows.some(row => !row.categoryId || !/^\d+([.,]\d{1,2})?$/.test(row.amount.trim()) ||
     !Number.isFinite(Number(row.amount.replace(',', '.'))) || Number(row.amount.replace(',', '.')) <= 0)) {
     throw new Error('Укажите категорию и положительную сумму с точностью до двух знаков')
   }
