@@ -224,7 +224,7 @@ export function TransactionFormDialog({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      const allocationInput = !isTransfer ? parseAllocations(allocations, data.amount, data.category_id ?? '') : []
+      const allocationInput = !isTransfer ? parseAllocations(allocations, data.amount, data.category_id ?? '', t) : []
       // Ensure date has time component
       const dateValue = data.date.includes('T') ? data.date : `${data.date}T12:00:00`
       const paymentDate = dateValue.slice(0, 10)
