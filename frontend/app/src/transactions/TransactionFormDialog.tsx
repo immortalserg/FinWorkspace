@@ -105,7 +105,7 @@ export function TransactionFormDialog({
   onOpenChange,
   transaction,
 }: TransactionFormDialogProps) {
-  const { t } = useTranslation('transactions')
+  const { t, i18n } = useTranslation('transactions')
   const { t: tRules } = useTranslation('rules')
   const createTransaction = useCreateTransaction()
   const updateTransaction = useUpdateTransaction()
@@ -165,7 +165,7 @@ export function TransactionFormDialog({
   // Reset form when dialog opens/closes or transaction changes
   useEffect(() => {
     if (open) {
-      setAllocations(allocationRows(transaction?.allocations ?? []))
+      setAllocations(allocationRows(transaction?.allocations ?? [], i18n.resolvedLanguage || i18n.language || 'en'))
       if (transaction) {
         // Editing existing transaction
         const dateStr = transaction.date.includes('T')
