@@ -42,7 +42,8 @@
     "toast": {
       "deleted": "Transaction deleted",
       "deleteError": "Pourrait pas supprimer le transaction. Essayez à nouveau."
-    }
+    },
+    "showAllCategories": "Toutes les catégories"
   },
   "datePresets": {
     "thisMonth": "Ce mois",
