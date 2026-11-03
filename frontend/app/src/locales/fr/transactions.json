@@ -288,5 +288,31 @@
       "incomeHint_one": "{{amount}} used à pay back {{count}} dépense",
       "incomeHint_other": "{{amount}} used à pay back {{count}} dépenses"
     }
+  },
+  "documents": {
+    "title": "Documents",
+    "attach": "Joindre",
+    "cancel": "Annuler",
+    "unlink": "Dissocier",
+    "storage": "Stockage :",
+    "method": "Mode de pièce jointe",
+    "existing": "Existant",
+    "uploadNew": "Téléverser un nouveau",
+    "search": "Rechercher un document",
+    "documentTitle": "Titre du document",
+    "uploadAttach": "Téléverser et joindre",
+    "keepOpen": "Gardez cette fenêtre ouverte jusqu’à la fin de l’association.",
+    "processing": "Paperless traite le document.",
+    "loadError": "Impossible de charger les documents de la transaction",
+    "attached": "Document joint",
+    "attachError": "Impossible de joindre le document",
+    "uploaded": "Document téléversé et joint",
+    "sentToPaperless": "Document envoyé à Paperless pour traitement",
+    "uploadError": "Impossible de téléverser le document",
+    "processingError": "Paperless n’a pas pu traiter le document",
+    "paperlessAttached": "Document Paperless joint",
+    "unlinkError": "Impossible de dissocier le document",
+    "popupError": "Autorisez les fenêtres contextuelles pour l’aperçu",
+    "previewError": "Impossible d’ouvrir le document"
   }
 }
