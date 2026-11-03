@@ -79,6 +79,5 @@ class Transaction(Base):
     paired_transaction = relationship("Transaction", remote_side=[id], foreign_keys="Transaction.paired_transaction_id")
     category = relationship("Category", back_populates="transactions")
     documents = relationship("TransactionDocument", back_populates="transaction", cascade="all, delete-orphan")
-    allocations = relationship(
     allocations = relationship("TransactionAllocation", back_populates="transaction", cascade="all, delete-orphan", order_by="TransactionAllocation.id")
     debt_payment = relationship("DebtPayment", back_populates="transaction", uselist=False)
