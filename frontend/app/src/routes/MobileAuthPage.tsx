@@ -7,14 +7,16 @@ export function MobileAuthPage() {
   const { acceptMobileSession } = useAuth()
   const navigate = useNavigate()
   const started = useRef(false)
-  const [error, setError] = useState('')
+  const [error, setError] = useState(() =>
+    new URLSearchParams(window.location.hash.slice(1)).has('code') ? '' : 'Missing mobile login code'
+  )
 
   useEffect(() => {
     if (started.current) return
     started.current = true
     const code = new URLSearchParams(window.location.hash.slice(1)).get('code')
     window.history.replaceState(null, '', '/mobile-auth')
-    if (!code) { setError('Missing mobile login code'); return }
+    if (!code) return
     void acceptMobileSession(code)
       .then(() => navigate('/dashboard', { replace: true }))
       .catch(() => setError('Mobile session expired. Return to the app and sign in again.'))
