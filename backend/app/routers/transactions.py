@@ -472,6 +472,20 @@ def update_transaction(
                 detail="Destination account not found",
             )
 
+    # Existing allocations cannot exceed an edited manual amount, and
+    # categorised allocations require a non-transfer primary category.
+    new_amount = transaction_data.amount if transaction_data.amount is not None else transaction.amount
+    new_type = transaction_data.type if transaction_data.type is not None else transaction.type
+    new_category = transaction_data.category_id if transaction_data.category_id is not None else transaction.category_id
+    if transaction.allocations:
+        allocated = sum(Decimal(str(item.amount)) for item in transaction.allocations)
+        if Decimal(str(new_amount)) < allocated:
+            raise HTTPException(status_code=400, detail="New amount is smaller than existing category allocations")
+        if new_type == "transfer":
+            raise HTTPException(status_code=400, detail="Remove category allocations before changing to transfer")
+        if not new_category:
+            raise HTTPException(status_code=400, detail="Primary category is required while allocations exist")
+
     # Use service to update transaction with proper balance handling
     try:
         updated_transaction = TransactionService.update_transaction(
