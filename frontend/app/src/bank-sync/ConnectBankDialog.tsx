@@ -18,12 +18,15 @@ interface ConnectBankDialogProps {
 export function ConnectBankDialog({
   open,
   onOpenChange,
-  country = 'GR',
+  country = 'LU',
 }: ConnectBankDialogProps) {
   const { t } = useTranslation('bankSync')
   const [search, setSearch] = useState('')
+  const [selectedCountry, setSelectedCountry] = useState(() => {
+    try { return window.localStorage.getItem('finworkspace-bank-country') || country } catch { return country }
+  })
   const [pending, setPending] = useState<string | null>(null)
-  const { data: institutions = [], isLoading, error } = useInstitutions(country, open)
+  const { data: institutions = [], isLoading, error } = useInstitutions(selectedCountry, open)
   const startConnection = useStartConnection()
 
   const matches = institutions.filter((institution) =>
@@ -35,7 +38,7 @@ export function ConnectBankDialog({
     try {
       const { authorization_url } = await startConnection.mutateAsync({
         aspsp_name: name,
-        aspsp_country: country,
+        aspsp_country: selectedCountry,
       })
       // Full navigation, not a new tab: the bank's SCA flow often refuses to
       // run in a popup, and the return trip is a redirect back to this app.
@@ -56,6 +59,33 @@ export function ConnectBankDialog({
       tone="primary"
     >
       <div className="flex flex-col gap-4">
+        <label className="flex flex-col gap-1 text-sm text-foreground">
+          {t("dialog.country", { defaultValue: "Country / Страна" })}
+          <select
+            value={selectedCountry}
+            onChange={(event) => {
+              const value = event.target.value
+              setSelectedCountry(value)
+              setSearch("")
+              try { window.localStorage.setItem("finworkspace-bank-country", value) } catch { /* storage unavailable */ }
+            }}
+            className="h-10 rounded-md border border-border bg-background px-3 text-foreground"
+          >
+            {[
+              ["LU", "Luxembourg"], ["DE", "Deutschland"], ["FR", "France"],
+              ["BE", "Belgique"], ["NL", "Nederland"], ["GR", "Ελλάδα"],
+              ["AT", "Österreich"], ["IT", "Italia"], ["ES", "España"],
+              ["PT", "Portugal"], ["IE", "Ireland"], ["PL", "Polska"],
+              ["CZ", "Česko"], ["SK", "Slovensko"], ["SI", "Slovenija"],
+              ["HR", "Hrvatska"], ["HU", "Magyarország"], ["RO", "România"],
+              ["BG", "България"], ["DK", "Danmark"], ["SE", "Sverige"],
+              ["FI", "Suomi"], ["EE", "Eesti"], ["LV", "Latvija"],
+              ["LT", "Lietuva"], ["CY", "Κύπρος"], ["MT", "Malta"],
+              ["GB", "United Kingdom"], ["NO", "Norge"], ["IS", "Ísland"],
+              ["CH", "Schweiz"], ["LI", "Liechtenstein"],
+            ].map(([code, name]) => <option key={code} value={code}>{name} ({code})</option>)}
+          </select>
+        </label>
         <div className="relative">
           <HugeiconsIcon
             icon={Search01Icon}
