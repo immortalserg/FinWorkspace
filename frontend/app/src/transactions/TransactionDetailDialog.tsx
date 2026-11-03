@@ -193,10 +193,10 @@ export function TransactionDetailDialog({
 
           {!isTransfer && Boolean(transaction.allocations?.length) && (
             <div className="border-b border-border/60 py-3">
-              <p className="mb-2 text-sm font-medium">Распределение по категориям</p>
+              <p className="mb-2 text-sm font-medium">{t('allocation.title')}</p>
               <div className="space-y-2 text-sm">
                 <div className="flex items-center justify-between gap-3">
-                  <span>{transaction.category_name || 'Основная категория'}</span>
+                  <span>{transaction.category_name || t('allocation.primaryCategory')}</span>
                   <span className="font-medium tabular-nums">
                     {(transaction.primary_category_amount ?? transaction.amount -
                       transaction.allocations!.reduce((sum, item) => sum + item.amount, 0)).toFixed(2)}
