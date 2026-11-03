@@ -49,21 +49,26 @@ chmod 600 secrets/enablebanking.pem
 
 `docker-compose.yml` mounts `./secrets` read-only at `/app/secrets`. The key is never baked into the image.
 
-## Step 4: Configure `.env`
+## Step 4: Configure Enable Banking in the app
 
-```dotenv
-BANK_SYNC_ENABLED=true
-EB_APPLICATION_ID=<your application id>
-EB_PRIVATE_KEY_PATH=/app/secrets/enablebanking.pem
-EB_REDIRECT_URL=https://<your-public-origin>/api/bank-sync/callback
-PUBLIC_BASE_URL=https://<your-public-origin>
-```
+Enable Banking is configured through the **FinWorkspace web interface**, not by manually editing `.env`.
 
-`EB_PRIVATE_KEY_PATH` must be the **in-container** path (`/app/secrets/...`), not the host path. `.env.example` shows `./secrets/enablebanking.pem`, which only applies outside Docker.
+1. Sign in with an **administrator** account and open **Admin → Application Settings → Bank sync (Enable Banking)**.
+2. Enter your **Application ID** from the Enable Banking Control Panel in **EB_APPLICATION_ID**.
+3. Enter the public callback URL in **EB_REDIRECT_URL**:
+   
+   ```text
+   https://<your-public-origin>/api/bank-sync/callback
+   ```
+   
+   It must match exactly the redirect URL registered with Enable Banking. If required, set **FRONTEND_BASE_URL** to the public base URL (for example, `https://finance.example.com`). **EB_API_BASE** normally stays at its default, `https://api.enablebanking.com`.
+4. Use **Upload PEM** to upload the RSA private key (`.pem`) downloaded from Enable Banking. The interface shows whether a private key is configured. The file is stored on the server; **do not** commit it to Git or paste its contents into a text setting.
+5. Turn on **BANK_SYNC_ENABLED**, then click **Save**. Keep the private key uploaded and the Application ID and redirect URL filled in, otherwise validation will fail.
+6. If needed, adjust the consent duration, initial history, pending transactions, sync overlap, manual sync cooldown and consent-expiry warning settings in the same section.
 
-Restart: `docker compose restart app`. With `BANK_SYNC_ENABLED=true` and a missing variable or key file, the app refuses to start and the log names the problem. That check covers existence only, so a wrong key surfaces later as an authorization error.
+The app applies bank settings without a manual Docker restart. The upload button handles the private-key location automatically; **do not enter `EB_PRIVATE_KEY_PATH` in the UI**. For older installations configured through environment variables, those variables may still exist, but the in-app settings are the recommended approach.
 
-Optional tuning is in the [configuration reference](configuration.md#bank-sync-enable-banking).
+See the [configuration reference](configuration.md#bank-sync-enable-banking) for explanations of the individual options.
 
 ## Step 5: Connect a bank
 
