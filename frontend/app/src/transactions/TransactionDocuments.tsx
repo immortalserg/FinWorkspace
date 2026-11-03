@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { apiFetch, getApiBaseUrl } from '../lib/apiClient'
-import { listDocuments, getPreviewUrl } from '../documents/documentsApi'
+import { listDocuments, getPreviewUrl, uploadDocument } from '../documents/documentsApi'
 
 type Link = { id: number; source: 'local' | 'paperless'; document_id: string; title: string }
 type Choice = { id: string; title: string; source: 'local' | 'paperless' }
@@ -15,6 +15,10 @@ export function TransactionDocuments({ transactionId }: { transactionId: number 
   const [search, setSearch] = useState('')
   const [adding, setAdding] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [uploadFile, setUploadFile] = useState<File | null>(null)
+  const [uploadTitle, setUploadTitle] = useState('')
+  const [pendingTask, setPendingTask] = useState<string | null>(null)
 
   async function refresh() {
     setLinks(await apiFetch<Link[]>(`/transactions/${transactionId}/documents`))
@@ -58,6 +62,74 @@ export function TransactionDocuments({ transactionId }: { transactionId: number 
       toast.error(error instanceof Error ? error.message : 'Не удалось прикрепить документ')
     } finally { setBusy(false) }
   }
+
+  async function uploadAndAttach() {
+    if (!uploadFile) return
+    setBusy(true)
+    try {
+      const title = uploadTitle.trim() || uploadFile.name
+      if (source === 'local') {
+        const doc = await uploadDocument(uploadFile, { title })
+        await apiFetch(`/transactions/${transactionId}/documents`, {
+          method: 'POST', body: JSON.stringify({ source: 'local', document_id: doc.id }),
+        })
+        await refresh()
+        setUploading(false)
+        setUploadFile(null)
+        setUploadTitle('')
+        toast.success('Документ загружен и прикреплён')
+      } else {
+        const form = new FormData()
+        form.append('file', uploadFile)
+        form.append('metadata', JSON.stringify({ title }))
+        const result = await apiFetch<{ task_id: string }>('/paperless/upload', { method: 'POST', body: form })
+        setPendingTask(String(result.task_id))
+        setUploading(false)
+        setUploadFile(null)
+        setUploadTitle('')
+        toast.success('Документ отправлен в Paperless на обработку')
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Не удалось загрузить документ')
+    } finally { setBusy(false) }
+  }
+
+  useEffect(() => {
+    if (!pendingTask) return
+    let active = true
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const check = async () => {
+      try {
+        const response = await apiFetch<unknown>('/paperless/tasks')
+        const tasks = Array.isArray(response) ? response : (response as { results?: unknown[] })?.results ?? []
+        const task = (tasks as Array<Record<string, unknown>>).find(item => String(item.task_id ?? item.id) === pendingTask)
+        if (task?.status === 'FAILURE' || task?.status === 'REVOKED') {
+          toast.error('Paperless не смог обработать документ')
+          setPendingTask(null)
+          return
+        }
+        if (task?.status === 'SUCCESS') {
+          const match = String(task.result ?? '').match(/(?:document\\s+id\\s+)?(\\d+)\\s*(?:created)?\\s*$/i)
+          if (match) {
+            const id = match[1]
+            await apiFetch(`/transactions/${transactionId}/documents`, {
+              method: 'POST', body: JSON.stringify({ source: 'paperless', document_id: id }),
+            })
+            if (!active) return
+            await refresh()
+            setPendingTask(null)
+            toast.success('Документ Paperless прикреплён')
+            return
+          }
+        }
+      } catch {
+        // Paperless may be temporarily unavailable while OCR is processing.
+      }
+      if (active) timer = setTimeout(() => void check(), 3000)
+    }
+    void check()
+    return () => { active = false; if (timer) clearTimeout(timer) }
+  }, [pendingTask, transactionId])
 
   async function detach(id: number) {
     setBusy(true)
@@ -104,20 +176,22 @@ export function TransactionDocuments({ transactionId }: { transactionId: number 
           <Button type="button" variant="ghost" size="sm" disabled={busy} onClick={() => void detach(link.id)}>Удалить связь</Button>
         </div>
       ))}
+      {pendingTask && <p className="text-xs text-muted-foreground">Paperless обрабатывает документ. Не закрывайте окно до завершения прикрепления.</p>}
       {adding && (
         <div className="space-y-2 rounded-md border p-2">
           <div className="flex gap-2">
             <Button type="button" size="sm" variant={source === 'local' ? 'secondary' : 'outline'} onClick={() => setSource('local')}>FinWorkspace</Button>
             <Button type="button" size="sm" variant={source === 'paperless' ? 'secondary' : 'outline'} onClick={() => setSource('paperless')}>Paperless</Button>
           </div>
-          <Input placeholder="Поиск документа" value={search} onChange={event => setSearch(event.target.value)} />
+          <div className="flex gap-2"><Button type="button" size="sm" variant={!uploading ? "secondary" : "outline"} onClick={() => setUploading(false)}>Из документов</Button><Button type="button" size="sm" variant={uploading ? "secondary" : "outline"} onClick={() => setUploading(true)}>Загрузить новый</Button></div>
+          {uploading ? <div className="space-y-2"><Input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx" onChange={event => { const file = event.target.files?.[0] ?? null; setUploadFile(file); setUploadTitle(file?.name ?? "") }} /><Input placeholder="Название документа" value={uploadTitle} onChange={event => setUploadTitle(event.target.value)} /><Button type="button" size="sm" disabled={busy || !uploadFile || Boolean(pendingTask)} onClick={() => void uploadAndAttach()}>Загрузить и прикрепить</Button></div> : <><Input placeholder="Поиск документа" value={search} onChange={event => setSearch(event.target.value)} />
           <div className="max-h-48 space-y-1 overflow-y-auto">
             {choices.map(choice => (
               <Button key={choice.source + choice.id} type="button" variant="ghost" className="w-full justify-start truncate"
                 disabled={busy || links.some(link => link.source === choice.source && link.document_id === choice.id)}
                 onClick={() => void attach(choice)}>{choice.title}</Button>
             ))}
-          </div>
+          </div></>}
         </div>
       )}
     </section>
