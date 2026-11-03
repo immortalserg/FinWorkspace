@@ -147,19 +147,13 @@ export function createColumns(
         if (!showAllCategories || allocations.length === 0) {
           return <CategoryChip name={category_name} color={category_color} />
         }
-        const primaryAmount = row.original.primary_category_amount ??
-          row.original.amount - allocations.reduce((sum, allocation) => sum + allocation.amount, 0)
         return (
           <div className="flex flex-wrap items-center gap-1.5">
-            <CategoryChip name={category_name} color={category_color}>
-              <span className="tabular-nums">{formatCurrency(primaryAmount)}</span>
-            </CategoryChip>
+            <CategoryChip name={category_name} color={category_color} />
             {allocations.map(allocation => (
               <CategoryChip key={allocation.id}
                 name={allocation.category_name ?? `#${allocation.category_id}`}
-                color={categoryColors[allocation.category_id]}>
-                <span className="tabular-nums">{formatCurrency(allocation.amount)}</span>
-              </CategoryChip>
+                color={categoryColors[allocation.category_id]} />
             ))}
           </div>
         )
