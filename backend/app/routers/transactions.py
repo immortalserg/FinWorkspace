@@ -608,124 +608,16 @@ def update_transaction_allocations(
     return _serialize_transaction(db, transaction)
 
 
-@router.post("/{transaction_id}/split", response_model=List[TransactionResponse])
-def split_transaction(
+@router.post("/{transaction_id}/split", deprecated=True)
+def legacy_split_disabled(
     transaction_id: int,
-    request: TransactionSplitRequest,
     current_user: User = Depends(get_current_user_authenticated),
-    db: Session = Depends(get_db),
 ):
-    """Break one transaction into parts that still sum to the original amount.
-
-    A bank reports one charge; the money may really belong to several
-    categories. Editing the amount is refused on synced rows because the next
-    sync would contradict it — splitting is the sanctioned alternative.
-
-    The ORIGINAL row is kept and reduced to the first part rather than deleted
-    and replaced. It carries the `external_id` that deduplication keys on, so
-    deleting it would make the next sync re-import the whole charge alongside
-    the parts. Extra parts get derived ids (`<original>:split:N`) which no bank
-    can produce, so they are equally safe from re-import.
-
-    Account balances are untouched: the total is unchanged by construction.
-    """
-    transaction = (
-        db.query(Transaction)
-        .filter(
-            Transaction.id == transaction_id, Transaction.user_id == current_user.id
-        )
-        .first()
+    """Prevent the old split implementation from modifying bank-owned amounts."""
+    raise HTTPException(
+        status_code=status.HTTP_410_GONE,
+        detail="Legacy transaction split is disabled. Use PUT /transactions/{id}/allocations.",
     )
-    if not transaction:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found"
-        )
-
-    if transaction.type == "transfer":
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Transfers cannot be split — they move money rather than categorise it.",
-        )
-
-    try:
-        ReimbursementService.assert_unlinked(transaction)
-    except ReimbursementError as e:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
-
-    # Compared in cents: summing floats will not land exactly on the total.
-    total_cents = round(transaction.amount * 100)
-    parts_cents = sum(round(part.amount * 100) for part in request.parts)
-    if parts_cents != total_cents:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                f"The parts add up to {parts_cents / 100:.2f}, but the transaction is "
-                f"{total_cents / 100:.2f}. They must match exactly."
-            ),
-        )
-
-    category_ids = {part.category_id for part in request.parts if part.category_id}
-    if category_ids:
-        owned = {
-            row_id
-            for (row_id,) in db.query(Category.id).filter(
-                Category.id.in_(category_ids), Category.user_id == current_user.id
-            )
-        }
-        missing = category_ids - owned
-        if missing:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Unknown category: {sorted(missing)[0]}",
-            )
-
-    first, *rest = request.parts
-
-    created = []
-    for index, part in enumerate(rest, start=1):
-        created.append(
-            Transaction(
-                user_id=transaction.user_id,
-                account_id=transaction.account_id,
-                destination_account_id=None,
-                category_id=part.category_id,
-                amount=round(part.amount, 2),
-                type=transaction.type,
-                # Same description and date as the original unless overridden,
-                # so the parts stay recognisable as one real-world purchase.
-                description=part.description or transaction.description,
-                date=transaction.date,
-                notes=part.notes,
-                is_imported=transaction.is_imported,
-                is_pending=transaction.is_pending,
-                import_batch_id=transaction.import_batch_id,
-                source_file=transaction.source_file,
-                external_id=(
-                    f"{transaction.external_id}:split:{index}"
-                    if transaction.external_id
-                    else None
-                ),
-            )
-        )
-
-    transaction.amount = round(first.amount, 2)
-    if first.category_id is not None:
-        transaction.category_id = first.category_id
-    if first.notes is not None:
-        transaction.notes = first.notes
-    if first.description:
-        transaction.description = first.description
-
-    db.add_all(created)
-    db.commit()
-
-    db.refresh(transaction)
-    for row in created:
-        db.refresh(row)
-
-    return [
-        _serialize_transaction(db, row) for row in (transaction, *created)
-    ]
 
 
 def _owned_transaction(db: Session, user_id: int, transaction_id: int) -> Transaction:
