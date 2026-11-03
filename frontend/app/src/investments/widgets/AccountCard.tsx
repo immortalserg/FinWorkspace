@@ -26,7 +26,7 @@ import type { InvestmentAccount } from '../investmentsApi'
  * A connected account, and the control that points the workspace at it.
  *
  * Sized for the scope rail: narrow on phones so a second card peeks in,
- * wider on desktop. A 3 px left accent strip shows the account's trend
+ * wider on desktop. A 3 px left accent strip shows the account's trend
  * direction at a glance — the same flow-in / flow-out tokens used everywhere
  * else in the app. Selecting a card promotes the accent to primary and lifts
  * the card with a directional shadow.
