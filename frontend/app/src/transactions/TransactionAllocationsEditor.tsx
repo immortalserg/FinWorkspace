@@ -5,7 +5,7 @@ import type { TransactionAllocation } from './transactionsApi'
 
 export type AllocationRow = { categoryId: string; amount: string; notes: string }
 export const allocationRows = (allocations: TransactionAllocation[] = []): AllocationRow[] =>
-  allocations.map(a => ({ categoryId: String(a.category_id), amount: a.amount.toFixed(2), notes: a.notes ?? '' }))
+  allocations.map(a => ({ categoryId: String(a.category_id), amount: String(Number(a.amount)), notes: a.notes ?? '' }))
 
 export function parseAllocations(rows: AllocationRow[], total: number, primaryCategory: string) {
   const sum = rows.reduce((value, row) => value + Math.round(Number(row.amount.replace(',', '.')) * 100), 0)
@@ -31,7 +31,7 @@ export function TransactionAllocationsEditor({ rows, onChange, total, categoryOp
     <div className="mt-3 flex flex-col gap-2 rounded-lg border border-border p-3">
       <div className="text-sm font-medium">Распределение по категориям</div>
       <div className="text-xs text-muted-foreground">
-        Исходная сумма: {total.toFixed(2)}. Основная категория: {(total - allocated).toFixed(2)}
+        Исходная сумма: {Number(total.toFixed(2))}. Основная категория: {Number((total - allocated).toFixed(2))}
       </div>
       {rows.map((row, index) => (
         <div key={index} className="flex flex-wrap items-center gap-2">
