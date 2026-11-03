@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { TransactionAllocationsEditor } from './TransactionAllocationsEditor'
+import { TransactionAllocationsEditor, allocationRows, parseAllocations, type AllocationRow } from './TransactionAllocationsEditor'
 import { HugeiconsIcon } from '@hugeicons/react'
 import {
   ArrowDownLeft01Icon,
@@ -45,6 +45,7 @@ import { DEFAULT_TRACKER_ICON } from '../trackers/trackerMeta'
 import { ICON_MAP, type IconKey } from '../categories/categoryIcons'
 import {
   useCreateTransaction,
+  useUpdateTransactionAllocations,
   useSetTransactionTrackers,
   useUpdateTransaction,
 } from './useTransactions'
@@ -108,6 +109,8 @@ export function TransactionFormDialog({
   const { t: tRules } = useTranslation('rules')
   const createTransaction = useCreateTransaction()
   const updateTransaction = useUpdateTransaction()
+  const updateAllocations = useUpdateTransactionAllocations()
+  const [allocations, setAllocations] = useState<AllocationRow[]>([])
   const createRule = useCreateRule()
   const addDebtPayment = useAddDebtPayment()
   const recordRecurringPayment = useRecordRecurringPayment()
@@ -162,6 +165,7 @@ export function TransactionFormDialog({
   // Reset form when dialog opens/closes or transaction changes
   useEffect(() => {
     if (open) {
+      setAllocations(allocationRows(transaction?.allocations ?? []))
       if (transaction) {
         // Editing existing transaction
         const dateStr = transaction.date.includes('T')
@@ -220,6 +224,7 @@ export function TransactionFormDialog({
 
   const onSubmit = handleSubmit(async (data) => {
     try {
+      const allocationInput = !isTransfer ? parseAllocations(allocations, data.amount, data.category_id ?? '') : []
       // Ensure date has time component
       const dateValue = data.date.includes('T') ? data.date : `${data.date}T12:00:00`
       const paymentDate = dateValue.slice(0, 10)
@@ -251,10 +256,12 @@ export function TransactionFormDialog({
           id: transaction.id,
           input: isBankSynced ? editable : input,
         })
+        await updateAllocations.mutateAsync({ id: transaction.id, allocations: allocationInput })
         toast.success(t('form.toast.updated'))
       } else {
         const created = await createTransaction.mutateAsync(input)
         savedId = created.id
+        if (allocationInput.length) await updateAllocations.mutateAsync({ id: created.id, allocations: allocationInput })
         toast.success(t('form.toast.created'))
       }
 
@@ -352,8 +359,8 @@ export function TransactionFormDialog({
       }
 
       onOpenChange(false)
-    } catch {
-      toast.error(transaction ? t('form.toast.updateError') : t('form.toast.createError'))
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : (transaction ? t('form.toast.updateError') : t('form.toast.createError')))
     }
   })
 
@@ -485,9 +492,11 @@ export function TransactionFormDialog({
 
           </Field>
 
-          {transaction && transaction.type !== 'transfer' && (
+          {!isTransfer && (
             <TransactionAllocationsEditor
-              transaction={transaction}
+              rows={allocations}
+              onChange={setAllocations}
+              total={Number(watch('amount')) || 0}
               categoryOptions={categoryOptions}
             />
           )}
