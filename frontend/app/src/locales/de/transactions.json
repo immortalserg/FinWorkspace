@@ -314,5 +314,20 @@
     "unlinkError": "Verknüpfung konnte nicht entfernt werden",
     "popupError": "Erlauben Sie Pop-ups für die Vorschau",
     "previewError": "Dokument konnte nicht geöffnet werden"
+  },
+  "allocation": {
+    "title": "Aufteilung nach Kategorien",
+    "originalAmount": "Ursprünglicher Betrag: {{amount}}",
+    "primaryAmount": "Hauptkategorie: {{amount}}",
+    "additionalCategory": "Zusätzliche Kategorie",
+    "amount": "Betrag",
+    "note": "Notiz",
+    "remove": "Entfernen",
+    "addCategory": "+ Kategorie",
+    "exceedsOriginal": "Die Aufteilung übersteigt den ursprünglichen Betrag.",
+    "invalidAmount": "Wählen Sie eine Kategorie und einen positiven Betrag mit höchstens zwei Dezimalstellen",
+    "exceedsTransaction": "Die Aufteilung übersteigt den Transaktionsbetrag",
+    "choosePrimary": "Wählen Sie eine Hauptkategorie",
+    "primaryCategory": "Hauptkategorie"
   }
 }
