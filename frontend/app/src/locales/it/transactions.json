@@ -314,5 +314,20 @@
     "unlinkError": "Impossibile rimuovere il collegamento",
     "popupError": "Consenti i popup per l’anteprima",
     "previewError": "Impossibile aprire il documento"
+  },
+  "allocation": {
+    "title": "Ripartizione per categorie",
+    "originalAmount": "Importo originale: {{amount}}",
+    "primaryAmount": "Categoria principale: {{amount}}",
+    "additionalCategory": "Categoria aggiuntiva",
+    "amount": "Importo",
+    "note": "Nota",
+    "remove": "Rimuovi",
+    "addCategory": "+ Categoria",
+    "exceedsOriginal": "La ripartizione supera l’importo originale.",
+    "invalidAmount": "Seleziona una categoria e un importo positivo con massimo due decimali",
+    "exceedsTransaction": "La ripartizione supera l’importo della transazione",
+    "choosePrimary": "Seleziona una categoria principale",
+    "primaryCategory": "Categoria principale"
   }
 }
