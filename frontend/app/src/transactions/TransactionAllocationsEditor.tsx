@@ -17,13 +17,15 @@ export function TransactionAllocationsEditor({
 }) {
   const mutation = useUpdateTransactionAllocations()
   const [rows, setRows] = useState<Row[]>([])
+  const [dirty, setDirty] = useState(false)
   useEffect(() => {
+    if (dirty) return
     setRows((transaction.allocations ?? []).map(a => ({
       categoryId: String(a.category_id),
       amount: a.amount.toFixed(2),
       notes: a.notes ?? '',
     })))
-  }, [transaction.id, transaction.allocations])
+  }, [transaction.id, transaction.allocations, dirty])
   const total = Math.round(transaction.amount * 100)
   const amountsValid = rows.every(r => r.categoryId && r.amount.trim() &&
     Number.isFinite(cents(r.amount)) && cents(r.amount) > 0 &&
@@ -31,8 +33,10 @@ export function TransactionAllocationsEditor({
   const allocated = rows.reduce((sum, r) => sum + (Number.isFinite(cents(r.amount)) ? cents(r.amount) : 0), 0)
   const remaining = total - allocated
   const valid = amountsValid && remaining >= 0 && (!rows.length || Boolean(transaction.category_id))
-  const update = (index: number, patch: Partial<Row>) =>
+  const update = (index: number, patch: Partial<Row>) => {
+    setDirty(true)
     setRows(current => current.map((row, i) => i === index ? { ...row, ...patch } : row))
+  }
 
   async function save() {
     if (!valid) return
@@ -45,6 +49,7 @@ export function TransactionAllocationsEditor({
           notes: row.notes || null,
         })),
       })
+      setDirty(false)
       toast.success('Распределение по категориям сохранено')
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Не удалось сохранить распределение')
@@ -70,7 +75,7 @@ export function TransactionAllocationsEditor({
           <Input className="min-w-28 flex-1" value={row.notes} placeholder="Примечание"
             onChange={e => update(index, { notes: e.target.value })} />
           <Button type="button" variant="ghost"
-            onClick={() => setRows(current => current.filter((_, i) => i !== index))}>
+            onClick={() => { setDirty(true); setRows(current => current.filter((_, i) => i !== index)) }}>
             Удалить
           </Button>
         </div>
@@ -81,7 +86,7 @@ export function TransactionAllocationsEditor({
       )}
       <div className="flex flex-wrap gap-2">
         <Button type="button" variant="outline" size="sm"
-          onClick={() => setRows(current => [...current, { categoryId: '', amount: '', notes: '' }])}>
+          onClick={() => { setDirty(true); setRows(current => [...current, { categoryId: '', amount: '', notes: '' }]) }}>
           + Категория
         </Button>
         <Button type="button" size="sm" disabled={!valid || mutation.isPending}
