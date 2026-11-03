@@ -6,6 +6,12 @@ Releases that add database migrations or new `.env` settings say so, so you know
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-11-03
+
+### Fixed
+- Bank connection dialog now selects the Enable Banking institution country (default Luxembourg), rather than always searching Greek banks.
+- Remember the selected country for subsequent bank connections.
+
 ## [1.6.0] - 2026-11-02
 
 
