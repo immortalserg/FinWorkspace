@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { BalanceVisibilityContext } from './balanceVisibilityState'
 
 const STORAGE_KEY = 'balance-visibility-hidden'
 
@@ -6,13 +7,6 @@ function readStored(): boolean {
   if (typeof window === 'undefined') return false
   return window.localStorage.getItem(STORAGE_KEY) === '1'
 }
-
-interface BalanceVisibilityValue {
-  hidden: boolean
-  toggle: () => void
-}
-
-const BalanceVisibilityContext = createContext<BalanceVisibilityValue | null>(null)
 
 /**
  * Global, persisted "hide my balances" switch — the shoulder-surfing guard
@@ -37,12 +31,4 @@ export function BalanceVisibilityProvider({ children }: { children: ReactNode })
       {children}
     </BalanceVisibilityContext.Provider>
   )
-}
-
-export function useBalanceVisibility(): BalanceVisibilityValue {
-  const ctx = useContext(BalanceVisibilityContext)
-  if (!ctx) {
-    throw new Error('useBalanceVisibility must be used within a BalanceVisibilityProvider')
-  }
-  return ctx
 }
