@@ -1,25 +1,8 @@
-import { cva, type VariantProps } from "class-variance-authority"
+import { type VariantProps } from "class-variance-authority"
 import { Slot } from "radix-ui"
-
 import { cn } from "@/lib/utils"
 import { Separator } from "@/components/ui/separator"
-
-const buttonGroupVariants = cva(
-  "group/button-group flex w-fit items-stretch *:focus-visible:relative *:focus-visible:z-10 has-[>[data-slot=button-group]]:gap-2 has-[select[aria-hidden=true]:last-child]:[&>[data-slot=select-trigger]:last-of-type]:rounded-e-lg [&>[data-slot=select-trigger]:not([class*='w-'])]:w-fit [&>input]:flex-1",
-  {
-    variants: {
-      orientation: {
-        horizontal:
-          "[&>*:not(:first-child)]:rounded-s-none [&>*:not(:first-child)]:border-s-0 [&>*:not(:last-child)]:rounded-e-none [&>[data-slot]:not(:has(~[data-slot]))]:rounded-e-lg!",
-        vertical:
-          "flex-col [&>*:not(:first-child)]:rounded-t-none [&>*:not(:first-child)]:border-t-0 [&>*:not(:last-child)]:rounded-b-none [&>[data-slot]:not(:has(~[data-slot]))]:rounded-b-lg!",
-      },
-    },
-    defaultVariants: {
-      orientation: "horizontal",
-    },
-  }
-)
+import { buttonGroupVariants } from "./buttonGroupVariants"
 
 function ButtonGroup({
   className,
@@ -78,6 +61,5 @@ function ButtonGroupSeparator({
 export {
   ButtonGroup,
   ButtonGroupSeparator,
-  ButtonGroupText,
-  buttonGroupVariants,
+  ButtonGroupText
 }
