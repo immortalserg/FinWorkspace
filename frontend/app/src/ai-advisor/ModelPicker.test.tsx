@@ -2,7 +2,8 @@ import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ModelInfo } from './aiChatApi'
-import { ModelPicker, filterModels } from './ModelPicker'
+import { ModelPicker } from './ModelPicker'
+import { filterModels } from './modelPickerUtils'
 
 const model = (id: string, name: string, prompt: number | null, context: number): ModelInfo => ({
   id,
