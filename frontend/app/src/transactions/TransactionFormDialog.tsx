@@ -1,6 +1,6 @@
 import { useEffect, useEffectEvent, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useForm } from 'react-hook-form'
+import {useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
@@ -134,7 +134,7 @@ export function TransactionFormDialog({
     register,
     handleSubmit,
     reset,
-    watch,
+    control,
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<TransactionForm>({
@@ -152,7 +152,8 @@ export function TransactionFormDialog({
     },
   })
 
-  const selectedType = watch('type')
+  const formValues = useWatch({ control })
+  const selectedType = formValues.type
   const isTransfer = selectedType === 'transfer'
 
   // A bank-synced transaction has its amount, type and account fixed by the
@@ -501,7 +502,7 @@ export function TransactionFormDialog({
             <TransactionAllocationsEditor
               rows={allocations}
               onChange={setAllocations}
-              total={Number(watch('amount')) || 0}
+              total={Number(formValues.amount) || 0}
               categoryOptions={categoryOptions}
             />
           )}
@@ -523,7 +524,7 @@ export function TransactionFormDialog({
                 {isTransfer ? t('form.fields.fromAccount') : t('form.fields.account')}
               </FieldLabel>
               <Select
-                value={watch('account_id')}
+                value={formValues.account_id}
                 onValueChange={(value) => setValue('account_id', value)}
                 options={accountOptions}
                 placeholder={t('form.fields.accountPlaceholder')}
@@ -537,7 +538,7 @@ export function TransactionFormDialog({
                   {t('form.fields.toAccount')}
                 </FieldLabel>
                 <Select
-                  value={watch('destination_account_id') || ''}
+                  value={formValues.destination_account_id || ''}
                   onValueChange={(value) => setValue('destination_account_id', value)}
                   options={accountOptions}
                   placeholder={t('form.fields.destinationPlaceholder')}
@@ -548,7 +549,7 @@ export function TransactionFormDialog({
               <Field data-invalid={errors.category_id ? true : undefined}>
                 <FieldLabel htmlFor="category_id">{t('form.fields.category')}</FieldLabel>
                 <Select
-                  value={watch('category_id') || ''}
+                  value={formValues.category_id || ''}
                   onValueChange={(value) => setValue('category_id', value)}
                   options={categoryOptions}
                   placeholder={t('form.fields.categoryPlaceholder')}
@@ -564,7 +565,7 @@ export function TransactionFormDialog({
               onOpenChange={(open) => {
                 setCreateRuleFromTx(open)
                 if (open && !ruleNeedle) {
-                  setRuleNeedle(watch('description') || '')
+                  setRuleNeedle(formValues.description || '')
                 }
               }}
             >
@@ -576,7 +577,7 @@ export function TransactionFormDialog({
                       const next = Boolean(v)
                       setCreateRuleFromTx(next)
                       if (next && !ruleNeedle) {
-                        setRuleNeedle(watch('description') || '')
+                        setRuleNeedle(formValues.description || '')
                       }
                     }}
                     className="mt-0.5"
@@ -597,7 +598,7 @@ export function TransactionFormDialog({
                       id="rule-needle"
                       value={ruleNeedle}
                       onChange={(e) => setRuleNeedle(e.target.value)}
-                      placeholder={watch('description') || t('form.fields.descriptionPlaceholder')}
+                      placeholder={formValues.description || t('form.fields.descriptionPlaceholder')}
                     />
                   </Field>
                 </CollapsibleContent>
