@@ -2,7 +2,7 @@ import type { ModelInfo } from './aiChatApi'
 
 export type ModelSort = 'name' | 'price' | 'context'
 
-const SORTS: { id: ModelSort; labelKey: string }[] = [
+export const SORTS: { id: ModelSort; labelKey: string }[] = [
   { id: 'name', labelKey: 'aiAdvisor.models.sortName' },
   { id: 'price', labelKey: 'aiAdvisor.models.sortPrice' },
   { id: 'context', labelKey: 'aiAdvisor.models.sortContext' },
