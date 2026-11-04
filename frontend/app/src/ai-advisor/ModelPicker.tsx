@@ -9,7 +9,7 @@ import type { ModelInfo } from './aiChatApi'
 import { formatAgo, formatPrice, formatTokens, shortModel } from './format'
 import { useAiModels, useRefreshAiModels } from './useAiModels'
 
-import { filterModels } from './modelPickerUtils'
+import { filterModels, SORTS } from './modelPickerUtils'
 import type { ModelSort } from './modelPickerUtils'
 
 function PriceLine({ model }: { model: ModelInfo }) {
