@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Controller, useForm } from 'react-hook-form'
+import {Controller, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
@@ -65,7 +65,6 @@ export function TrackerTransactionDialog({
     control,
     handleSubmit,
     reset,
-    watch,
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<TrackerTransactionForm>({
@@ -94,7 +93,7 @@ export function TrackerTransactionDialog({
     })
   }, [open, tracker, reset])
 
-  const selectedType = watch('type')
+  const selectedType = useWatch({ control, name: 'type' })
 
   // Bank-linked accounts are read-only, and the API rejects them — leaving them
   // out of the list is friendlier than a 400 after the user has filled the form.
