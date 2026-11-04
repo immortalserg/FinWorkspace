@@ -11,7 +11,7 @@ import { Dialog } from '../ui/Dialog'
 import { Amount, flowOfType } from '../ui/money'
 import { ApiError } from '../lib/apiClient'
 import { formatCurrency, formatDate } from '../lib/format'
-import { toCents } from './SplitFields'
+import { toCents } from './splitUtils'
 import { useLinkReimbursement, useReimbursementCandidates } from './useTransactions'
 import type { ReimbursementCandidate, Transaction } from './transactionsApi'
 
