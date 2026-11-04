@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -18,37 +18,24 @@ interface CategoryFormDialogProps {
 
 const NONE_PARENT = '__none__'
 
-export function CategoryFormDialog({ open, onOpenChange, category }: CategoryFormDialogProps) {
+export function CategoryFormDialog(props: CategoryFormDialogProps) {
+  return props.open ? <CategoryFormDialogContent key={props.category?.id ?? 'new'} {...props} /> : null
+}
+
+function CategoryFormDialogContent({ open, onOpenChange, category }: CategoryFormDialogProps) {
   const { t } = useTranslation('categories')
   const isEdit = !!category
   const isSystem = category?.is_system ?? false
 
-  const [name, setName] = useState('')
-  const [type, setType] = useState<CategoryType>('expense')
-  const [color, setColor] = useState('#3B82F6')
-  const [icon, setIcon] = useState<string>('default')
-  const [parentId, setParentId] = useState<string>(NONE_PARENT)
+  const [name, setName] = useState(category?.name ?? '')
+  const [type, setType] = useState<CategoryType>(category?.type ?? 'expense')
+  const [color, setColor] = useState(category?.color ?? '#3B82F6')
+  const [icon, setIcon] = useState<string>(category?.icon || 'default')
+  const [parentId, setParentId] = useState<string>(category?.parent_id ? String(category.parent_id) : NONE_PARENT)
 
   const { data: categories = [] } = useCategories()
   const createMutation = useCreateCategory()
   const updateMutation = useUpdateCategory()
-
-  useEffect(() => {
-    if (!open) return
-    if (category) {
-      setName(category.name)
-      setType(category.type)
-      setColor(category.color)
-      setIcon(category.icon || 'default')
-      setParentId(category.parent_id ? String(category.parent_id) : NONE_PARENT)
-    } else {
-      setName('')
-      setType('expense')
-      setColor('#3B82F6')
-      setIcon('default')
-      setParentId(NONE_PARENT)
-    }
-  }, [open, category])
 
   const parentOptions = [
     { value: NONE_PARENT, label: t('form.noneTopLevel') },
