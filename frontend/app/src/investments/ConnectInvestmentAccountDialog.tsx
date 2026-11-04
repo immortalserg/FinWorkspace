@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import {useForm, Controller, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
@@ -49,7 +49,6 @@ export function ConnectInvestmentAccountDialog({
     control,
     handleSubmit,
     reset,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm<ConnectForm>({
     resolver: zodResolver(connectSchema),
@@ -87,7 +86,7 @@ export function ConnectInvestmentAccountDialog({
   })
 
   const isPending = isSubmitting || connectAccount.isPending
-  const selectedProvider = watch('provider')
+  const selectedProvider = useWatch({ control, name: 'provider' })
   const isBinance = selectedProvider === 'binance'
 
   return (
