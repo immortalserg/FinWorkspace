@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import {useForm, Controller, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
@@ -94,7 +94,6 @@ export function RecurringFormDialog({
     control,
     handleSubmit,
     reset,
-    watch,
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<RecurringForm>({
@@ -102,7 +101,7 @@ export function RecurringFormDialog({
     defaultValues: emptyDefaults(),
   })
 
-  const notifyEnabled = watch('notify_enabled')
+  const notifyEnabled = useWatch({ control, name: 'notify_enabled' })
 
   useEffect(() => {
     if (!open) return
