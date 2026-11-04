@@ -132,7 +132,9 @@ export function RuleFormDialog({ open, onOpenChange, rule, prefill }: RuleFormDi
 
   useEffect(() => {
     if (!open) return
-    setPreviewResult(null)
+    // Defer local preview reset until after the form reset effect.
+    let active = true
+    void Promise.resolve().then(() => { if (active) setPreviewResult(null) })
     if (rule) {
       reset(fromRule(rule))
     } else if (prefill) {
@@ -140,6 +142,7 @@ export function RuleFormDialog({ open, onOpenChange, rule, prefill }: RuleFormDi
     } else {
       reset(emptyDefaults())
     }
+    return () => { active = false }
   }, [open, rule, prefill, reset])
 
   const categoryOptions = categories.map((c) => ({ value: String(c.id), label: c.name }))
