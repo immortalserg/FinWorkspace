@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { HugeiconsIcon } from '@hugeicons/react'
@@ -55,7 +55,11 @@ export function CompanyResearchPage() {
   const symbol = (params.get('symbol') ?? '').trim().toUpperCase()
   const [draft, setDraft] = useState(query)
 
-  useEffect(() => setDraft(query), [query])
+  const [previousQuery, setPreviousQuery] = useState(query)
+  if (previousQuery !== query) {
+    setPreviousQuery(query)
+    setDraft(query)
+  }
 
   const {
     data: results = [],
