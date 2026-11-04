@@ -119,7 +119,8 @@ export function TransactionDocuments({ transactionId }: { transactionId: number 
               method: 'POST', body: JSON.stringify({ source: 'paperless', document_id: id }),
             })
             if (!active) return
-            await refresh()
+            setLinks(await apiFetch<Link[]>(`/transactions/${transactionId}/documents`))
+            if (!active) return
             setPendingTask(null)
             toast.success(t('documents.paperlessAttached'))
             return
@@ -132,7 +133,7 @@ export function TransactionDocuments({ transactionId }: { transactionId: number 
     }
     void check()
     return () => { active = false; if (timer) clearTimeout(timer) }
-  }, [pendingTask, transactionId])
+  }, [pendingTask, transactionId, t])
 
   async function detach(id: number) {
     setBusy(true)
