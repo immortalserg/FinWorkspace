@@ -1,7 +1,8 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import * as authApi from './authApi'
 import type { User } from './authApi'
+import { AuthContext } from './authContextState'
 import { setUnauthorizedHandler } from '../lib/apiClient'
 import i18n from '../i18n/config'
 
@@ -158,8 +159,3 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 }
 
-export function useAuth(): AuthContextValue {
-  const ctx = useContext(AuthContext)
-  if (!ctx) throw new Error('useAuth must be used within an AuthProvider')
-  return ctx
-}
