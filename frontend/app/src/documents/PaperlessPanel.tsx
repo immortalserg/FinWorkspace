@@ -62,7 +62,34 @@ export function PaperlessPanel({ openUpload, onUploadOpenChange }: { openUpload:
   }
 
   useEffect(() => {
-    void refresh().catch(() => toast.error('Could not load Paperless connection'))
+    let active = true
+    const load = async () => {
+      try {
+        const status = await apiFetch<Connection>('/paperless/connection')
+        if (!active) return
+        setConnection(status)
+        if (!status.configured) {
+          setDocuments([])
+          setTotal(0)
+          return
+        }
+        const query = new URLSearchParams({ page: String(page), page_size: '25' })
+        if (search.trim()) query.set('search', search.trim())
+        if (selectedTag) query.set('tags__id', selectedTag)
+        if (selectedPath) query.set('storage_path__id', selectedPath)
+        const result = await apiFetch<DocumentList>(`/paperless/documents?${query}`)
+        if (!active) return
+        setTotal(result.count ?? 0)
+        setDocuments(result.results ?? [])
+        const keys = ['tags', 'document_types', 'correspondents', 'storage_paths']
+        const lists = await Promise.all(keys.map((key) => apiFetch<{ results: PaperlessTag[] }>(`/paperless/${key}?page_size=100`)))
+        if (active) setReferences(Object.fromEntries(keys.map((key, index) => [key, lists[index].results ?? []])))
+      } catch {
+        if (active) toast.error('Could not load Paperless connection')
+      }
+    }
+    void load()
+    return () => { active = false }
   }, [page, search, selectedTag, selectedPath])
 
   async function createReference(resource: string) {
