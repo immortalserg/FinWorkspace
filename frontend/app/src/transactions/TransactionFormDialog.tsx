@@ -170,52 +170,52 @@ export function TransactionFormDialog({
 
   // Reset form when dialog opens/closes or transaction changes
   useEffect(() => {
-    if (open) {
-      setAllocations(initialAllocationRows(transaction))
-      if (transaction) {
-        // Editing existing transaction
-        const dateStr = transaction.date.includes('T')
-          ? transaction.date.slice(0, 10)
-          : transaction.date
-        reset({
-          type: transaction.type,
-          amount: transaction.amount,
-          account_id: String(transaction.account_id),
-          destination_account_id: transaction.destination_account_id
-            ? String(transaction.destination_account_id)
-            : '',
-          category_id: transaction.category_id ? String(transaction.category_id) : '',
-          description: transaction.description,
-          date: dateStr,
-          notes: transaction.notes || '',
-        })
-      } else {
-        // Creating new transaction
-        reset({
-          type: 'expense',
-          amount: 0,
-          account_id: '',
-          destination_account_id: '',
-          category_id: '',
-          description: '',
-          date: todayIsoDate(),
-          notes: '',
-        })
-      }
+    if (!open) return
+
+    const rows = initialAllocationRows(transaction)
+    if (transaction) {
+      const dateStr = transaction.date.includes('T')
+        ? transaction.date.slice(0, 10)
+        : transaction.date
+      reset({
+        type: transaction.type,
+        amount: transaction.amount,
+        account_id: String(transaction.account_id),
+        destination_account_id: transaction.destination_account_id
+          ? String(transaction.destination_account_id)
+          : '',
+        category_id: transaction.category_id ? String(transaction.category_id) : '',
+        description: transaction.description,
+        date: dateStr,
+        notes: transaction.notes || '',
+      })
+    } else {
+      reset({
+        type: 'expense',
+        amount: 0,
+        account_id: '',
+        destination_account_id: '',
+        category_id: '',
+        description: '',
+        date: todayIsoDate(),
+        notes: '',
+      })
     }
-    if (open) {
+
+    // Apply local dialog state after the effect, cancelling stale resets on rapid changes.
+    let active = true
+    void Promise.resolve().then(() => {
+      if (!active) return
+      setAllocations(rows)
       setCreateRuleFromTx(false)
       setRuleNeedle(transaction?.description ?? '')
-      const alreadyDebtLinked = Boolean(transaction?.debt_payment_id)
-      setLinkToDebt(alreadyDebtLinked)
+      setLinkToDebt(Boolean(transaction?.debt_payment_id))
       setDebtId(transaction?.debt_id ? String(transaction.debt_id) : '')
-      const alreadyRecurringLinked = Boolean(transaction?.recurring_payment_id)
-      setLinkToRecurring(alreadyRecurringLinked)
-      setRecurringId(
-        transaction?.recurring_expense_id ? String(transaction.recurring_expense_id) : '',
-      )
+      setLinkToRecurring(Boolean(transaction?.recurring_payment_id))
+      setRecurringId(transaction?.recurring_expense_id ? String(transaction.recurring_expense_id) : '')
       setSelectedTrackerIds(transaction?.tracker_ids ?? [])
-    }
+    })
+    return () => { active = false }
   }, [open, transaction, reset])
 
   // Clear destination/category when type changes
