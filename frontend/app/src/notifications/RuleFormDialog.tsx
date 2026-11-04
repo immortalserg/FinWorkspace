@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import {useForm, Controller, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
@@ -121,7 +121,6 @@ export function RuleFormDialog({ open, onOpenChange, rule }: RuleFormDialogProps
   const {
     register,
     control,
-    watch,
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
@@ -135,8 +134,8 @@ export function RuleFormDialog({ open, onOpenChange, rule }: RuleFormDialogProps
     reset(rule ? fromRule(rule) : emptyDefaults())
   }, [open, rule, reset])
 
-  const type = watch('type') as NotificationRuleType
-  const scheduleKind = watch('schedule_kind')
+  const type = useWatch({ control, name: 'type' }) as NotificationRuleType
+  const scheduleKind = useWatch({ control, name: 'schedule_kind' })
 
   const accountOptions = accounts.map((a) => ({ value: String(a.id), label: a.name }))
   const budgetOptions = budgets.map((b) => ({ value: String(b.id), label: b.name }))
