@@ -1,5 +1,6 @@
-import { PaperlessTagPicker, togglePaperlessTag } from './PaperlessTagPicker'
-import type { PaperlessTag } from './PaperlessTagPicker'
+import { PaperlessTagPicker } from './PaperlessTagPicker'
+import { togglePaperlessTag } from './paperlessTagUtils'
+import type { PaperlessTag } from './paperlessTagUtils'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
