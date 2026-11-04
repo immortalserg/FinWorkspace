@@ -55,7 +55,7 @@ export function CompanyResearchPage() {
   const symbol = (params.get('symbol') ?? '').trim().toUpperCase()
   const [draft, setDraft] = useState(query)
 
-  useEffect(() => setDraft(query), [query])
+  // The search draft is user-editable; URL updates are handled by navigation.
 
   const {
     data: results = [],
