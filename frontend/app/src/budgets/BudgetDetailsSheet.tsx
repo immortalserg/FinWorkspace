@@ -29,7 +29,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { ProgressBar, progressVariantForPercent } from '../ui/ProgressBar'
+import { ProgressBar } from '../ui/ProgressBar'
+import { progressVariantForPercent } from '../ui/progressUtils'
 import { formatCurrency, formatDate, todayIsoDate } from '../lib/format'
 import { cn } from '@/lib/utils'
 import { useBudgetSummary } from './useBudgets'
