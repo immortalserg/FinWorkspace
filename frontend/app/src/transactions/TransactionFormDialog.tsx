@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useEffectEvent, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -162,10 +162,15 @@ export function TransactionFormDialog({
   // money can still be spread across categories.
   const isBankSynced = Boolean(transaction?.is_bank_synced)
 
+  // Read the current locale when the dialog resets, without resetting user edits on language changes.
+  const initialAllocationRows = useEffectEvent((tx: Transaction | null | undefined) =>
+    allocationRows(tx?.allocations ?? [], i18n.resolvedLanguage || i18n.language || 'en'),
+  )
+
   // Reset form when dialog opens/closes or transaction changes
   useEffect(() => {
     if (open) {
-      setAllocations(allocationRows(transaction?.allocations ?? [], i18n.resolvedLanguage || i18n.language || 'en'))
+      setAllocations(initialAllocationRows(transaction))
       if (transaction) {
         // Editing existing transaction
         const dateStr = transaction.date.includes('T')
