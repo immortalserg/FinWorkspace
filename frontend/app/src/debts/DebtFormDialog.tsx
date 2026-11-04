@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import {useForm, Controller, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
@@ -238,7 +238,7 @@ export function DebtFormDialog({
     register,
     control,
     handleSubmit,
-    watch,
+    getValues,
     reset,
     setValue,
     formState: { errors, isSubmitting },
@@ -252,7 +252,7 @@ export function DebtFormDialog({
     reset(toFormValues(debt))
   }, [open, debt, reset])
 
-  const preview = watch()
+  const preview = useWatch({ control })
   const typeLabel =
     preview.type === 'custom'
       ? preview.custom_type?.trim() || t('types.custom')
@@ -462,7 +462,7 @@ export function DebtFormDialog({
                   onCheckedChange={(checked) => {
                     const on = checked === true
                     field.onChange(on)
-                    if (on && !watch('paid_off_date')) {
+                    if (on && !getValues('paid_off_date')) {
                       setValue('paid_off_date', todayIsoDate())
                     }
                   }}
