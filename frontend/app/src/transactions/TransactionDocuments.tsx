@@ -27,11 +27,12 @@ export function TransactionDocuments({ transactionId }: { transactionId: number 
   }
 
   useEffect(() => {
-    void refresh().catch(() => toast.error(t('documents.loadError')))
-    setAdding(false)
-    setChoices([])
-    setSearch('')
-  }, [transactionId])
+    let active = true
+    void apiFetch<Link[]>(`/transactions/${transactionId}/documents`)
+      .then((items) => { if (active) setLinks(items) })
+      .catch(() => { if (active) toast.error(t('documents.loadError')) })
+    return () => { active = false }
+  }, [transactionId, t])
 
   useEffect(() => {
     if (!adding) return
