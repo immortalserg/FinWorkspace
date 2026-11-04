@@ -524,7 +524,7 @@ export function TransactionFormDialog({
                 {isTransfer ? t('form.fields.fromAccount') : t('form.fields.account')}
               </FieldLabel>
               <Select
-                value={formValues.account_id}
+                value={formValues.account_id || ''}
                 onValueChange={(value) => setValue('account_id', value)}
                 options={accountOptions}
                 placeholder={t('form.fields.accountPlaceholder')}
