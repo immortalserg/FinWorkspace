@@ -107,7 +107,8 @@ export function GoalFormDialog({ open, onOpenChange, goal }: GoalFormDialogProps
     }
   }, [open, goal, reset])
 
-  const preview = useWatch({ control })
+  const watchedPreview = useWatch({ control })
+  const preview = { ...watchedPreview, name: watchedPreview.name ?? '' }
 
   const onSubmit = handleSubmit(async (data) => {
     const input = {
