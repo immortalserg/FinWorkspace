@@ -99,7 +99,12 @@ export function AccountFormDialog({ open, onOpenChange, account }: AccountFormDi
     }
   }, [open, account, reset])
 
-  const preview = useWatch({ control })
+  const watchedPreview = useWatch({ control })
+  const preview = {
+    ...watchedPreview,
+    type: watchedPreview.type ?? 'checking',
+    name: watchedPreview.name ?? '',
+  }
 
   const onSubmit = handleSubmit(async (data) => {
     const common = {
