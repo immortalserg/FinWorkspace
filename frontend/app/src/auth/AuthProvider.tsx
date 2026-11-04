@@ -6,17 +6,6 @@ import { AuthContext } from './authContextState'
 import { setUnauthorizedHandler } from '../lib/apiClient'
 import i18n from '../i18n/config'
 
-interface AuthContextValue {
-  user: User | null
-  isAuthenticated: boolean
-  acceptMobileSession: (code: string) => Promise<void>
-  login: (email: string, password: string) => Promise<void>
-  register: (input: authApi.RegisterInput) => Promise<void>
-  logout: () => Promise<void>
-}
-
-const AuthContext = createContext<AuthContextValue | null>(null)
-
 function decodeTokenExpiry(token: string): number | null {
   try {
     const payload = token.split('.')[1]
