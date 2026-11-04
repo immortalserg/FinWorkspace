@@ -252,7 +252,8 @@ export function DebtFormDialog({
     reset(toFormValues(debt))
   }, [open, debt, reset])
 
-  const preview = useWatch({ control })
+  const watchedPreview = useWatch({ control })
+  const preview = { ...watchedPreview, name: watchedPreview.name ?? '' }
   const typeLabel =
     preview.type === 'custom'
       ? preview.custom_type?.trim() || t('types.custom')
