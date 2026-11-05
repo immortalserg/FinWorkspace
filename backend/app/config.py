@@ -78,7 +78,7 @@ class Settings(BaseSettings):
 
     # Application
     APP_NAME: str = "FinWorkspace API"
-    APP_VERSION: str = "1.6.1"
+    APP_VERSION: str = "1.6.2"
     DEBUG: bool = False
 
     # Service ports (compose / .env — also used for CORS localhost origins)

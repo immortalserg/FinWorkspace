@@ -6,6 +6,18 @@ Releases that add database migrations or new `.env` settings say so, so you know
 
 ## [Unreleased]
 
+## [1.6.2] - 2026-11-06
+
+### Added
+- Transaction category allocation (splits), automatic categorization rules and transaction document attachments.
+
+### Changed
+- Lazy-load application pages, authenticated shell and non-English translations to reduce initial JavaScript bundle size.
+- Improvements to transaction details, documents and localized interface.
+
+### Notes
+- Includes database migrations for transaction allocations and document attachments. Back up your database before upgrading.
+
 ## [1.6.1] - 2026-11-03
 
 ### Fixed
