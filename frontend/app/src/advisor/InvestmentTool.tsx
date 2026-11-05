@@ -121,12 +121,11 @@ function CompoundTab() {
 
   const rule72Years = Math.round(72 / rateNum)
 
-  let insight = ''
-  if (multiplier >= 3)
-    insight = t('investmentTool.compound.insight.excellent', { multiplier: multiplier.toFixed(2), years: yearsNum })
-  else if (multiplier >= 2) insight = t('investmentTool.compound.insight.good', { percent: interestPortion })
-  else if (multiplier >= 1.5) insight = t('investmentTool.compound.insight.moderate')
-  else insight = t('investmentTool.compound.insight.conservative')
+  const insight = multiplier >= 3
+    ? t('investmentTool.compound.insight.excellent', { multiplier: multiplier.toFixed(2), years: yearsNum })
+      : multiplier >= 2 ? t('investmentTool.compound.insight.good', { percent: interestPortion })
+      : multiplier >= 1.5 ? t('investmentTool.compound.insight.moderate')
+      : t('investmentTool.compound.insight.conservative')
 
   return (
     <ToolPanel

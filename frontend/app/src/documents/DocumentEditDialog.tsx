@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import { toast } from 'sonner'
 import { PencilEdit02Icon } from '@hugeicons/core-free-icons'
 import { Button } from '@/components/ui/button'
@@ -17,27 +17,20 @@ interface DocumentEditDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
-export function DocumentEditDialog({ document, onOpenChange }: DocumentEditDialogProps) {
+export function DocumentEditDialog(props: DocumentEditDialogProps) {
+  return props.document ? <DocumentEditDialogContent key={props.document.id} {...props} /> : null
+}
+
+function DocumentEditDialogContent({ document, onOpenChange }: DocumentEditDialogProps) {
   const { data: foldersData } = useDocumentFolders()
   const updateDocument = useUpdateDocument()
 
-  const [title, setTitle] = useState('')
+  const [title, setTitle] = useState(document?.title ?? '')
   const [description, setDescription] = useState('')
-  const [metadata, setMetadata] = useState<LocalMetadata>({})
+  const [metadata, setMetadata] = useState<LocalMetadata>(document?.paperless_metadata ?? {})
   const [folder, setFolder] = useState('')
   const [content, setContent] = useState('')
   const [tab, setTab] = useState<'details' | 'content'>('details')
-
-  useEffect(() => {
-    if (document) {
-      setTitle(document.title)
-      setDescription(document.description)
-      setMetadata(document.paperless_metadata ?? {})
-      setFolder(document.folder)
-      setContent(document.content ?? '')
-      setTab('details')
-    }
-  }, [document])
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault()

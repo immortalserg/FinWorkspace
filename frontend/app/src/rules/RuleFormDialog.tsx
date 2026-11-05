@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useForm, useFieldArray, Controller } from 'react-hook-form'
+import {useForm, useFieldArray, Controller, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
@@ -118,7 +118,6 @@ export function RuleFormDialog({ open, onOpenChange, rule, prefill }: RuleFormDi
     control,
     handleSubmit,
     reset,
-    watch,
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<RuleForm>({
@@ -127,13 +126,15 @@ export function RuleFormDialog({ open, onOpenChange, rule, prefill }: RuleFormDi
   })
 
   const { fields, append, remove } = useFieldArray({ control, name: 'conditions' })
-  const matchType = watch('match_type')
-  const conditions = watch('conditions')
-  const applyToExisting = watch('apply_to_existing')
+  const matchType = useWatch({ control, name: 'match_type' })
+  const conditions = useWatch({ control, name: 'conditions' })
+  const applyToExisting = useWatch({ control, name: 'apply_to_existing' })
 
   useEffect(() => {
     if (!open) return
-    setPreviewResult(null)
+    // Defer local preview reset until after the form reset effect.
+    let active = true
+    void Promise.resolve().then(() => { if (active) setPreviewResult(null) })
     if (rule) {
       reset(fromRule(rule))
     } else if (prefill) {
@@ -141,6 +142,7 @@ export function RuleFormDialog({ open, onOpenChange, rule, prefill }: RuleFormDi
     } else {
       reset(emptyDefaults())
     }
+    return () => { active = false }
   }, [open, rule, prefill, reset])
 
   const categoryOptions = categories.map((c) => ({ value: String(c.id), label: c.name }))

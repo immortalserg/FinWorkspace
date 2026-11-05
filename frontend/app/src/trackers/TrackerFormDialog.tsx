@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Controller, useForm } from 'react-hook-form'
+import {Controller, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
@@ -70,7 +70,6 @@ export function TrackerFormDialog({ open, onOpenChange, tracker }: TrackerFormDi
     control,
     handleSubmit,
     reset,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm<TrackerForm>({
     resolver: zodResolver(schema) as never,
@@ -96,7 +95,7 @@ export function TrackerFormDialog({ open, onOpenChange, tracker }: TrackerFormDi
     }
   }, [open, tracker, reset])
 
-  const preview = watch()
+  const preview = useWatch({ control })
 
   const onSubmit = handleSubmit(async (data) => {
     const input = {

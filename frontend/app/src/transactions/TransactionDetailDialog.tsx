@@ -18,6 +18,7 @@ import { Amount, CategoryChip, flowOfType } from '../ui/money'
 import { formatDate } from '../lib/format'
 import { cn } from '@/lib/utils'
 import { ReimbursementList } from './ReimbursementList'
+import { TransactionDocuments } from './TransactionDocuments'
 import { useUnmarkTransfer } from './useTransactions'
 import { canLinkReimbursement, type Transaction } from './transactionsApi'
 
@@ -190,6 +191,30 @@ export function TransactionDetailDialog({
             </Row>
           )}
 
+          {!isTransfer && Boolean(transaction.allocations?.length) && (
+            <div className="border-b border-border/60 py-3">
+              <p className="mb-2 text-sm font-medium">{t('allocation.title')}</p>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <span>{transaction.category_name || t('allocation.primaryCategory')}</span>
+                  <span className="font-medium tabular-nums">
+                    {(transaction.primary_category_amount ?? transaction.amount -
+                      transaction.allocations!.reduce((sum, item) => sum + item.amount, 0)).toFixed(2)}
+                  </span>
+                </div>
+                {transaction.allocations!.map(allocation => (
+                  <div key={allocation.id} className="flex flex-col gap-0.5">
+                    <div className="flex items-center justify-between gap-3">
+                      <span>{allocation.category_name || `#${allocation.category_id}`}</span>
+                      <span className="font-medium tabular-nums">{allocation.amount.toFixed(2)}</span>
+                    </div>
+                    {allocation.notes && <p className="text-xs text-muted-foreground">{allocation.notes}</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {transaction.debt_payment_id && transaction.debt_name && (
             <Row label={t('detail.rows.paysDown')}>
               <Badge variant="secondary">{transaction.debt_name}</Badge>
@@ -220,6 +245,7 @@ export function TransactionDetailDialog({
             </Row>
           )}
         </div>
+        <TransactionDocuments transactionId={transaction.id} />
       </div>
     </Dialog>
   )

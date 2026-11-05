@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useForm, Controller } from 'react-hook-form'
+import {useForm, Controller, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
@@ -57,7 +57,6 @@ export function BudgetFormDialog({ open, onOpenChange, budget }: BudgetFormDialo
   const {
     register,
     control,
-    watch,
     handleSubmit,
     reset,
     setValue,
@@ -97,7 +96,7 @@ export function BudgetFormDialog({ open, onOpenChange, budget }: BudgetFormDialo
     }
   }, [open, budget, reset])
 
-  const categoryIds = watch('category_ids')
+  const categoryIds = useWatch({ control, name: 'category_ids' })
 
   const toggleCategory = (id: number, checked: boolean) => {
     const next = checked ? [...categoryIds, id] : categoryIds.filter((c) => c !== id)

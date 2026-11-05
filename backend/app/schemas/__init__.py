@@ -179,6 +179,7 @@ from app.schemas.tracker import (
 from app.schemas.transaction import (
     TransactionSplitPart,
     TransactionSplitRequest,
+    TransactionAllocationsUpdate,
     BulkTransactionDelete,
     BulkTransactionUpdate,
     TransactionBase,
@@ -208,6 +209,7 @@ __all__ = [
     "AccountUpdate",
     "TransactionSplitPart",
     "TransactionSplitRequest",
+    "TransactionAllocationsUpdate",
     "BankConnectionResponse",
     "ConnectionStartRequest",
     "ConnectionStartResponse",

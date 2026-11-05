@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, desc, or_
 from typing import List, Optional
 from datetime import datetime, date
+from decimal import Decimal, InvalidOperation
 
 from app.database import get_db
 from app.utils import linked_accounts
@@ -15,12 +16,13 @@ from app.schemas import (
     BulkTransactionUpdate,
     BulkTransactionDelete,
     TransactionSplitRequest,
+    TransactionAllocationsUpdate,
     PairTransferRequest,
     RetagTransferRequest,
     ReimbursementCandidate,
     ReimbursementCreate,
 )
-from app.models import User, Transaction, TransactionReimbursement, Account, Category, DebtPayment
+from app.models import User, Transaction, TransactionReimbursement, TransactionAllocation, TransactionDocument, Account, Category, DebtPayment
 from app.models.recurring_expense import RecurringExpensePayment
 from app.models.tracker import TrackerTransaction
 from app.schemas.tracker import TrackerAssignment
@@ -110,6 +112,8 @@ def _serialize_transaction(db: Session, tx: Transaction) -> dict:
         ],
         "reimbursed_amount": tx.reimbursed_amount,
         "effective_amount": tx.effective_amount,
+        "allocations": [{"id": item.id, "category_id": item.category_id, "category_name": item.category.name if item.category else None, "amount": float(item.amount), "notes": item.notes} for item in tx.allocations],
+        "primary_category_amount": round(tx.amount - sum(float(item.amount) for item in tx.allocations), 2),
         "reimbursements": [
             _reimbursement_link(link, tx) for link in ReimbursementService.links_for(db, tx)
         ],
@@ -468,6 +472,20 @@ def update_transaction(
                 detail="Destination account not found",
             )
 
+    # Existing allocations cannot exceed an edited manual amount, and
+    # categorised allocations require a non-transfer primary category.
+    new_amount = transaction_data.amount if transaction_data.amount is not None else transaction.amount
+    new_type = transaction_data.type if transaction_data.type is not None else transaction.type
+    new_category = transaction_data.category_id if transaction_data.category_id is not None else transaction.category_id
+    if transaction.allocations:
+        allocated = sum(Decimal(str(item.amount)) for item in transaction.allocations)
+        if Decimal(str(new_amount)) < allocated:
+            raise HTTPException(status_code=400, detail="New amount is smaller than existing category allocations")
+        if new_type == "transfer":
+            raise HTTPException(status_code=400, detail="Remove category allocations before changing to transfer")
+        if not new_category:
+            raise HTTPException(status_code=400, detail="Primary category is required while allocations exist")
+
     # Use service to update transaction with proper balance handling
     try:
         updated_transaction = TransactionService.update_transaction(
@@ -549,124 +567,71 @@ def set_trackers(
     return _serialize_transaction(db, transaction)
 
 
-@router.post("/{transaction_id}/split", response_model=List[TransactionResponse])
-def split_transaction(
+@router.put("/{transaction_id}/allocations", response_model=TransactionResponse)
+def update_transaction_allocations(
     transaction_id: int,
-    request: TransactionSplitRequest,
+    payload: TransactionAllocationsUpdate,
     current_user: User = Depends(get_current_user_authenticated),
     db: Session = Depends(get_db),
 ):
-    """Break one transaction into parts that still sum to the original amount.
-
-    A bank reports one charge; the money may really belong to several
-    categories. Editing the amount is refused on synced rows because the next
-    sync would contradict it — splitting is the sanctioned alternative.
-
-    The ORIGINAL row is kept and reduced to the first part rather than deleted
-    and replaced. It carries the `external_id` that deduplication keys on, so
-    deleting it would make the next sync re-import the whole charge alongside
-    the parts. Extra parts get derived ids (`<original>:split:N`) which no bank
-    can produce, so they are equally safe from re-import.
-
-    Account balances are untouched: the total is unchanged by construction.
-    """
-    transaction = (
-        db.query(Transaction)
-        .filter(
-            Transaction.id == transaction_id, Transaction.user_id == current_user.id
-        )
-        .first()
-    )
-    if not transaction:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found"
-        )
-
+    """Replace additional category allocations, preserving the bank-owned transaction."""
+    transaction = db.query(Transaction).filter(
+        Transaction.id == transaction_id, Transaction.user_id == current_user.id
+    ).first()
+    if transaction is None:
+        raise HTTPException(status_code=404, detail="Transaction not found")
     if transaction.type == "transfer":
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Transfers cannot be split — they move money rather than categorise it.",
+        raise HTTPException(status_code=400, detail="Transfers cannot have category allocations")
+    if payload.allocations and transaction.category_id is None:
+        raise HTTPException(status_code=400, detail="Choose a primary category first")
+
+    total = Decimal("0.00")
+    for item in payload.allocations:
+        try:
+            amount = Decimal(str(item.amount))
+        except InvalidOperation:
+            raise HTTPException(status_code=400, detail="Invalid allocation amount")
+        if not amount.is_finite() or amount <= 0 or amount != amount.quantize(Decimal("0.01")):
+            raise HTTPException(status_code=400, detail="Allocation must be positive with at most two decimal places")
+        total += amount
+
+    if total > Decimal(str(transaction.amount)).quantize(Decimal("0.01")):
+        raise HTTPException(status_code=400, detail="Allocations exceed transaction amount")
+
+    category_ids = {item.category_id for item in payload.allocations}
+    owned_ids = {
+        row_id for (row_id,) in db.query(Category.id).filter(
+            Category.user_id == current_user.id, Category.id.in_(category_ids)
+        ).all()
+    } if category_ids else set()
+    if category_ids != owned_ids:
+        raise HTTPException(status_code=404, detail="Allocation category not found")
+
+    transaction.allocations.clear()
+    db.flush()
+    transaction.allocations.extend([
+        TransactionAllocation(
+            category_id=item.category_id,
+            amount=Decimal(str(item.amount)),
+            notes=item.notes,
         )
-
-    try:
-        ReimbursementService.assert_unlinked(transaction)
-    except ReimbursementError as e:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
-
-    # Compared in cents: summing floats will not land exactly on the total.
-    total_cents = round(transaction.amount * 100)
-    parts_cents = sum(round(part.amount * 100) for part in request.parts)
-    if parts_cents != total_cents:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                f"The parts add up to {parts_cents / 100:.2f}, but the transaction is "
-                f"{total_cents / 100:.2f}. They must match exactly."
-            ),
-        )
-
-    category_ids = {part.category_id for part in request.parts if part.category_id}
-    if category_ids:
-        owned = {
-            row_id
-            for (row_id,) in db.query(Category.id).filter(
-                Category.id.in_(category_ids), Category.user_id == current_user.id
-            )
-        }
-        missing = category_ids - owned
-        if missing:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Unknown category: {sorted(missing)[0]}",
-            )
-
-    first, *rest = request.parts
-
-    created = []
-    for index, part in enumerate(rest, start=1):
-        created.append(
-            Transaction(
-                user_id=transaction.user_id,
-                account_id=transaction.account_id,
-                destination_account_id=None,
-                category_id=part.category_id,
-                amount=round(part.amount, 2),
-                type=transaction.type,
-                # Same description and date as the original unless overridden,
-                # so the parts stay recognisable as one real-world purchase.
-                description=part.description or transaction.description,
-                date=transaction.date,
-                notes=part.notes,
-                is_imported=transaction.is_imported,
-                is_pending=transaction.is_pending,
-                import_batch_id=transaction.import_batch_id,
-                source_file=transaction.source_file,
-                external_id=(
-                    f"{transaction.external_id}:split:{index}"
-                    if transaction.external_id
-                    else None
-                ),
-            )
-        )
-
-    transaction.amount = round(first.amount, 2)
-    if first.category_id is not None:
-        transaction.category_id = first.category_id
-    if first.notes is not None:
-        transaction.notes = first.notes
-    if first.description:
-        transaction.description = first.description
-
-    db.add_all(created)
+        for item in payload.allocations
+    ])
     db.commit()
-
     db.refresh(transaction)
-    for row in created:
-        db.refresh(row)
+    return _serialize_transaction(db, transaction)
 
-    return [
-        _serialize_transaction(db, row) for row in (transaction, *created)
-    ]
+
+@router.post("/{transaction_id}/split", deprecated=True)
+def legacy_split_disabled(
+    transaction_id: int,
+    current_user: User = Depends(get_current_user_authenticated),
+):
+    """Prevent the old split implementation from modifying bank-owned amounts."""
+    raise HTTPException(
+        status_code=status.HTTP_410_GONE,
+        detail="Legacy transaction split is disabled. Use PUT /transactions/{id}/allocations.",
+    )
 
 
 def _owned_transaction(db: Session, user_id: int, transaction_id: int) -> Transaction:
@@ -908,3 +873,102 @@ def bulk_delete_transactions(
 
     return {"message": f"Deleted {len(transactions)} transactions"}
 
+
+
+# Document links are references only; deleting a link never deletes a document.
+from pydantic import BaseModel
+
+
+class TransactionDocumentLinkInput(BaseModel):
+    source: str
+    document_id: str
+
+
+@router.get("/{transaction_id}/documents")
+async def list_transaction_documents(
+    transaction_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_authenticated),
+):
+    tx = db.query(Transaction).filter(Transaction.id == transaction_id, Transaction.user_id == current_user.id).first()
+    if tx is None:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    from app.routers import documents as local
+    local_docs = {doc["id"]: doc for doc in local._load_index(current_user.id)["documents"]}
+    paperless_links = [link for link in tx.documents if link.source == "paperless"]
+    paperless_titles = {}
+    if paperless_links:
+        from app.routers.paperless import _client
+        from app.services.paperless_client import PaperlessError
+        try:
+            client = _client(current_user)
+            for link in paperless_links:
+                try:
+                    document = await client.get("documents", int(link.document_id))
+                    paperless_titles[link.document_id] = document.get("title") or f"Paperless #{link.document_id}"
+                except (PaperlessError, ValueError, TypeError):
+                    paperless_titles[link.document_id] = f"Paperless #{link.document_id}"
+        except HTTPException:
+            pass
+
+    results = []
+    for link in tx.documents:
+        if link.source == "local":
+            title = local_docs.get(link.document_id, {}).get("title", link.document_id)
+        else:
+            title = paperless_titles.get(link.document_id, f"Paperless #{link.document_id}")
+        results.append({"id": link.id, "source": link.source, "document_id": link.document_id, "title": title})
+    return results
+
+
+@router.post("/{transaction_id}/documents", status_code=201)
+async def link_transaction_document(
+    transaction_id: int,
+    payload: TransactionDocumentLinkInput,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_authenticated),
+):
+    tx = db.query(Transaction).filter(Transaction.id == transaction_id, Transaction.user_id == current_user.id).first()
+    if tx is None:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    if payload.source not in ("local", "paperless") or not payload.document_id.strip() or len(payload.document_id) > 100:
+        raise HTTPException(status_code=422, detail="Invalid document reference")
+    if payload.source == "local":
+        from app.routers import documents as local
+        if not local._get_doc(local._load_index(current_user.id)["documents"], payload.document_id):
+            raise HTTPException(status_code=404, detail="Document not found")
+    else:
+        if not payload.document_id.isdecimal() or int(payload.document_id) <= 0:
+            raise HTTPException(status_code=422, detail="Invalid Paperless document id")
+        from app.routers.paperless import _client, _error
+        from app.services.paperless_client import PaperlessError
+        try:
+            await _client(current_user).get("documents", int(payload.document_id))
+        except PaperlessError as exc:
+            raise _error(exc)
+    existing = db.query(TransactionDocument).filter_by(transaction_id=transaction_id, source=payload.source, document_id=payload.document_id).first()
+    if existing:
+        return {"id": existing.id, "source": existing.source, "document_id": existing.document_id}
+    link = TransactionDocument(transaction_id=transaction_id, source=payload.source, document_id=payload.document_id)
+    db.add(link)
+    db.commit()
+    db.refresh(link)
+    return {"id": link.id, "source": link.source, "document_id": link.document_id}
+
+
+@router.delete("/{transaction_id}/documents/{link_id}", status_code=204)
+def unlink_transaction_document(
+    transaction_id: int,
+    link_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_authenticated),
+):
+    link = db.query(TransactionDocument).join(Transaction).filter(
+        TransactionDocument.id == link_id,
+        TransactionDocument.transaction_id == transaction_id,
+        Transaction.user_id == current_user.id,
+    ).first()
+    if link is None:
+        raise HTTPException(status_code=404, detail="Document link not found")
+    db.delete(link)
+    db.commit()

@@ -20,7 +20,7 @@ import { formatDate } from '../../lib/format'
 import { polarityColor, seriesColor, useChartMotion } from '../chartConfig'
 import { GLOSSARY, type GlossaryEntry } from '../metricGlossary'
 import { Tile, TileEmpty } from './Tile'
-import { adxStrengthLabel } from './SignalPanel'
+import { adxStrengthLabel } from './signalUtils'
 import type { Signal, TechnicalResponse } from '../technicalApi'
 
 type Kind = 'rsi' | 'macd' | 'obv'

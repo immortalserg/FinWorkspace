@@ -1,42 +1,43 @@
+import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { RequireAuth } from './auth/RequireAuth'
-import { AppShell } from './shell/AppShell'
+const AppShell = lazy(() => import('./shell/AppShell').then((module) => ({ default: module.AppShell })))
 import { LoginPage } from './routes/LoginPage'
 import { MobileAuthPage } from './routes/MobileAuthPage'
 import { RegisterPage } from './routes/RegisterPage'
 import { ForgotPasswordPage } from './routes/ForgotPasswordPage'
 import { ResetPasswordPage } from './routes/ResetPasswordPage'
 import { VerifyEmailPage } from './routes/VerifyEmailPage'
-import { DashboardPage } from './dashboard/DashboardPage'
-import { AccountsPage } from './accounts/AccountsPage'
-import { CategoriesPage } from './categories/CategoriesPage'
-import { TransactionsPage } from './transactions/TransactionsPage'
-import { BudgetsPage } from './budgets/BudgetsPage'
-import { DebtsPage } from './debts/DebtsPage'
-import { GoalsPage } from './goals/GoalsPage'
-import { TrackersPage } from './trackers/TrackersPage'
-import { RecurringPage } from './recurring/RecurringPage'
-import { ReportsPage } from './reports/ReportsPage'
-import { ImportWizardPage } from './import/ImportWizardPage'
-import { DocumentsPage } from './documents/DocumentsPage'
-import { InvestmentsPage } from './investments/InvestmentsPage'
-import { MarketNewsPage } from './investments/MarketNewsPage'
-import { CompanyResearchPage } from './investments/CompanyResearchPage'
-import { ComparisonPage } from './investments/ComparisonPage'
-import { TechnicalPage } from './investments/TechnicalPage'
-import { BacktestPage } from './investments/BacktestPage'
-import { ScenarioLibraryPage } from './investments/ScenarioLibraryPage'
-import { ScenarioDetailPage } from './investments/ScenarioDetailPage'
-import { HoldingHistoryPage } from './investments/HoldingHistoryPage'
-import { AdvisorPage } from './advisor/AdvisorPage'
-import { NotificationsPage } from './notifications/NotificationsPage'
-import { ApiKeysPage } from './account-settings/ApiKeysPage'
-import { InvestorProfilePage } from './account-settings/InvestorProfilePage'
-import { BankSyncPage } from './bank-sync/BankSyncPage'
-import { RulesPage } from './rules/RulesPage'
+const DashboardPage = lazy(() => import('./dashboard/DashboardPage').then((module) => ({ default: module.DashboardPage })))
+const AccountsPage = lazy(() => import('./accounts/AccountsPage').then((module) => ({ default: module.AccountsPage })))
+const CategoriesPage = lazy(() => import('./categories/CategoriesPage').then((module) => ({ default: module.CategoriesPage })))
+const TransactionsPage = lazy(() => import('./transactions/TransactionsPage').then((module) => ({ default: module.TransactionsPage })))
+const BudgetsPage = lazy(() => import('./budgets/BudgetsPage').then((module) => ({ default: module.BudgetsPage })))
+const DebtsPage = lazy(() => import('./debts/DebtsPage').then((module) => ({ default: module.DebtsPage })))
+const GoalsPage = lazy(() => import('./goals/GoalsPage').then((module) => ({ default: module.GoalsPage })))
+const TrackersPage = lazy(() => import('./trackers/TrackersPage').then((module) => ({ default: module.TrackersPage })))
+const RecurringPage = lazy(() => import('./recurring/RecurringPage').then((module) => ({ default: module.RecurringPage })))
+const ReportsPage = lazy(() => import('./reports/ReportsPage').then((module) => ({ default: module.ReportsPage })))
+const ImportWizardPage = lazy(() => import('./import/ImportWizardPage').then((module) => ({ default: module.ImportWizardPage })))
+const DocumentsPage = lazy(() => import('./documents/DocumentsPage').then((module) => ({ default: module.DocumentsPage })))
+const InvestmentsPage = lazy(() => import('./investments/InvestmentsPage').then((module) => ({ default: module.InvestmentsPage })))
+const MarketNewsPage = lazy(() => import('./investments/MarketNewsPage').then((module) => ({ default: module.MarketNewsPage })))
+const CompanyResearchPage = lazy(() => import('./investments/CompanyResearchPage').then((module) => ({ default: module.CompanyResearchPage })))
+const ComparisonPage = lazy(() => import('./investments/ComparisonPage').then((module) => ({ default: module.ComparisonPage })))
+const TechnicalPage = lazy(() => import('./investments/TechnicalPage').then((module) => ({ default: module.TechnicalPage })))
+const BacktestPage = lazy(() => import('./investments/BacktestPage').then((module) => ({ default: module.BacktestPage })))
+const ScenarioLibraryPage = lazy(() => import('./investments/ScenarioLibraryPage').then((module) => ({ default: module.ScenarioLibraryPage })))
+const ScenarioDetailPage = lazy(() => import('./investments/ScenarioDetailPage').then((module) => ({ default: module.ScenarioDetailPage })))
+const HoldingHistoryPage = lazy(() => import('./investments/HoldingHistoryPage').then((module) => ({ default: module.HoldingHistoryPage })))
+const AdvisorPage = lazy(() => import('./advisor/AdvisorPage').then((module) => ({ default: module.AdvisorPage })))
+const NotificationsPage = lazy(() => import('./notifications/NotificationsPage').then((module) => ({ default: module.NotificationsPage })))
+const ApiKeysPage = lazy(() => import('./account-settings/ApiKeysPage').then((module) => ({ default: module.ApiKeysPage })))
+const InvestorProfilePage = lazy(() => import('./account-settings/InvestorProfilePage').then((module) => ({ default: module.InvestorProfilePage })))
+const BankSyncPage = lazy(() => import('./bank-sync/BankSyncPage').then((module) => ({ default: module.BankSyncPage })))
+const RulesPage = lazy(() => import('./rules/RulesPage').then((module) => ({ default: module.RulesPage })))
 import { PrivacyPage } from './legal/PrivacyPage'
 import { TermsPage } from './legal/TermsPage'
-import { AdminPage } from './admin/AdminPage'
+const AdminPage = lazy(() => import('./admin/AdminPage').then((module) => ({ default: module.AdminPage })))
 
 /**
  * Ticker Search was merged into Company Research (the search box now lives at
@@ -50,7 +51,8 @@ function LegacyTickerSearchRedirect() {
 
 function App() {
   return (
-    <Routes>
+    <Suspense fallback={<div role="status" aria-label="Loading page" />}>
+      <Routes>
       {/* The PWA manifest's start_url and the deployed root are both "/".
           RequireAuth on /dashboard sends unauthenticated visitors to /login,
           so this lands both cases correctly. */}
@@ -110,7 +112,8 @@ function App() {
       </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />
-    </Routes>
+      </Routes>
+    </Suspense>
   )
 }
 

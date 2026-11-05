@@ -7,8 +7,8 @@ import { MetricWithHelp } from '../InvestmentPrimitives'
 import { GLOSSARY } from '../metricGlossary'
 import type { RegimeBlock } from '../technicalApi'
 
-export type RegimeBadge = 'strongUp' | 'up' | 'sideways' | 'down' | 'strongDown'
-
+import { deriveRegimeBadge } from './regimeUtils'
+import type { RegimeBadge } from './regimeUtils'
 const TREND_ICON = { up: ArrowUp01Icon, down: ArrowDown01Icon, sideways: ArrowRight01Icon } as const
 
 const BADGE_CLASS: Record<RegimeBadge, string> = {
@@ -19,18 +19,6 @@ const BADGE_CLASS: Record<RegimeBadge, string> = {
   strongDown: 'bg-flow-out/15 text-flow-out',
 }
 
-/**
- * The 5-way regime badge shared by the hero card and the executive summary —
- * derived once here so the two surfaces never disagree on what "strong
- * uptrend" means. `adx >= 25` is the same strong-trend threshold used
- * throughout docs/investments/03-technical-analysis.md.
- */
-export function deriveRegimeBadge(regime: RegimeBlock): RegimeBadge {
-  const strong = regime.adx != null && regime.adx >= 25
-  if (regime.trend === 'up') return strong ? 'strongUp' : 'up'
-  if (regime.trend === 'down') return strong ? 'strongDown' : 'down'
-  return 'sideways'
-}
 
 /**
  * The framing that comes before any indicator on the technical-analysis page — loads

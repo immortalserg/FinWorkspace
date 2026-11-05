@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons'
@@ -29,7 +29,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { ProgressBar, progressVariantForPercent } from '../ui/ProgressBar'
+import { ProgressBar } from '../ui/ProgressBar'
+import { progressVariantForPercent } from '../ui/progressUtils'
 import { formatCurrency, formatDate, todayIsoDate } from '../lib/format'
 import { cn } from '@/lib/utils'
 import { useBudgetSummary } from './useBudgets'
@@ -66,21 +67,23 @@ export function BudgetDetailsSheet({ budget, open, onOpenChange }: BudgetDetails
   const [year, setYear] = useState(() => new Date().getFullYear())
   const [openPeriods, setOpenPeriods] = useState<string[]>([])
 
-  useEffect(() => {
+  const [previousSelection, setPreviousSelection] = useState({ open, budgetId: budget?.id })
+  if (previousSelection.open !== open || previousSelection.budgetId !== budget?.id) {
+    setPreviousSelection({ open, budgetId: budget?.id })
     if (open) {
       setYear(new Date().getFullYear())
       setOpenPeriods([])
     }
-  }, [open, budget?.id])
+  }
 
   const { data: summary, isLoading, isFetching } = useBudgetSummary(open && budget ? budget.id : null, year)
 
-  useEffect(() => {
-    if (!summary?.periods.length) return
-    const current = summary.periods.find(isCurrentPeriod)
-    if (!current) return
-    setOpenPeriods((prev) => (prev.includes(current.label) ? prev : [...prev, current.label]))
-  }, [summary])
+  const [previousSummary, setPreviousSummary] = useState(summary)
+  if (previousSummary !== summary) {
+    setPreviousSummary(summary)
+    const current = summary?.periods.find(isCurrentPeriod)
+    if (current) setOpenPeriods((prev) => (prev.includes(current.label) ? prev : [...prev, current.label]))
+  }
 
   const yearTotal = summary?.year_total
   const loading = isLoading || (isFetching && !summary)

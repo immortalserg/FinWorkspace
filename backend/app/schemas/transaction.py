@@ -36,6 +36,17 @@ class TransactionUpdate(BaseModel):
     notes: Optional[str] = None
 
 
+class TransactionAllocationInput(BaseModel):
+    category_id: int
+    amount: float = Field(..., gt=0)
+    notes: Optional[str] = None
+
+
+class TransactionAllocationResponse(TransactionAllocationInput):
+    id: int
+    category_name: Optional[str] = None
+
+
 class TransactionResponse(TransactionBase):
     id: int
     user_id: int
@@ -71,9 +82,15 @@ class TransactionResponse(TransactionBase):
     reimbursed_amount: float = 0.0
     effective_amount: Optional[float] = None
     reimbursements: List[ReimbursementLinkResponse] = []
+    allocations: List[TransactionAllocationResponse] = []
+    primary_category_amount: Optional[float] = None
 
     class Config:
         from_attributes = True
+
+
+class TransactionAllocationsUpdate(BaseModel):
+    allocations: List[TransactionAllocationInput] = Field(default_factory=list)
 
 
 class PairTransferRequest(BaseModel):

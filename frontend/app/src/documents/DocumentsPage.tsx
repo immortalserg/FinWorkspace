@@ -110,7 +110,8 @@ export function DocumentsPage() {
     const requested = params.get('upload')
     if (!requested || !['1', 'local', 'paperless'].includes(requested)) return
     if (requested === 'local') {
-      openUpload('local')
+      // Schedule the upload opening after this effect, like the async Paperless path.
+      void Promise.resolve().then(() => openUpload('local'))
     } else {
       void apiFetch<{ configured: boolean }>('/paperless/connection')
         .then((status) => {

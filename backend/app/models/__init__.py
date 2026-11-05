@@ -34,6 +34,8 @@ from app.models.saved_report import SavedReport
 from app.models.scenario import Scenario, ScenarioValuation
 from app.models.tracker import Tracker, TrackerTransaction
 from app.models.transaction import Transaction
+from app.models.transaction_document import TransactionDocument
+from app.models.transaction_allocation import TransactionAllocation
 from app.models.transaction_reimbursement import TransactionReimbursement
 from app.models.user import User
 from app.models.user_token import UserToken
@@ -77,6 +79,7 @@ __all__ = [
     "Tracker",
     "TrackerTransaction",
     "Transaction",
+    "TransactionAllocation",
     "TransactionReimbursement",
     "User",
     "UserToken",

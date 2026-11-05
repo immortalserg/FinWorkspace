@@ -159,9 +159,11 @@ export function NotificationsPage() {
   const [ruleDialogOpen, setRuleDialogOpen] = useState(false)
   const [editingRule, setEditingRule] = useState<NotificationRule | null>(null)
 
-  useEffect(() => {
-    if (!settings) return
-    setGeneralForm({
+  const [previousSettings, setPreviousSettings] = useState(settings)
+  if (previousSettings !== settings) {
+    setPreviousSettings(settings)
+    if (settings) {
+      setGeneralForm({
       defaultDaysBefore: String(settings.default_days_before ?? 3),
       quietHoursStart: settings.quiet_hours_start != null ? String(settings.quiet_hours_start) : 'none',
       quietHoursEnd: settings.quiet_hours_end != null ? String(settings.quiet_hours_end) : 'none',
@@ -173,8 +175,9 @@ export function NotificationsPage() {
       password: '',
       from: settings.smtp_from ?? '',
       useTls: settings.smtp_use_tls !== false,
-    })
-  }, [settings])
+      })
+    }
+  }
 
   useEffect(() => {
     isPushSubscribed().then(setBrowserSubscribed)

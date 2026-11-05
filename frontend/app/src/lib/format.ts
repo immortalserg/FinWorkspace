@@ -1,3 +1,4 @@
+import i18next from 'i18next'
 const currencyFormatters = new Map<string, Intl.NumberFormat>()
 const currencySupport = new Map<string, boolean>()
 
@@ -54,7 +55,9 @@ export function formatCurrency(amount: number, currency = 'EUR'): string {
 export function formatDate(value: string | Date, options?: Intl.DateTimeFormatOptions): string {
   const date = typeof value === 'string' ? new Date(value) : value
   if (Number.isNaN(date.getTime())) return ''
-  return new Intl.DateTimeFormat('el-GR', options ?? { day: '2-digit', month: 'short', year: 'numeric' }).format(
+  const language = i18next.resolvedLanguage || i18next.language || 'en'
+  const locale = language === 'lu' ? 'lb-LU' : language
+  return new Intl.DateTimeFormat(locale, options ?? { day: '2-digit', month: 'short', year: 'numeric' }).format(
     date,
   )
 }

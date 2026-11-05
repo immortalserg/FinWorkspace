@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import {useForm, Controller, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
@@ -60,7 +60,6 @@ export function AccountFormDialog({ open, onOpenChange, account }: AccountFormDi
     register,
     control,
     handleSubmit,
-    watch,
     reset,
     formState: { errors, isSubmitting },
   } = useForm<AccountForm>({
@@ -100,7 +99,12 @@ export function AccountFormDialog({ open, onOpenChange, account }: AccountFormDi
     }
   }, [open, account, reset])
 
-  const preview = watch()
+  const watchedPreview = useWatch({ control })
+  const preview = {
+    ...watchedPreview,
+    type: watchedPreview.type ?? 'checking',
+    name: watchedPreview.name ?? '',
+  }
 
   const onSubmit = handleSubmit(async (data) => {
     const common = {

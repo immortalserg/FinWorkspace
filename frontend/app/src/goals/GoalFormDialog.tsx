@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useForm, Controller } from 'react-hook-form'
+import {useForm, Controller, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
@@ -59,7 +59,6 @@ export function GoalFormDialog({ open, onOpenChange, goal }: GoalFormDialogProps
     register,
     control,
     handleSubmit,
-    watch,
     reset,
     formState: { errors, isSubmitting },
   } = useForm<GoalForm>({
@@ -108,7 +107,8 @@ export function GoalFormDialog({ open, onOpenChange, goal }: GoalFormDialogProps
     }
   }, [open, goal, reset])
 
-  const preview = watch()
+  const watchedPreview = useWatch({ control })
+  const preview = { ...watchedPreview, name: watchedPreview.name ?? '' }
 
   const onSubmit = handleSubmit(async (data) => {
     const input = {

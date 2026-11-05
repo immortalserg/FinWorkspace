@@ -41,7 +41,8 @@
     "toast": {
       "deleted": "Transaktioun geläscht",
       "deleteError": "D’Transaktioun konnt net geläscht ginn. Probéier et nach eng Kéier."
-    }
+    },
+    "showAllCategories": "All Kategorien"
   },
   "datePresets": {
     "thisMonth": "Dëse Mount",

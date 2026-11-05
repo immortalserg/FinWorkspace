@@ -23,5 +23,26 @@ export default tseslint.config(
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
     },
   },
+  // React PDF documents are rendered by @react-pdf/renderer, outside React DOM.
+  {
+    files: [
+      'src/investments/pdf/CompanyReportDocument.tsx',
+      'src/investments/pdf/ComparisonReportDocument.tsx',
+    ],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
+  // TanStack Table returns functions that React Compiler cannot safely memoize.
+  // Keep all other React Hooks checks enabled on these table pages.
+  {
+    files: [
+      'src/rules/RulesPage.tsx',
+      'src/transactions/TransactionsPage.tsx',
+    ],
+    rules: {
+      'react-hooks/incompatible-library': 'off',
+    },
+  },
   eslintConfigPrettier,
 )

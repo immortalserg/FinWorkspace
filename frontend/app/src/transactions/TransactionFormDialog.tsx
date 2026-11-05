@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useEffectEvent, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useForm } from 'react-hook-form'
+import {useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { SplitFields, splitRemainderCents, toCents } from './SplitFields'
-import type { SplitPartDraft } from './SplitFields'
+import { TransactionAllocationsEditor } from './TransactionAllocationsEditor'
+import { allocationRows, parseAllocations, type AllocationRow } from './allocationUtils'
 import { HugeiconsIcon } from '@hugeicons/react'
 import {
   ArrowDownLeft01Icon,
@@ -46,8 +46,8 @@ import { DEFAULT_TRACKER_ICON } from '../trackers/trackerMeta'
 import { ICON_MAP, type IconKey } from '../categories/categoryIcons'
 import {
   useCreateTransaction,
+  useUpdateTransactionAllocations,
   useSetTransactionTrackers,
-  useSplitTransaction,
   useUpdateTransaction,
 } from './useTransactions'
 import type { Transaction, TransactionType } from './transactionsApi'
@@ -106,10 +106,12 @@ export function TransactionFormDialog({
   onOpenChange,
   transaction,
 }: TransactionFormDialogProps) {
-  const { t } = useTranslation('transactions')
+  const { t, i18n } = useTranslation('transactions')
   const { t: tRules } = useTranslation('rules')
   const createTransaction = useCreateTransaction()
   const updateTransaction = useUpdateTransaction()
+  const updateAllocations = useUpdateTransactionAllocations()
+  const [allocations, setAllocations] = useState<AllocationRow[]>([])
   const createRule = useCreateRule()
   const addDebtPayment = useAddDebtPayment()
   const recordRecurringPayment = useRecordRecurringPayment()
@@ -133,7 +135,7 @@ export function TransactionFormDialog({
     register,
     handleSubmit,
     reset,
-    watch,
+    control,
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<TransactionForm>({
@@ -151,7 +153,8 @@ export function TransactionFormDialog({
     },
   })
 
-  const selectedType = watch('type')
+  const formValues = useWatch({ control })
+  const selectedType = formValues.type
   const isTransfer = selectedType === 'transfer'
 
   // A bank-synced transaction has its amount, type and account fixed by the
@@ -160,61 +163,60 @@ export function TransactionFormDialog({
   // vs. when the bank cleared it; splitting is offered for the amount so the
   // money can still be spread across categories.
   const isBankSynced = Boolean(transaction?.is_bank_synced)
-  const splitTransaction = useSplitTransaction()
-  const [splitting, setSplitting] = useState(false)
-  const [splitParts, setSplitParts] = useState<SplitPartDraft[]>([])
-  const totalCents = transaction ? Math.round(transaction.amount * 100) : 0
-  const splitBalanced = splitRemainderCents(splitParts, totalCents) === 0
+
+  // Read the current locale when the dialog resets, without resetting user edits on language changes.
+  const initialAllocationRows = useEffectEvent((tx: Transaction | null | undefined) =>
+    allocationRows(tx?.allocations ?? [], i18n.resolvedLanguage || i18n.language || 'en'),
+  )
 
   // Reset form when dialog opens/closes or transaction changes
   useEffect(() => {
-    if (open) {
-      if (transaction) {
-        // Editing existing transaction
-        const dateStr = transaction.date.includes('T')
-          ? transaction.date.slice(0, 10)
-          : transaction.date
-        reset({
-          type: transaction.type,
-          amount: transaction.amount,
-          account_id: String(transaction.account_id),
-          destination_account_id: transaction.destination_account_id
-            ? String(transaction.destination_account_id)
-            : '',
-          category_id: transaction.category_id ? String(transaction.category_id) : '',
-          description: transaction.description,
-          date: dateStr,
-          notes: transaction.notes || '',
-        })
-      } else {
-        // Creating new transaction
-        reset({
-          type: 'expense',
-          amount: 0,
-          account_id: '',
-          destination_account_id: '',
-          category_id: '',
-          description: '',
-          date: todayIsoDate(),
-          notes: '',
-        })
-      }
+    if (!open) return
+
+    const rows = initialAllocationRows(transaction)
+    if (transaction) {
+      const dateStr = transaction.date.includes('T')
+        ? transaction.date.slice(0, 10)
+        : transaction.date
+      reset({
+        type: transaction.type,
+        amount: transaction.amount,
+        account_id: String(transaction.account_id),
+        destination_account_id: transaction.destination_account_id
+          ? String(transaction.destination_account_id)
+          : '',
+        category_id: transaction.category_id ? String(transaction.category_id) : '',
+        description: transaction.description,
+        date: dateStr,
+        notes: transaction.notes || '',
+      })
+    } else {
+      reset({
+        type: 'expense',
+        amount: 0,
+        account_id: '',
+        destination_account_id: '',
+        category_id: '',
+        description: '',
+        date: todayIsoDate(),
+        notes: '',
+      })
     }
-    if (open) {
-      setSplitting(false)
-      setSplitParts([])
+
+    // Apply local dialog state after the effect, cancelling stale resets on rapid changes.
+    let active = true
+    void Promise.resolve().then(() => {
+      if (!active) return
+      setAllocations(rows)
       setCreateRuleFromTx(false)
       setRuleNeedle(transaction?.description ?? '')
-      const alreadyDebtLinked = Boolean(transaction?.debt_payment_id)
-      setLinkToDebt(alreadyDebtLinked)
+      setLinkToDebt(Boolean(transaction?.debt_payment_id))
       setDebtId(transaction?.debt_id ? String(transaction.debt_id) : '')
-      const alreadyRecurringLinked = Boolean(transaction?.recurring_payment_id)
-      setLinkToRecurring(alreadyRecurringLinked)
-      setRecurringId(
-        transaction?.recurring_expense_id ? String(transaction.recurring_expense_id) : '',
-      )
+      setLinkToRecurring(Boolean(transaction?.recurring_payment_id))
+      setRecurringId(transaction?.recurring_expense_id ? String(transaction.recurring_expense_id) : '')
       setSelectedTrackerIds(transaction?.tracker_ids ?? [])
-    }
+    })
+    return () => { active = false }
   }, [open, transaction, reset])
 
   // Clear destination/category when type changes
@@ -226,26 +228,10 @@ export function TransactionFormDialog({
     }
   }, [isTransfer, setValue])
 
-  async function handleSplit() {
-    if (!transaction) return
-    try {
-      await splitTransaction.mutateAsync({
-        id: transaction.id,
-        parts: splitParts.map((part) => ({
-          amount: toCents(part.amount) / 100,
-          category_id: part.categoryId ? Number(part.categoryId) : null,
-        })),
-      })
-      toast.success(t('form.split.done', { count: splitParts.length }))
-      onOpenChange(false)
-    } catch (err) {
-      // The API explains mismatched totals precisely — show that, not a generic error.
-      toast.error(err instanceof Error ? err.message : t('form.toast.updateError'))
-    }
-  }
 
   const onSubmit = handleSubmit(async (data) => {
     try {
+      const allocationInput = !isTransfer ? parseAllocations(allocations, data.amount, data.category_id ?? '', t) : []
       // Ensure date has time component
       const dateValue = data.date.includes('T') ? data.date : `${data.date}T12:00:00`
       const paymentDate = dateValue.slice(0, 10)
@@ -277,10 +263,12 @@ export function TransactionFormDialog({
           id: transaction.id,
           input: isBankSynced ? editable : input,
         })
+        await updateAllocations.mutateAsync({ id: transaction.id, allocations: allocationInput })
         toast.success(t('form.toast.updated'))
       } else {
         const created = await createTransaction.mutateAsync(input)
         savedId = created.id
+        if (allocationInput.length) await updateAllocations.mutateAsync({ id: created.id, allocations: allocationInput })
         toast.success(t('form.toast.created'))
       }
 
@@ -378,8 +366,8 @@ export function TransactionFormDialog({
       }
 
       onOpenChange(false)
-    } catch {
-      toast.error(transaction ? t('form.toast.updateError') : t('form.toast.createError'))
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : (transaction ? t('form.toast.updateError') : t('form.toast.createError')))
     }
   })
 
@@ -508,71 +496,17 @@ export function TransactionFormDialog({
             </InputGroup>
             <FieldError errors={[errors.amount]} />
 
-            {isBankSynced && !splitting && (
-              <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2">
-                <span className="text-xs text-muted-foreground">
-                  {t('form.split.lockedHint')}
-                </span>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setSplitting(true)
-                    // Seed with the whole amount plus an empty row, so the user
-                    // only has to move money from the first part to the second.
-                    setSplitParts([
-                      {
-                        amount: (totalCents / 100).toFixed(2),
-                        categoryId: transaction?.category_id
-                          ? String(transaction.category_id)
-                          : '',
-                      },
-                      { amount: '', categoryId: '' },
-                    ])
-                  }}
-                >
-                  {t('form.split.start')}
-                </Button>
-              </div>
-            )}
 
-            {isBankSynced && splitting && (
-              <div className="mt-2 flex flex-col gap-2">
-                <p className="text-xs text-muted-foreground">
-                  {t('form.split.help', {
-                    total: (totalCents / 100).toFixed(2),
-                    currency: t('form.fields.currency'),
-                  })}
-                </p>
-                <SplitFields
-                  parts={splitParts}
-                  onChange={setSplitParts}
-                  totalCents={totalCents}
-                  categoryOptions={categoryOptions}
-                  currency={t('form.fields.currency')}
-                />
-                <div className="flex justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSplitting(false)}
-                  >
-                    {t('form.split.cancel')}
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    disabled={!splitBalanced || splitTransaction.isPending}
-                    onClick={() => void handleSplit()}
-                  >
-                    {t('form.split.confirm')}
-                  </Button>
-                </div>
-              </div>
-            )}
           </Field>
+
+          {!isTransfer && (
+            <TransactionAllocationsEditor
+              rows={allocations}
+              onChange={setAllocations}
+              total={Number(formValues.amount) || 0}
+              categoryOptions={categoryOptions}
+            />
+          )}
 
           <Field data-invalid={errors.description ? true : undefined}>
             <FieldLabel htmlFor="description">{t('form.fields.description')}</FieldLabel>
@@ -591,7 +525,7 @@ export function TransactionFormDialog({
                 {isTransfer ? t('form.fields.fromAccount') : t('form.fields.account')}
               </FieldLabel>
               <Select
-                value={watch('account_id')}
+                value={formValues.account_id || ''}
                 onValueChange={(value) => setValue('account_id', value)}
                 options={accountOptions}
                 placeholder={t('form.fields.accountPlaceholder')}
@@ -605,7 +539,7 @@ export function TransactionFormDialog({
                   {t('form.fields.toAccount')}
                 </FieldLabel>
                 <Select
-                  value={watch('destination_account_id') || ''}
+                  value={formValues.destination_account_id || ''}
                   onValueChange={(value) => setValue('destination_account_id', value)}
                   options={accountOptions}
                   placeholder={t('form.fields.destinationPlaceholder')}
@@ -616,7 +550,7 @@ export function TransactionFormDialog({
               <Field data-invalid={errors.category_id ? true : undefined}>
                 <FieldLabel htmlFor="category_id">{t('form.fields.category')}</FieldLabel>
                 <Select
-                  value={watch('category_id') || ''}
+                  value={formValues.category_id || ''}
                   onValueChange={(value) => setValue('category_id', value)}
                   options={categoryOptions}
                   placeholder={t('form.fields.categoryPlaceholder')}
@@ -632,7 +566,7 @@ export function TransactionFormDialog({
               onOpenChange={(open) => {
                 setCreateRuleFromTx(open)
                 if (open && !ruleNeedle) {
-                  setRuleNeedle(watch('description') || '')
+                  setRuleNeedle(formValues.description || '')
                 }
               }}
             >
@@ -644,7 +578,7 @@ export function TransactionFormDialog({
                       const next = Boolean(v)
                       setCreateRuleFromTx(next)
                       if (next && !ruleNeedle) {
-                        setRuleNeedle(watch('description') || '')
+                        setRuleNeedle(formValues.description || '')
                       }
                     }}
                     className="mt-0.5"
@@ -665,7 +599,7 @@ export function TransactionFormDialog({
                       id="rule-needle"
                       value={ruleNeedle}
                       onChange={(e) => setRuleNeedle(e.target.value)}
-                      placeholder={watch('description') || t('form.fields.descriptionPlaceholder')}
+                      placeholder={formValues.description || t('form.fields.descriptionPlaceholder')}
                     />
                   </Field>
                 </CollapsibleContent>
@@ -809,7 +743,7 @@ export function TransactionFormDialog({
 
           <Field data-invalid={errors.date ? true : undefined}>
             <FieldLabel htmlFor="date">{t('form.fields.date')}</FieldLabel>
-            <Input id="date" type="date" {...register('date')} />
+            <Input id="date" type="date" lang={i18n.resolvedLanguage === 'lu' ? 'lb-LU' : (i18n.resolvedLanguage || i18n.language)} {...register('date')} />
             <FieldError errors={[errors.date]} />
           </Field>
 

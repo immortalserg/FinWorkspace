@@ -44,7 +44,8 @@
     "toast": {
       "deleted": "Транзакция удалена",
       "deleteError": "Не удалось удалить транзакцию. Попробуйте ещё раз."
-    }
+    },
+    "showAllCategories": "Все категории"
   },
   "datePresets": {
     "thisMonth": "Этот месяц",
@@ -295,5 +296,46 @@
       "incomeHint_many": "{{amount}} использовано на возврат {{count}} расходов",
       "incomeHint_other": "{{amount}} использовано на возврат {{count}} расхода"
     }
+  },
+  "documents": {
+    "title": "Документы",
+    "attach": "Прикрепить",
+    "cancel": "Отмена",
+    "unlink": "Удалить связь",
+    "storage": "Хранилище:",
+    "method": "Способ прикрепления",
+    "existing": "Существующий",
+    "uploadNew": "Загрузить новый",
+    "search": "Поиск документа",
+    "documentTitle": "Название документа",
+    "uploadAttach": "Загрузить и прикрепить",
+    "keepOpen": "Не закрывайте окно до завершения прикрепления.",
+    "processing": "Paperless обрабатывает документ.",
+    "loadError": "Не удалось загрузить документы транзакции",
+    "attached": "Документ прикреплён",
+    "attachError": "Не удалось прикрепить документ",
+    "uploaded": "Документ загружен и прикреплён",
+    "sentToPaperless": "Документ отправлен в Paperless на обработку",
+    "uploadError": "Не удалось загрузить документ",
+    "processingError": "Paperless не смог обработать документ",
+    "paperlessAttached": "Документ Paperless прикреплён",
+    "unlinkError": "Не удалось удалить связь",
+    "popupError": "Разрешите всплывающие окна для просмотра",
+    "previewError": "Не удалось открыть документ"
+  },
+  "allocation": {
+    "title": "Распределение по категориям",
+    "originalAmount": "Исходная сумма: {{amount}}",
+    "primaryAmount": "Основная категория: {{amount}}",
+    "additionalCategory": "Дополнительная категория",
+    "amount": "Сумма",
+    "note": "Примечание",
+    "remove": "Удалить",
+    "addCategory": "+ Категория",
+    "exceedsOriginal": "Сумма распределения превышает исходную.",
+    "invalidAmount": "Укажите категорию и положительную сумму с точностью до двух знаков",
+    "exceedsTransaction": "Распределение превышает сумму транзакции",
+    "choosePrimary": "Выберите основную категорию",
+    "primaryCategory": "Основная категория"
   }
 }

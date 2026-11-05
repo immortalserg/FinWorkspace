@@ -98,6 +98,7 @@ describe('TransactionFormDialog tracker picker', () => {
     stubSupportingQueries()
     const listSpy = vi.spyOn(trackersApi, 'listTrackers').mockResolvedValue([italy, kitchen])
     vi.spyOn(transactionsApi, 'updateTransaction').mockResolvedValue(transaction)
+    vi.spyOn(transactionsApi, 'updateTransactionAllocations').mockResolvedValue(transaction)
     const setTrackersSpy = vi
       .spyOn(transactionsApi, 'setTransactionTrackers')
       .mockResolvedValue({ ...transaction, tracker_ids: [italy.id] })
@@ -139,6 +140,7 @@ describe('TransactionFormDialog tracker picker', () => {
     stubSupportingQueries()
     vi.spyOn(trackersApi, 'listTrackers').mockResolvedValue([italy])
     vi.spyOn(transactionsApi, 'updateTransaction').mockResolvedValue(transaction)
+    vi.spyOn(transactionsApi, 'updateTransactionAllocations').mockResolvedValue(transaction)
     const setTrackersSpy = vi.spyOn(transactionsApi, 'setTransactionTrackers')
 
     renderDialog({ ...transaction, tracker_ids: [italy.id] })

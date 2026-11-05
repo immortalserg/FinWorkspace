@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -74,9 +74,11 @@ export function ApplicationSettings() {
     },
     onError: (error) => toast.error(error instanceof Error ? error.message : t('settings.saveFailed')),
   })
-  useEffect(() => {
+  const [previousPaperlessUrl, setPreviousPaperlessUrl] = useState<string | null | undefined>(undefined)
+  if (previousPaperlessUrl !== paperlessQuery.data?.url) {
+    setPreviousPaperlessUrl(paperlessQuery.data?.url)
     if (paperlessQuery.data?.url) setPaperlessUrl(paperlessQuery.data.url)
-  }, [paperlessQuery.data?.url])
+  }
 
 
   const settingsQuery = useQuery({
@@ -88,11 +90,11 @@ export function ApplicationSettings() {
   const [secretInputs, setSecretInputs] = useState<SecretInputs>({})
   const [clearedSecrets, setClearedSecrets] = useState<string[]>([])
 
-  useEffect(() => {
-    if (settingsQuery.data) {
-      setValues(settingsQuery.data.values)
-    }
-  }, [settingsQuery.data])
+  const [previousSettings, setPreviousSettings] = useState(settingsQuery.data)
+  if (previousSettings !== settingsQuery.data) {
+    setPreviousSettings(settingsQuery.data)
+    if (settingsQuery.data) setValues(settingsQuery.data.values)
+  }
 
   const saveMutation = useMutation({
     mutationFn: () => {

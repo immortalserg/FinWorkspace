@@ -616,10 +616,9 @@ function StoryReader({
   const { t } = useTranslation('investments')
   const { data: story, isLoading, isError } = useNewsStory(storyId, provider)
 
-  const body = useMemo(() => {
-    if (!story?.body_html) return null
-    return DOMPurify.sanitize(story.body_html, { USE_PROFILES: { html: true } })
-  }, [story?.body_html])
+  const body = story?.body_html
+    ? DOMPurify.sanitize(story.body_html, { USE_PROFILES: { html: true } })
+    : null
 
   const meta = [
     story?.source,

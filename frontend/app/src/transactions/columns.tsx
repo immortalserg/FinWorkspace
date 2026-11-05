@@ -30,18 +30,22 @@ const FLOW_ICON = {
   move: Exchange01Icon,
 } as const
 
-function splitDate(iso: string) {
+function splitDate(iso: string, language: string) {
+  const locale = language === 'lu' ? 'lb-LU' : language
   const date = new Date(iso)
   if (Number.isNaN(date.getTime())) return { day: iso, weekday: '' }
   return {
-    day: new Intl.DateTimeFormat('el-GR', { day: '2-digit', month: 'short' }).format(date),
-    weekday: new Intl.DateTimeFormat('en-GB', { weekday: 'short' }).format(date),
+    day: new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'short' }).format(date),
+    weekday: new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(date),
   }
 }
 
 export function createColumns(
   handlers: TransactionRowHandlers,
   t: Translate,
+  language = 'en',
+  showAllCategories = false,
+  categoryColors: Record<number, string | null> = {},
 ): ColumnDef<Transaction>[] {
   const FLOW_LABEL = {
     in: t('columns.flowLabel.in'),
@@ -54,7 +58,7 @@ export function createColumns(
       accessorKey: 'date',
       header: ({ column }) => <DataTableColumnHeader column={column} title={t('columns.date')} />,
       cell: ({ row }) => {
-        const { day, weekday } = splitDate(row.original.date)
+        const { day, weekday } = splitDate(row.original.date, language)
         return (
           <div className="flex flex-col leading-tight">
             <span className="text-sm font-medium tabular-nums">{day}</span>
@@ -78,7 +82,6 @@ export function createColumns(
           description,
           notes,
           type,
-          is_imported,
           is_pending,
           debt_name,
           recurring_expense_name,
@@ -110,14 +113,13 @@ export function createColumns(
                   </span>
                 )}
               </div>
-              {(notes || debt_name || recurring_expense_name || is_imported) && (
+              {(notes || debt_name || recurring_expense_name) && (
                 <span className="truncate text-xs text-muted-foreground">
                   {[
                     debt_name && t('columns.debtPrefix', { name: debt_name }),
                     recurring_expense_name &&
                       t('columns.recurringPrefix', { name: recurring_expense_name }),
                     notes,
-                    is_imported && t('columns.imported'),
                   ]
                     .filter(Boolean)
                     .join(' · ')}
@@ -141,8 +143,28 @@ export function createColumns(
             <span className="text-xs text-muted-foreground">{t('columns.betweenAccounts')}</span>
           )
         }
-        return <CategoryChip name={category_name} color={category_color} />
+        const allocations = row.original.allocations ?? []
+        if (!showAllCategories || allocations.length === 0) {
+          return <CategoryChip name={category_name} color={category_color} />
+        }
+        return (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <CategoryChip name={category_name} color={category_color} />
+            {allocations.map(allocation => (
+              <CategoryChip key={allocation.id}
+                name={allocation.category_name ?? `#${allocation.category_id}`}
+                color={categoryColors[allocation.category_id]} />
+            ))}
+          </div>
+        )
       },
+      meta: { cellClassName: 'min-w-[6rem] max-w-[18rem]', headerClassName: '' },
+    },
+    {
+      id: 'imported',
+      accessorFn: (transaction) => transaction.is_imported,
+      header: ({ column }) => <DataTableColumnHeader column={column} title={t('columns.imported')} />,
+      cell: ({ row }) => <span className="text-xs text-muted-foreground">{row.original.is_imported ? t('columns.imported') : '—'}</span>,
       meta: { cellClassName: 'hidden sm:table-cell', headerClassName: 'hidden sm:table-cell' },
     },
     {
@@ -175,7 +197,7 @@ export function createColumns(
       cell: ({ row }) => {
         const { amount, effective_amount, reimbursed_amount, reimbursements, type, date } =
           row.original
-        const { day } = splitDate(date)
+        const { day } = splitDate(date, language)
         const flow = flowOfType(type)
         const reimbursed = reimbursed_amount > 0
         // An income that was entirely used to pay someone back no longer counts as income.

@@ -2,6 +2,14 @@ import { apiFetch } from '../lib/apiClient'
 
 export type TransactionType = 'income' | 'expense' | 'transfer'
 
+export interface TransactionAllocation {
+  id: number
+  category_id: number
+  category_name?: string | null
+  amount: number
+  notes?: string | null
+}
+
 export interface Transaction {
   id: number
   user_id: number
@@ -45,6 +53,8 @@ export interface Transaction {
   /** What counts in totals: `amount` minus `reimbursed_amount`. */
   effective_amount: number
   reimbursements: ReimbursementLink[]
+  allocations?: TransactionAllocation[]
+  primary_category_amount?: number | null
 }
 
 /** One link between an expense and an income, seen from the requesting row. */
@@ -176,6 +186,16 @@ export interface TransactionSplitPart {
  * The backend keeps the original row (it anchors bank deduplication) and
  * reduces it to the first part, so the returned array is [original, ...extras].
  */
+export function updateTransactionAllocations(
+  id: number,
+  allocations: Array<{ category_id: number; amount: number; notes?: string | null }>,
+): Promise<Transaction> {
+  return apiFetch<Transaction>(`/transactions/${id}/allocations`, {
+    method: 'PUT',
+    body: JSON.stringify({ allocations }),
+  })
+}
+
 export function splitTransaction(
   id: number,
   parts: TransactionSplitPart[],

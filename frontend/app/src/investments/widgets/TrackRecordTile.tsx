@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Skeleton } from '@/components/ui/skeleton'
-import { DeltaBar, DeltaPct, Metric, deltaScale } from '../InvestmentPrimitives'
+import { DeltaBar, DeltaPct, Metric } from '../InvestmentPrimitives'
+import { deltaScale } from '../investmentUtils'
 import { Tile, TileEmpty } from './Tile'
 import type { TrackRecord } from '../scenariosApi'
 

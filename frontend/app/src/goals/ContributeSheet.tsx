@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import {useForm, Controller, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
@@ -49,7 +49,6 @@ export function ContributeSheet({ open, onOpenChange, goal }: ContributeSheetPro
     control,
     handleSubmit,
     reset,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm<ContributeForm>({
     resolver: zodResolver(contributeSchema),
@@ -71,7 +70,7 @@ export function ContributeSheet({ open, onOpenChange, goal }: ContributeSheetPro
     })
   }, [open, goal?.id, reset])
 
-  const type = watch('type')
+  const type = useWatch({ control, name: 'type' })
 
   const onSubmit = handleSubmit(async (data) => {
     if (!goal) return
