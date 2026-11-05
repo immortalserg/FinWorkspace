@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { RequireAuth } from './auth/RequireAuth'
-import { AppShell } from './shell/AppShell'
+const AppShell = lazy(() => import('./shell/AppShell').then((module) => ({ default: module.AppShell })))
 import { LoginPage } from './routes/LoginPage'
 import { MobileAuthPage } from './routes/MobileAuthPage'
 import { RegisterPage } from './routes/RegisterPage'
