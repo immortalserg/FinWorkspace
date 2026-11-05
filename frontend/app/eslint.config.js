@@ -23,5 +23,15 @@ export default tseslint.config(
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
     },
   },
+  // React PDF documents are rendered by @react-pdf/renderer, outside React DOM.
+  {
+    files: [
+      'src/investments/pdf/CompanyReportDocument.tsx',
+      'src/investments/pdf/ComparisonReportDocument.tsx',
+    ],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
   eslintConfigPrettier,
 )
