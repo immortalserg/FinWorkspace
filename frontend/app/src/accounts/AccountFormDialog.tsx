@@ -21,7 +21,7 @@ import type { Account } from './accountsApi'
 const accountSchema = z.object({
   name: z.string().min(1, 'Account name is required').max(100),
   type: z.enum(['checking', 'savings', 'credit', 'cash', 'investment']),
-  currency: z.enum(['EUR', 'USD', 'GBP']),
+  currency: z.string().regex(/^[A-Z]{3}$/, 'Invalid ISO 4217 currency code'),
   balance: z.coerce.number<number>(),
   description: z.string().max(500).optional(),
   icon: z.string().optional(),
@@ -50,11 +50,10 @@ export function AccountFormDialog({ open, onOpenChange, account }: AccountFormDi
     { value: 'investment', label: t('form.typeOptions.investment') },
   ]
 
-  const CURRENCY_OPTIONS = [
-    { value: 'EUR', label: t('form.currencyOptions.eur') },
-    { value: 'USD', label: t('form.currencyOptions.usd') },
-    { value: 'GBP', label: t('form.currencyOptions.gbp') },
-  ]
+  const CURRENCY_OPTIONS = Intl.supportedValuesOf('currency').map(code => ({
+    value: code,
+    label: code,
+  }))
 
   const {
     register,
@@ -80,9 +79,7 @@ export function AccountFormDialog({ open, onOpenChange, account }: AccountFormDi
       reset({
         name: account.name,
         type: account.type,
-        currency: (['EUR', 'USD', 'GBP'].includes(account.currency)
-          ? account.currency
-          : 'EUR') as AccountForm['currency'],
+        currency: account.currency,
         balance: account.balance,
         description: account.description ?? '',
         icon: account.icon ?? '',
