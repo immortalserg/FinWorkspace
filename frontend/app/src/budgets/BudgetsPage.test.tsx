@@ -21,6 +21,7 @@ const groceryBudget: budgetsApi.Budget = {
   user_id: 1,
   name: 'Groceries',
   amount: 400,
+  currency: 'EUR',
   period: 'monthly',
   start_date: '2026-01-01',
   end_date: null,
