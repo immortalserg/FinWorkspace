@@ -647,6 +647,7 @@ def calculate_budget_progress(db: Session, budget: Budget) -> BudgetResponse:
         user_id=budget.user_id,
         name=budget.name,
         amount=budget.amount,
+        currency=budget.currency,
         period=budget.period,
         start_date=budget.start_date,
         end_date=budget.end_date,
