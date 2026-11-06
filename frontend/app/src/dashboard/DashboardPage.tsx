@@ -271,11 +271,6 @@ export function DashboardPage() {
   const accountCount = accounts?.length ?? 0
 
   const totalSpent = spendingReport?.data.reduce((a, b) => a + b, 0) ?? 0
-  const topCategory =
-    spendingReport && spendingReport.labels.length > 0
-      ? { name: spendingReport.labels[0], amount: spendingReport.data[0] }
-      : null
-  const categoryCount = spendingReport?.labels.length ?? 0
 
   const spendingCurrencyEntries = Object.entries(currencySpending?.currencies ?? {})
   const spendingMissingRates = spendingCurrencyEntries.some(([currency, values]) =>
