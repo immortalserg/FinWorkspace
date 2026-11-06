@@ -33,3 +33,21 @@ def test_budget_spending_splits_and_currencies(db, seed_user):
     assert _budget_spending(db, budget, date(2026, 11, 1), date(2026, 11, 30), [food.id]) == 70
     assert _budget_spending(db, budget, date(2026, 11, 1), date(2026, 11, 30), [travel.id]) == 30
     assert _budget_spending(db, budget, date(2026, 11, 1), date(2026, 11, 30), None) == 100
+
+
+def test_budget_api_preserves_currency(client, db, seed_user):
+    response = client.post("/api/budgets/", json={
+        "name": "Dollar budget", "amount": 250, "currency": "USD",
+        "period": "monthly", "category_ids": [],
+    })
+    assert response.status_code == 201, response.text
+    budget_id = response.json()["id"]
+    assert response.json()["currency"] == "USD"
+
+    detail = client.get(f"/api/budgets/{budget_id}")
+    assert detail.status_code == 200, detail.text
+    assert detail.json()["currency"] == "USD"
+
+    updated = client.put(f"/api/budgets/{budget_id}", json={"currency": "EUR"})
+    assert updated.status_code == 200, updated.text
+    assert updated.json()["currency"] == "EUR"
