@@ -643,7 +643,7 @@ export function DashboardPage() {
             <p className={`mt-0.5 text-xs ${isDesktop ? 'text-white' : 'text-muted-foreground'}`}>
               {t('summary.accountsCount', { count: accountCount })}
             </p>
-            {isSplit && isConverted && <p className="mt-1 text-xs text-muted-foreground">{balanceSummary.join(' · ')}</p>}
+            {isSplit && isConverted && balanceSummary.length > 1 && <p className="mt-1 text-xs text-muted-foreground">{balanceSummary.join(' · ')}</p>}
             {isConverted && (fxError || hasMissingRate) && (
               <p className="mt-1 text-xs text-warning">{ru ? 'Нет доступного курса для всех валют. Общий баланс не рассчитан.' : 'Exchange rates unavailable for all currencies. Total not calculated.'}</p>
             )}
