@@ -145,17 +145,17 @@ export function BudgetDetailsSheet({ budget, open, onOpenChange }: BudgetDetails
                         ? t(`details.${periodSuffixKey(summary.budget.period)}`)
                         : '',
                     })}
-                    value={formatCurrency(summary.budget.amount)}
+                    value={formatCurrency(summary.budget.amount, budget.currency)}
                   />
-                  <MetricTile label={t('details.yearBudget')} value={formatCurrency(yearTotal.budget_amount)} />
+                  <MetricTile label={t('details.yearBudget')} value={formatCurrency(yearTotal.budget_amount, budget.currency)} />
                   <MetricTile
                     label={t('details.yearSpent')}
-                    value={formatCurrency(yearTotal.spent)}
+                    value={formatCurrency(yearTotal.spent, budget.currency)}
                     valueClassName="text-destructive"
                   />
                   <MetricTile
                     label={t('details.yearRemaining')}
-                    value={`${yearTotal.remaining < 0 ? '−' : ''}${formatCurrency(Math.abs(yearTotal.remaining))}`}
+                    value={`${yearTotal.remaining < 0 ? '−' : ''}${formatCurrency(Math.abs(yearTotal.remaining), budget.currency)}`}
                     valueClassName={yearTotal.remaining < 0 ? 'text-destructive' : 'text-success'}
                   />
                 </div>
@@ -219,9 +219,9 @@ export function BudgetDetailsSheet({ budget, open, onOpenChange }: BudgetDetails
                                       period.spent > period.budget_amount && 'text-destructive',
                                     )}
                                   >
-                                    {formatCurrency(period.spent)}
+                                    {formatCurrency(period.spent, budget.currency)}
                                   </span>
-                                  <span className="text-muted-foreground"> / {formatCurrency(period.budget_amount)}</span>
+                                  <span className="text-muted-foreground"> / {formatCurrency(period.budget_amount, budget.currency)}</span>
                                 </span>
                               </div>
                               <ProgressBar
@@ -276,7 +276,7 @@ export function BudgetDetailsSheet({ budget, open, onOpenChange }: BudgetDetails
                                               {tx.account_name ?? '—'}
                                             </TableCell>
                                             <TableCell className="text-end font-medium tabular-nums text-destructive whitespace-nowrap">
-                                              −{formatCurrency(tx.amount)}
+                                              −{formatCurrency(tx.amount, budget.currency)}
                                             </TableCell>
                                           </TableRow>
                                         ))}
@@ -291,7 +291,7 @@ export function BudgetDetailsSheet({ budget, open, onOpenChange }: BudgetDetails
                                           </TableCell>
                                           <TableCell className="hidden md:table-cell" />
                                           <TableCell className="text-end tabular-nums text-destructive">
-                                            −{formatCurrency(period.spent)}
+                                            −{formatCurrency(period.spent, budget.currency)}
                                           </TableCell>
                                         </TableRow>
                                       </TableFooter>
@@ -308,7 +308,7 @@ export function BudgetDetailsSheet({ budget, open, onOpenChange }: BudgetDetails
                                       )}
                                     >
                                       {period.remaining < 0 ? '−' : ''}
-                                      {formatCurrency(Math.abs(period.remaining))}{' '}
+                                      {formatCurrency(Math.abs(period.remaining), budget.currency)}{' '}
                                       {period.remaining < 0 ? t('details.over') : t('details.left')}
                                     </span>
                                   </div>
