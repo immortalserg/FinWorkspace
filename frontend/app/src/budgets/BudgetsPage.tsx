@@ -88,6 +88,8 @@ export function BudgetsPage() {
     [budgets],
   )
 
+  const summaryCurrency = budgets.length && budgets.every(b => b.currency === budgets[0]?.currency) ? budgets[0]!.currency : null
+
   const summary = useMemo(() => {
     const totalBudgeted = budgets.reduce((sum, b) => sum + b.amount, 0)
     const totalSpent = budgets.reduce((sum, b) => sum + b.spent, 0)
@@ -179,7 +181,7 @@ export function BudgetsPage() {
         </Empty>
       ) : (
         <div className="flex flex-col gap-4">
-          <section className="glass-panel overflow-hidden rounded-xl border">
+          {summaryCurrency && <section className="glass-panel overflow-hidden rounded-xl border">
             <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3.5">
               <div className="flex items-baseline gap-2">
                 <span className="font-heading text-xl font-bold tabular-nums tracking-tight sm:text-2xl">
