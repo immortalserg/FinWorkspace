@@ -224,22 +224,8 @@ def get_budget_report(
     
     category_breakdown = []
     for bc in budget.budget_categories:
-        spent_query = db.query(func.sum(Transaction.effective_amount)).join(
-            Account, Transaction.account_id == Account.id
-        ).filter(
-            Account.currency == budget.currency,
-            Transaction.user_id == current_user.id,
-            Transaction.category_id == bc.category_id,
-            Transaction.type == "expense"
-        )
-        
-        if period_start:
-            spent_query = spent_query.filter(Transaction.date >= period_start)
-        if period_end:
-            spent_query = spent_query.filter(Transaction.date <= period_end)
-        
-        spent = spent_query.scalar() or 0
-        
+        spent = _budget_spending(db, budget, period_start, period_end, [bc.category_id])
+
         category_breakdown.append({
             "category_id": bc.category_id,
             "category_name": bc.category.name,
@@ -621,23 +607,7 @@ def calculate_budget_progress(db: Session, budget: Budget) -> BudgetResponse:
     category_ids = [bc.category_id for bc in budget.budget_categories]
     period_start, period_end = get_period_dates(budget)
 
-    query = db.query(func.sum(Transaction.effective_amount)).join(
-        Account, Transaction.account_id == Account.id
-    ).filter(
-        Account.currency == budget.currency,
-        Transaction.user_id == budget.user_id,
-        Transaction.type == "expense"
-    )
-
-    if category_ids:
-        query = query.filter(Transaction.category_id.in_(category_ids))
-
-    if period_start:
-        query = query.filter(Transaction.date >= period_start)
-    if period_end:
-        query = query.filter(Transaction.date <= period_end)
-    
-    spent = query.scalar() or 0
+    spent = _budget_spending(db, budget, period_start, period_end, category_ids)
     remaining = budget.amount - spent
     percentage = (spent / budget.amount * 100) if budget.amount > 0 else 0
 
@@ -657,4 +627,39 @@ def calculate_budget_progress(db: Session, budget: Budget) -> BudgetResponse:
         percentage=round(percentage, 2),
         period_start=period_start,
         period_end=period_end
+    def _budget_spending(db: Session, budget: Budget, start: date, end: date, category_ids=None):
+    """Sum effective expense shares, including additional category allocations.
+
+    The primary category gets the unallocated remainder. Reimbursements reduce
+    every share proportionally, matching the category-spending reports.
+    """
+    query = db.query(Transaction).join(
+        Account, Transaction.account_id == Account.id
+    ).filter(
+        Transaction.user_id == budget.user_id,
+        Account.user_id == budget.user_id,
+        Account.currency == budget.currency,
+        Transaction.type == "expense",
     )
+    if start:
+        query = query.filter(Transaction.date >= start)
+    if end:
+        query = query.filter(Transaction.date <= end)
+
+    selected = set(category_ids) if category_ids else None
+    total = 0.0
+    for tx in query.all():
+        if not tx.amount:
+            continue
+        effective = float(tx.effective_amount)
+        factor = effective / float(tx.amount)
+        allocations = sum(float(a.amount) * factor for a in tx.allocations)
+        if selected is None or tx.category_id in selected:
+            total += effective - allocations
+        for allocation in tx.allocations:
+            if selected is None or allocation.category_id in selected:
+                total += float(allocation.amount) * factor
+    return total
+
+
+)
