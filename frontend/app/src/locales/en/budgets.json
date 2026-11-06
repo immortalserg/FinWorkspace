@@ -68,7 +68,9 @@
     "validation": {
       "nameRequired": "Budget name is required",
       "amountPositive": "Amount must be greater than zero"
-    }
+    },
+    "currency": "Currency",
+    "currencyReviewHint": "For budgets created before currency support, verify the currency. Changing it does not convert the budget amount."
   },
   "details": {
     "titleFallback": "Budget Details",
