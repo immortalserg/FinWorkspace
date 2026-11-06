@@ -67,3 +67,22 @@ def test_currency_report_date_and_account_filters(client, db, seed_user):
     assert cashflow.status_code == spending.status_code == 200
     assert cashflow.json()["currencies"] == {"EUR": {"income": 0.0, "expenses": 12.0}}
     assert spending.json()["currencies"] == {"EUR": {str(food.id): 12.0}}
+
+
+def test_system_category_label_is_available_in_currency_report(client, db, seed_user):
+    from app.models import Category
+
+    system_category = Category(
+        user_id=None, name="System expense", type="expense", is_system=True,
+    )
+    db.add(system_category)
+    db.commit()
+    account = make_account(db, seed_user)
+    account.currency = "EUR"
+    db.commit()
+    make_transaction(db, seed_user, account, system_category, amount=25)
+
+    response = client.get("/api/reports/spending-by-currency")
+    assert response.status_code == 200
+    assert response.json()["categories"][str(system_category.id)] == "System expense"
+    assert response.json()["currencies"]["EUR"][str(system_category.id)] == 25.0
