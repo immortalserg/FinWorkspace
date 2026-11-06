@@ -1,4 +1,4 @@
-import { useMemo, type ReactNode } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -12,6 +12,7 @@ import {
   TagIcon,
   TargetIcon,
   WalletIcon,
+  Settings02Icon,
 } from '@hugeicons/core-free-icons'
 import { useActiveAccounts } from '../accounts/useAccounts'
 import { useBankConnections } from '../bank-sync/useBankSync'
@@ -31,6 +32,8 @@ import { useMediaQuery } from '../ui/useMediaQuery'
 import { useBalanceVisibility } from '../ui/BalanceVisibilityContext'
 import { Amount, CategoryChip, flowOfType, flowRail } from '../ui/money'
 import { Button } from '@/components/ui/button'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { useAuth } from '../auth/useAuth'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
@@ -120,7 +123,36 @@ function itemKey(item: DashboardAccountItem): string {
 }
 
 export function DashboardPage() {
-  const { t } = useTranslation('dashboard')
+  const { t, i18n } = useTranslation('dashboard')
+  const { user } = useAuth()
+  const settingsKey = `finworkspace:currency-display:${user?.id ?? 'guest'}`
+  const [currencySettings, setCurrencySettings] = useState<{ mode: 'converted' | 'separate' | 'both'; base: string }>(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(`finworkspace:currency-display:${user?.id ?? 'guest'}`) || '{}')
+      return { mode: ['converted', 'separate', 'both'].includes(saved.mode) ? saved.mode : 'both',
+        base: typeof saved.base === 'string' && /^[A-Z]{3}$/.test(saved.base) ? saved.base : 'EUR' }
+    } catch { return { mode: 'both', base: 'EUR' } }
+  })
+  const saveCurrencySettings = (next: typeof currencySettings) => {
+    setCurrencySettings(next)
+    localStorage.setItem(settingsKey, JSON.stringify(next))
+  }
+  const { data: fxRates, isError: fxError } = useQuery({
+    queryKey: ['fx', 'open-er-api', currencySettings.base],
+    queryFn: async (): Promise<{ rates: Record<string, number>; time_last_update_utc: string }> => {
+      const response = await fetch(`https://open.er-api.com/v6/latest/${currencySettings.base}`)
+      if (!response.ok) throw new Error('Exchange rates unavailable')
+      const result = await response.json()
+      if (result.result !== 'success' || !result.rates) throw new Error('Invalid exchange rates')
+      return result
+    },
+    enabled: currencySettings.mode !== 'separate',
+    staleTime: 60 * 60 * 1000,
+    retry: 1,
+  })
+  const ru = i18n.resolvedLanguage === 'ru'
+  const isConverted = currencySettings.mode !== 'separate'
+  const isSplit = currencySettings.mode !== 'converted'
   const isDesktop = useMediaQuery('(min-width: 1024px)')
   const { hidden: balancesHidden } = useBalanceVisibility()
   const monthRange = currentMonthRange()
@@ -186,6 +218,13 @@ export function DashboardPage() {
   const balanceSummary = Object.entries(balancesByCurrency)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([currency, balance]) => formatBalance(balance, currency, balancesHidden))
+  const convertedBalance = Object.entries(balancesByCurrency).reduce((sum, [currency, balance]) => {
+    const rate = fxRates?.rates[currency]
+    return rate && rate > 0 ? sum + balance / rate : sum
+  }, 0)
+  const hasMissingRate = Object.keys(balancesByCurrency).some(currency =>
+    currency !== currencySettings.base && !(fxRates?.rates[currency] > 0))
+  const showConvertedBalance = !!fxRates && !hasMissingRate
   const accountCount = accounts?.length ?? 0
 
   const totalSpent = spendingReport?.data.reduce((a, b) => a + b, 0) ?? 0
@@ -594,11 +633,44 @@ export function DashboardPage() {
               {t('summary.totalBalance')}
             </p>
             <p className={`mt-1 font-heading text-3xl font-bold tabular-nums tracking-tight sm:text-4xl ${isDesktop ? 'text-white' : 'text-muted-foreground'}`}>
-              {accountsLoading ? '…' : balanceSummary.length ? balanceSummary.join(' · ') : formatBalance(0, 'EUR', balancesHidden)}
+              {accountsLoading ? '…' : isConverted
+                ? (showConvertedBalance ? formatBalance(convertedBalance, currencySettings.base, balancesHidden) : '—')
+                : (balanceSummary.length ? balanceSummary.join(' · ') : formatBalance(0, currencySettings.base, balancesHidden))}
             </p>
             <p className={`mt-0.5 text-xs ${isDesktop ? 'text-white' : 'text-muted-foreground'}`}>
               {t('summary.accountsCount', { count: accountCount })}
             </p>
+            {isSplit && isConverted && <p className="mt-1 text-xs text-muted-foreground">{balanceSummary.join(' · ')}</p>}
+            {isConverted && (fxError || hasMissingRate) && (
+              <p className="mt-1 text-xs text-warning">{ru ? 'Нет доступного курса для всех валют. Общий баланс не рассчитан.' : 'Exchange rates unavailable for all currencies. Total not calculated.'}</p>
+            )}
+            {isConverted && fxRates?.time_last_update_utc && (
+              <p className="mt-1 text-[10px] text-muted-foreground">{ru ? 'Курс на' : 'Rates updated'}: {fxRates.time_last_update_utc}</p>
+            )}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="mt-2 gap-1.5">
+                  <HugeiconsIcon icon={Settings02Icon} className="size-4" />
+                  {ru ? 'Настройки валют' : 'Currency settings'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="w-[min(90vw,330px)] space-y-3">
+                <label className="block text-sm font-medium" htmlFor="currency-display-mode">{ru ? 'Отображение баланса' : 'Balance display'}</label>
+                <select id="currency-display-mode" className="w-full rounded-md border bg-background p-2 text-sm"
+                  value={currencySettings.mode} onChange={e => saveCurrencySettings({ ...currencySettings, mode: e.target.value as typeof currencySettings.mode })}>
+                  <option value="converted">{ru ? 'В основной валюте' : 'Converted to base currency'}</option>
+                  <option value="separate">{ru ? 'Отдельно по валютам' : 'Separate by currency'}</option>
+                  <option value="both">{ru ? 'Общий баланс и разбивка' : 'Total and breakdown'}</option>
+                </select>
+                <label className="block text-sm font-medium" htmlFor="currency-display-base">{ru ? 'Основная валюта' : 'Base currency'}</label>
+                <select id="currency-display-base" className="w-full rounded-md border bg-background p-2 text-sm"
+                  value={currencySettings.base} onChange={e => saveCurrencySettings({ ...currencySettings, base: e.target.value })}>
+                  {Array.from(new Set([...Intl.supportedValuesOf('currency'), currencySettings.base])).sort().map(currency =>
+                    <option key={currency} value={currency}>{currency}</option>)}
+                </select>
+                <p className="text-xs text-muted-foreground">{ru ? 'Настройки сохраняются в этом браузере.' : 'Settings are saved in this browser.'}</p>
+              </PopoverContent>
+            </Popover>
           </div>
           {/* A 3-column grid on a phone instead of `flex-wrap`: three roughly
               equal figures wrapping freely could split 2-then-1 or crowd
