@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import {useForm, Controller, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -52,6 +52,7 @@ export function BudgetFormDialog({ open, onOpenChange, budget }: BudgetFormDialo
   const accountCurrencies = [...new Set(accounts.map(account => account.currency))]
   const defaultCurrency = accountCurrencies.length === 1 ? accountCurrencies[0]! : 'EUR'
   const expenseCategories = categories.filter((c) => c.type === 'expense')
+  const initializedFor = useRef<Budget | null | undefined>(undefined)
 
   const PERIOD_OPTIONS = [
     { value: 'monthly', label: t('period.monthly') },
@@ -80,7 +81,12 @@ export function BudgetFormDialog({ open, onOpenChange, budget }: BudgetFormDialo
   })
 
   useEffect(() => {
-    if (!open) return
+    if (!open) {
+      initializedFor.current = undefined
+      return
+    }
+    if (initializedFor.current === (budget ?? null)) return
+    initializedFor.current = budget ?? null
     if (budget) {
       reset({
         name: budget.name,
