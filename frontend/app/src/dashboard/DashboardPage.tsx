@@ -223,7 +223,7 @@ export function DashboardPage() {
     return rate && rate > 0 ? sum + balance / rate : sum
   }, 0)
   const hasMissingRate = Object.keys(balancesByCurrency).some(currency =>
-    currency !== currencySettings.base && !(fxRates?.rates[currency] > 0))
+    currency !== currencySettings.base && !((fxRates?.rates[currency] ?? 0) > 0))
   const showConvertedBalance = !!fxRates && !hasMissingRate
   const accountCount = accounts?.length ?? 0
 
