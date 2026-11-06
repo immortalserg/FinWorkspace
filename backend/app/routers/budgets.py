@@ -368,8 +368,13 @@ def get_budget_summary(
     year_total_budget = 0
 
     for p_start, p_end, label in periods:
-        period_txs = [tx for tx in all_transactions if p_start <= tx.date <= p_end]
-        spent = _budget_spending(db, budget, p_start, p_end, category_ids)
+        period_txs = [
+            (tx, share)
+            for tx in all_transactions
+            if p_start <= tx.date <= p_end
+            if (share := _budget_transaction_share(tx, category_ids)) != 0
+        ]
+        spent = sum(share for _, share in period_txs)
         remaining = budget.amount - spent
         percentage = (spent / budget.amount * 100) if budget.amount > 0 else 0
 
@@ -387,12 +392,13 @@ def get_budget_summary(
                     "date": tx.date,
                     "description": tx.description,
                     "amount": tx.amount,
+                    "budget_amount": round(share, 2),
                     "category_id": tx.category_id,
                     "category_name": tx.category.name if tx.category else None,
                     "category_color": tx.category.color if tx.category else None,
                     "account_name": tx.account.name if tx.account else None,
                 }
-                for tx in period_txs
+                for tx, share in period_txs
             ],
         })
 
