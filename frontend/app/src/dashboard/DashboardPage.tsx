@@ -177,7 +177,15 @@ export function DashboardPage() {
   const totalExpenses = monthCashflow?.expenses.reduce((a, b) => a + b, 0) ?? 0
   const netSaved = totalIncome - totalExpenses
 
-  const totalBalance = accounts?.reduce((sum, acc) => sum + (acc.balance ?? 0), 0) ?? 0
+  // Never add balances in different currencies without an exchange rate.
+  const balancesByCurrency = (accounts ?? []).reduce<Record<string, number>>((totals, account) => {
+    const currency = account.currency || 'EUR'
+    totals[currency] = (totals[currency] ?? 0) + (account.balance ?? 0)
+    return totals
+  }, {})
+  const balanceSummary = Object.entries(balancesByCurrency)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([currency, balance]) => formatBalance(balance, currency, balancesHidden))
   const accountCount = accounts?.length ?? 0
 
   const totalSpent = spendingReport?.data.reduce((a, b) => a + b, 0) ?? 0
@@ -586,7 +594,7 @@ export function DashboardPage() {
               {t('summary.totalBalance')}
             </p>
             <p className={`mt-1 font-heading text-3xl font-bold tabular-nums tracking-tight sm:text-4xl ${isDesktop ? 'text-white' : 'text-muted-foreground'}`}>
-              {accountsLoading ? '…' : formatBalance(totalBalance, undefined, balancesHidden)}
+              {accountsLoading ? '…' : balanceSummary.length ? balanceSummary.join(' · ') : formatBalance(0, 'EUR', balancesHidden)}
             </p>
             <p className={`mt-0.5 text-xs ${isDesktop ? 'text-white' : 'text-muted-foreground'}`}>
               {t('summary.accountsCount', { count: accountCount })}
