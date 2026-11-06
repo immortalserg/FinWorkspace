@@ -15,6 +15,8 @@ class User(Base):
     email = Column(String(255), unique=True, index=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
     full_name = Column(String(255))
+    currency_display_mode = Column(String(12), nullable=False, default="both")
+    currency_base = Column(String(3), nullable=False, default="EUR")
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False, nullable=False)
     email_verified = Column(Boolean, default=False, nullable=False)
