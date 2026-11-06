@@ -44,7 +44,7 @@ import {
   ItemMedia,
   ItemTitle,
 } from '@/components/ui/item'
-import { getCashflowReport, getCashflowByCurrency, getSpendingReport } from './reportsApi'
+import { getCashflowReport, getCashflowByCurrency, getSpendingReport, getSpendingByCurrency } from './reportsApi'
 import { listUpcomingDebtPayments, type UpcomingDebtPayment } from '../debts/debtsApi'
 import {
   listUpcomingRecurringPayments,
@@ -199,6 +199,13 @@ export function DashboardPage() {
     queryFn: () => getSpendingReport(monthRange),
   })
 
+  const hasMultipleAccountCurrencies = new Set((accounts ?? []).map(account => account.currency || 'EUR')).size > 1
+  const { data: currencySpending, isLoading: currencySpendingLoading } = useQuery({
+    queryKey: ['spending-by-currency', monthRange],
+    queryFn: () => getSpendingByCurrency(monthRange),
+    enabled: hasMultipleAccountCurrencies,
+  })
+
   const { data: upcomingDebts, isLoading: debtsLoading } = useQuery({
     queryKey: queryKeys.upcomingDebtPayments,
     queryFn: () => listUpcomingDebtPayments(30),
@@ -269,6 +276,27 @@ export function DashboardPage() {
       ? { name: spendingReport.labels[0], amount: spendingReport.data[0] }
       : null
   const categoryCount = spendingReport?.labels.length ?? 0
+
+  const spendingCurrencyEntries = Object.entries(currencySpending?.currencies ?? {})
+  const spendingMissingRates = spendingCurrencyEntries.some(([currency, values]) =>
+    Object.values(values).some(value => value !== 0) &&
+    currency !== currencySettings.base && !((fxRates?.rates[currency] ?? 0) > 0))
+  const convertedSpending = (() => {
+    if (!hasMultipleAccountCurrencies) return spendingReport
+    if (!currencySpending || spendingMissingRates) return undefined
+    const totals: Record<string, number> = {}
+    for (const [currency, values] of spendingCurrencyEntries) {
+      const rate = currency === currencySettings.base ? 1 : fxRates?.rates[currency]
+      if (!rate || rate <= 0) continue
+      for (const [categoryId, amount] of Object.entries(values)) {
+        totals[categoryId] = (totals[categoryId] ?? 0) + amount / rate
+      }
+    }
+    const ids = Object.keys(totals).sort((a, b) => totals[b] - totals[a])
+    return { labels: ids.map(id => currencySpending.categories[id] ?? id), data: ids.map(id => totals[id]) }
+  })()
+  const displaySpending = hasMultipleAccountCurrencies ? convertedSpending : spendingReport
+  const spendingPanelLoading = reportLoading || (hasMultipleAccountCurrencies && currencySpendingLoading)
 
   const categoryColors = useMemo(() => {
     const map: Record<string, string> = {}
@@ -477,7 +505,7 @@ export function DashboardPage() {
         reportLoading
           ? undefined
           : `${t('spending.hintSummary', {
-              amount: formatCurrency(totalSpent),
+              amount: formatCurrency(hasMultipleAccountCurrencies ? (displaySpending?.data.reduce((a, b) => a + b, 0) ?? 0) : totalSpent, hasMultipleAccountCurrencies ? currencySettings.base : singleCurrency),
               count: categoryCount,
             })}${topCategory ? t('spending.mostOn', { category: topCategory.name }) : ''}`
       }
