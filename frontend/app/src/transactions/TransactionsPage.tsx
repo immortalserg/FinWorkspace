@@ -202,10 +202,11 @@ export function TransactionsPage() {
   }
 
   const categoryColors = useMemo(() => Object.fromEntries(categories.map(category => [category.id, category.color])), [categories])
+  const categoryIcons = useMemo(() => Object.fromEntries(categories.map(category => [category.id, category.icon])), [categories])
   const columns = useMemo(
-    () => createColumns(rowHandlers, t, i18n.resolvedLanguage || i18n.language || 'en', showAllCategories, categoryColors),
+    () => createColumns(rowHandlers, t, i18n.resolvedLanguage || i18n.language || 'en', showAllCategories, categoryColors, categoryIcons),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [t, i18n.resolvedLanguage, i18n.language, showAllCategories, categoryColors],
+    [t, i18n.resolvedLanguage, i18n.language, showAllCategories, categoryColors, categoryIcons],
   )
 
   const pageCount = transactionData
