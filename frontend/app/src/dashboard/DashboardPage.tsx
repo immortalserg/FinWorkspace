@@ -44,7 +44,7 @@ import {
   ItemMedia,
   ItemTitle,
 } from '@/components/ui/item'
-import { getCashflowReport, getSpendingReport } from './reportsApi'
+import { getCashflowReport, getCashflowByCurrency, getSpendingReport } from './reportsApi'
 import { listUpcomingDebtPayments, type UpcomingDebtPayment } from '../debts/debtsApi'
 import {
   listUpcomingRecurringPayments,
@@ -183,6 +183,12 @@ export function DashboardPage() {
     queryFn: () => getCashflowReport({ ...monthRange, group_by: 'month' }),
   })
 
+  const { data: currencyCashflow, isLoading: currencyCashflowLoading } = useQuery({
+    queryKey: ['cashflow-by-currency', monthRange],
+    queryFn: () => getCashflowByCurrency(monthRange),
+    enabled: (accounts?.length ?? 0) > 0 && new Set(accounts?.map(account => account.currency)).size > 1,
+  })
+
   const { data: recentTxnData, isLoading: recentTxnLoading } = useTransactions({
     page: 1,
     per_page: 6,
@@ -228,6 +234,33 @@ export function DashboardPage() {
   // conversion. Suppress mixed-currency totals until the reports API is upgraded.
   const mixedCurrencies = Object.keys(balancesByCurrency).length > 1
   const singleCurrency = Object.keys(balancesByCurrency)[0] ?? currencySettings.base
+  const cashflowEntries = Object.entries(currencyCashflow?.currencies ?? {})
+  const cashflowHasMissingRate = cashflowEntries.some(([currency]) =>
+    currency !== currencySettings.base && !((fxRates?.rates[currency] ?? 0) > 0))
+  const convertedCashflow = cashflowEntries.reduce((totals, [currency, amounts]) => {
+    const rate = currency === currencySettings.base ? 1 : fxRates?.rates[currency]
+    if (rate && rate > 0) {
+      totals.income += amounts.income / rate
+      totals.expenses += amounts.expenses / rate
+    }
+    return totals
+  }, { income: 0, expenses: 0 })
+  const cashflowDisplay = (field: 'income' | 'expenses' | 'net') => {
+    if (!mixedCurrencies) {
+      return formatCurrency(field === 'income' ? totalIncome : field === 'expenses' ? totalExpenses : netSaved, singleCurrency)
+    }
+    if (!currencyCashflow) return '—'
+    const amountFor = (amounts: { income: number; expenses: number }) =>
+      field === 'income' ? amounts.income : field === 'expenses' ? amounts.expenses : amounts.income - amounts.expenses
+    const separate = cashflowEntries
+      .filter(([, amounts]) => amountFor(amounts) !== 0)
+      .map(([currency, amounts]) => formatCurrency(amountFor(amounts), currency))
+      .join(' · ') || formatCurrency(0, currencySettings.base)
+    if (currencySettings.mode === 'separate') return separate
+    if (cashflowHasMissingRate) return '—'
+    const converted = formatCurrency(amountFor(convertedCashflow), currencySettings.base)
+    return currencySettings.mode === 'both' ? `${converted} (${separate})` : converted
+  }
   const accountCount = accounts?.length ?? 0
 
   const totalSpent = spendingReport?.data.reduce((a, b) => a + b, 0) ?? 0
@@ -682,21 +715,21 @@ export function DashboardPage() {
           <dl className="grid grid-cols-3 gap-x-3 gap-y-4 sm:flex sm:flex-wrap sm:gap-x-8">
             <Figure
               label={t('summary.incomeThisMonth')}
-              value={txnLoading ? '…' : mixedCurrencies ? '—' : formatCurrency(totalIncome, singleCurrency)}
+              value={txnLoading || (mixedCurrencies && currencyCashflowLoading) ? '…' : cashflowDisplay('income')}
               tone="in"
             />
             <Figure
               label={t('summary.expensesThisMonth')}
-              value={txnLoading ? '…' : mixedCurrencies ? '—' : formatCurrency(totalExpenses, singleCurrency)}
+              value={txnLoading || (mixedCurrencies && currencyCashflowLoading) ? '…' : cashflowDisplay('expenses')}
               tone="out"
             />
             <Figure
               label={t('summary.netSaved')}
-              value={txnLoading ? '…' : mixedCurrencies ? '—' : formatCurrency(netSaved, singleCurrency)}
+              value={txnLoading || (mixedCurrencies && currencyCashflowLoading) ? '…' : cashflowDisplay('net')}
               tone={netSaved >= 0 ? 'in' : 'out'}
             />
           </dl>
-          {mixedCurrencies && <p className="text-xs text-warning">{ru ? 'Доходы и расходы в разных валютах пока не пересчитываются. Смешанные суммы скрыты.' : 'Income and expenses in multiple currencies are not converted yet. Mixed totals are hidden.'}</p>}
+          {mixedCurrencies && !currencyCashflowLoading && (!currencyCashflow || (isConverted && cashflowHasMissingRate)) && <p className="text-xs text-warning">{ru ? 'Нет данных или обменного курса для корректного пересчёта.' : 'Currency data or exchange rates are unavailable.'}</p>}
         </div>
       </section>
 
