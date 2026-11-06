@@ -8,7 +8,7 @@ import calendar
 from app.database import get_db
 from app.utils.security import get_current_user_authenticated as get_current_user
 from app.schemas import BudgetCreate, BudgetUpdate, BudgetResponse, BudgetProgress
-from app.models import User, Budget, BudgetCategory, Category, Transaction, Account
+from app.models import User, Budget, BudgetCategory, Category, Transaction, Account, TransactionAllocation
 
 router = APIRouter(prefix="/budgets", tags=["Budgets"])
 
@@ -306,7 +306,7 @@ def get_budget_summary(
         Transaction.date <= effective_end,
     )
     if category_ids:
-        tx_query = tx_query.filter(\n            (Transaction.category_id.in_(category_ids)) |\n            (Transaction.allocations.any(category_id__in=category_ids))\n        )
+        tx_query = tx_query.filter(\n            (Transaction.category_id.in_(category_ids)) |\n            (Transaction.allocations.any(TransactionAllocation.category_id.in_(category_ids)))\n        )
 
     all_transactions = tx_query.order_by(Transaction.date.desc()).all()
 
