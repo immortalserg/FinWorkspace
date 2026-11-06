@@ -103,6 +103,47 @@ def get_report_types():
     }
 
 
+@router.get("/spending-by-currency")
+def get_spending_by_currency(
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    account_ids: Optional[str] = None,
+    category_ids: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Category spending separated by currency, including allocations and reimbursements."""
+    if start_date is None:
+        start_date = date.today().replace(day=1)
+    if end_date is None:
+        end_date = date.today()
+    query = db.query(Account.currency).join(
+        Transaction, Transaction.account_id == Account.id
+    ).filter(
+        Account.user_id == current_user.id,
+        Transaction.user_id == current_user.id,
+        Transaction.type == "expense",
+        Transaction.date >= start_date,
+        Transaction.date <= end_date,
+    )
+    selected_accounts = _parse_id_list(account_ids)
+    if selected_accounts:
+        query = query.filter(Account.id.in_(selected_accounts))
+    currencies = sorted({row[0] for row in query.distinct().all()})
+    result = {}
+    for currency in currencies:
+        totals, _ = _category_totals(
+            db, current_user.id, "expense", start_date, end_date,
+            account_ids, category_ids, currency,
+        )
+        result[currency] = {str(category_id): round(value, 2) for category_id, value in totals.items()}
+    categories = db.query(Category).filter(Category.user_id == current_user.id).all()
+    return {
+        "categories": {str(category.id): category.name for category in categories},
+        "currencies": result,
+    }
+
+
 @router.get("/spending", response_model=SpendingReport)
 def get_spending_report(
     start_date: Optional[date] = None,
