@@ -306,7 +306,7 @@ def get_budget_summary(
         Transaction.date <= effective_end,
     )
     if category_ids:
-        tx_query = tx_query.filter(Transaction.category_id.in_(category_ids))
+        tx_query = tx_query.filter(\n            (Transaction.category_id.in_(category_ids)) |\n            (Transaction.allocations.any(category_id__in=category_ids))\n        )
 
     all_transactions = tx_query.order_by(Transaction.date.desc()).all()
 
@@ -319,7 +319,7 @@ def get_budget_summary(
 
     for p_start, p_end, label in periods:
         period_txs = [tx for tx in all_transactions if p_start <= tx.date <= p_end]
-        spent = sum(float(tx.effective_amount) for tx in period_txs)
+        spent = _budget_spending(db, budget, p_start, p_end, category_ids)
         remaining = budget.amount - spent
         percentage = (spent / budget.amount * 100) if budget.amount > 0 else 0
 
