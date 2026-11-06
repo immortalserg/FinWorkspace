@@ -6,6 +6,15 @@ export interface SpendingReport {
   transaction_count?: number
 }
 
+export interface CurrencySpendingReport {
+  categories: Record<string, string>
+  currencies: Record<string, Record<string, number>>
+}
+
+export function getSpendingByCurrency(params: { start_date?: string; end_date?: string } = {}): Promise<CurrencySpendingReport> {
+  return apiFetch<CurrencySpendingReport>(`/reports/spending-by-currency${buildQueryString(params)}`)
+}
+
 export interface SpendingReportParams {
   currency?: string
   start_date?: string
