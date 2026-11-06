@@ -185,10 +185,10 @@ export function BudgetsPage() {
             <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3.5">
               <div className="flex items-baseline gap-2">
                 <span className="font-heading text-xl font-bold tabular-nums tracking-tight sm:text-2xl">
-                  {formatCurrency(summary.totalSpent)}
+                  {formatCurrency(summary.totalSpent, summaryCurrency ?? "EUR")}
                 </span>
                 <span className="text-sm text-muted-foreground">
-                  {t('summary.of', { amount: formatCurrency(summary.totalBudgeted) })}
+                  {t('summary.of', { amount: formatCurrency(summary.totalBudgeted, summaryCurrency ?? "EUR") })}
                 </span>
               </div>
               <div className="flex flex-wrap items-center gap-2">
@@ -204,7 +204,7 @@ export function BudgetsPage() {
                   )}
                 >
                   {summary.totalRemaining < 0 ? '−' : ''}
-                  {formatCurrency(Math.abs(summary.totalRemaining))}{' '}
+                  {formatCurrency(Math.abs(summary.totalRemaining), summaryCurrency ?? "EUR")}{' '}
                   {summary.totalRemaining < 0 ? t('summary.over') : t('summary.left')}
                 </span>
               </div>
@@ -223,7 +223,7 @@ export function BudgetsPage() {
                 )
               })}
             </div>
-          </section>
+          </section>}
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {sortedBudgets.map((budget) => (
@@ -330,10 +330,10 @@ function BudgetCard({
                 budget.percentage > 100 ? 'text-destructive' : 'text-foreground',
               )}
             >
-              {formatCurrency(budget.spent)}
+              {formatCurrency(budget.spent, budget.currency)}
             </p>
             <p className="text-[11px] text-muted-foreground">
-              {t('card.ofLimit', { amount: formatCurrency(budget.amount) })}
+              {t('card.ofLimit', { amount: formatCurrency(budget.amount, budget.currency) })}
             </p>
           </div>
           <p
@@ -343,7 +343,7 @@ function BudgetCard({
             )}
           >
             {budget.remaining < 0 ? '−' : ''}
-            {formatCurrency(Math.abs(budget.remaining))}
+            {formatCurrency(Math.abs(budget.remaining), budget.currency)}
             <span className="block text-[10px] font-normal text-muted-foreground">
               {budget.remaining < 0 ? t('card.over') : t('card.remaining')}
             </span>
