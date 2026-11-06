@@ -12,6 +12,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Dialog } from '../ui/Dialog'
 import { Select } from '../ui/Select'
 import { useCategories } from '../categories/useCategories'
+import { useAccounts } from '../accounts/useAccounts'
 import { useCreateBudget, useUpdateBudget } from './useBudgets'
 import type { Budget } from './budgetsApi'
 
@@ -47,6 +48,9 @@ export function BudgetFormDialog({ open, onOpenChange, budget }: BudgetFormDialo
   const createBudget = useCreateBudget()
   const updateBudget = useUpdateBudget()
   const { data: categories = [] } = useCategories()
+  const { data: accounts = [] } = useAccounts()
+  const accountCurrencies = [...new Set(accounts.map(account => account.currency))]
+  const defaultCurrency = accountCurrencies.length === 1 ? accountCurrencies[0]! : 'EUR'
   const expenseCategories = categories.filter((c) => c.type === 'expense')
 
   const PERIOD_OPTIONS = [
@@ -92,13 +96,13 @@ export function BudgetFormDialog({ open, onOpenChange, budget }: BudgetFormDialo
         name: '',
         amount: 0,
         period: 'monthly',
-      currency: 'EUR',
+        currency: defaultCurrency,
         start_date: '',
         end_date: '',
         category_ids: [],
       })
     }
-  }, [open, budget, reset])
+  }, [open, budget, reset, defaultCurrency])
 
   const categoryIds = useWatch({ control, name: 'category_ids' })
 
@@ -170,12 +174,13 @@ export function BudgetFormDialog({ open, onOpenChange, budget }: BudgetFormDialo
         </div>
 
         <div className="flex flex-col gap-2">
-          <Label htmlFor="budget-currency">Currency / Валюта</Label>
+          <Label htmlFor="budget-currency">{t('form.currency')}</Label>
           <select id="budget-currency" className="w-full rounded-md border bg-background p-2 text-sm" {...register('currency')}>
             {Array.from(new Set([...Intl.supportedValuesOf('currency'), budget?.currency ?? 'EUR'])).sort().map(currency => (
               <option key={currency} value={currency}>{currency}</option>
             ))}
           </select>
+          {isEdit && <p className="text-xs text-muted-foreground">{t('form.currencyReviewHint')}</p>}
           {errors.currency && <p className="text-destructive text-sm">{errors.currency.message}</p>}
         </div>
 
