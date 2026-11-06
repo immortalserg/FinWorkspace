@@ -33,7 +33,6 @@ import { useBalanceVisibility } from '../ui/BalanceVisibilityContext'
 import { Amount, CategoryChip, flowOfType, flowRail } from '../ui/money'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { useAuth } from '../auth/useAuth'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
@@ -124,11 +123,10 @@ function itemKey(item: DashboardAccountItem): string {
 
 export function DashboardPage() {
   const { t, i18n } = useTranslation('dashboard')
-  const { user } = useAuth()
-  const settingsKey = `finworkspace:currency-display:${user?.id ?? 'guest'}`
+  const settingsKey = 'finworkspace:currency-display'
   const [currencySettings, setCurrencySettings] = useState<{ mode: 'converted' | 'separate' | 'both'; base: string }>(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem(`finworkspace:currency-display:${user?.id ?? 'guest'}`) || '{}')
+      const saved = JSON.parse(localStorage.getItem('finworkspace:currency-display') || '{}')
       return { mode: ['converted', 'separate', 'both'].includes(saved.mode) ? saved.mode : 'both',
         base: typeof saved.base === 'string' && /^[A-Z]{3}$/.test(saved.base) ? saved.base : 'EUR' }
     } catch { return { mode: 'both', base: 'EUR' } }
