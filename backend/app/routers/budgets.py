@@ -13,6 +13,34 @@ from app.models import User, Budget, BudgetCategory, Category, Transaction, Acco
 router = APIRouter(prefix="/budgets", tags=["Budgets"])
 
 
+def _budget_spending(db: Session, budget: Budget, start: date, end: date, category_ids=None):
+    """Count effective category shares in the budget currency."""
+    query = db.query(Transaction).join(Account, Transaction.account_id == Account.id).filter(
+        Transaction.user_id == budget.user_id,
+        Account.user_id == budget.user_id,
+        Account.currency == budget.currency,
+        Transaction.type == "expense",
+    )
+    if start:
+        query = query.filter(Transaction.date >= start)
+    if end:
+        query = query.filter(Transaction.date <= end)
+    selected = set(category_ids) if category_ids else None
+    total = 0.0
+    for tx in query.all():
+        if not tx.amount:
+            continue
+        effective = float(tx.effective_amount)
+        factor = effective / float(tx.amount)
+        allocated = sum(float(a.amount) * factor for a in tx.allocations)
+        if selected is None or tx.category_id in selected:
+            total += effective - allocated
+        for allocation in tx.allocations:
+            if selected is None or allocation.category_id in selected:
+                total += float(allocation.amount) * factor
+    return total
+
+
 @router.get("/", response_model=List[BudgetResponse])
 def get_budgets(
     current_user: User = Depends(get_current_user),
