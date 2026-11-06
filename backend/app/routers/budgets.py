@@ -8,7 +8,7 @@ import calendar
 from app.database import get_db
 from app.utils.security import get_current_user_authenticated as get_current_user
 from app.schemas import BudgetCreate, BudgetUpdate, BudgetResponse, BudgetProgress
-from app.models import User, Budget, BudgetCategory, Category, Transaction
+from app.models import User, Budget, BudgetCategory, Category, Transaction, Account
 
 router = APIRouter(prefix="/budgets", tags=["Budgets"])
 
@@ -48,6 +48,7 @@ def create_budget(
         user_id=current_user.id,
         name=budget_data.name,
         amount=budget_data.amount,
+        currency=budget_data.currency,
         period=budget_data.period,
         start_date=budget_data.start_date,
         end_date=budget_data.end_date
@@ -223,7 +224,10 @@ def get_budget_report(
     
     category_breakdown = []
     for bc in budget.budget_categories:
-        spent_query = db.query(func.sum(Transaction.effective_amount)).filter(
+        spent_query = db.query(func.sum(Transaction.effective_amount)).join(
+            Account, Transaction.account_id == Account.id
+        ).filter(
+            Account.currency == budget.currency,
             Transaction.user_id == current_user.id,
             Transaction.category_id == bc.category_id,
             Transaction.type == "expense"
@@ -306,7 +310,10 @@ def get_budget_summary(
         }
 
     # Fetch all matching transactions for the effective range in one query
-    tx_query = db.query(Transaction).filter(
+    tx_query = db.query(Transaction).join(
+        Account, Transaction.account_id == Account.id
+    ).filter(
+        Account.currency == budget.currency,
         Transaction.user_id == current_user.id,
         Transaction.type == "expense",
         Transaction.date >= effective_start,
@@ -614,7 +621,10 @@ def calculate_budget_progress(db: Session, budget: Budget) -> BudgetResponse:
     category_ids = [bc.category_id for bc in budget.budget_categories]
     period_start, period_end = get_period_dates(budget)
 
-    query = db.query(func.sum(Transaction.effective_amount)).filter(
+    query = db.query(func.sum(Transaction.effective_amount)).join(
+        Account, Transaction.account_id == Account.id
+    ).filter(
+        Account.currency == budget.currency,
         Transaction.user_id == budget.user_id,
         Transaction.type == "expense"
     )
