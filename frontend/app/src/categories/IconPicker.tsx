@@ -25,6 +25,7 @@ const ICON_GROUPS: { label: string; keys: IconKey[] }[] = [
   { label: 'Income', keys: ['salary', 'income', 'work', 'freelance', 'investment', 'allowance', 'cashback', 'bonus', 'savings', 'piggybank', 'dividend', 'bank', 'banknote', 'card', 'safe'] },
   { label: 'Returns', keys: ['interest', 'profit', 'portfolio', 'discount', 'coupon', 'voucher', 'currency', 'foreign', 'cash', 'exchange', 'transaction', 'swap'] },
   { label: 'Transfers & Bills', keys: ['transfer', 'invoice', 'giftcard'] },
+  { label: 'More categories', keys: ['supermarket', 'restaurant', 'snacks', 'publictransport', 'carservice', 'carinsurance', 'evcharging', 'heating', 'mobileplan', 'software', 'streaming', 'appliances', 'cosmetics', 'dentist', 'veterinarian', 'school', 'childcare', 'vacation', 'accommodation', 'tickets', 'pension', 'loan', 'bankfees', 'refund', 'sideincome', 'scholarship'] },
   { label: 'Goals & Protection', keys: ['goal', 'target', 'tax', 'insurance', 'achievement'] },
 ]
 
