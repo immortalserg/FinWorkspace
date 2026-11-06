@@ -85,3 +85,39 @@ def test_budget_transactions_include_only_matching_allocated_shares(client, db, 
     assert transactions.json()["total"] == 1
     assert transactions.json()["items"][0]["id"] == split.id
     assert transactions.json()["items"][0]["budget_amount"] == 30
+
+
+def test_annual_budget_summary_uses_allocated_shares(client, db, seed_user):
+    eur = Account(user_id=seed_user.id, name="EUR", type="checking", currency="EUR")
+    usd = Account(user_id=seed_user.id, name="USD", type="checking", currency="USD")
+    food = Category(user_id=seed_user.id, name="Food", type="expense")
+    travel = Category(user_id=seed_user.id, name="Travel", type="expense")
+    db.add_all([eur, usd, food, travel])
+    db.flush()
+    eur_tx = Transaction(
+        user_id=seed_user.id, account_id=eur.id, category_id=food.id,
+        amount=100, type="expense", description="EUR split", date=date(2026, 11, 1),
+    )
+    usd_tx = Transaction(
+        user_id=seed_user.id, account_id=usd.id, category_id=travel.id,
+        amount=200, type="expense", description="USD excluded", date=date(2026, 11, 1),
+    )
+    db.add_all([eur_tx, usd_tx])
+    db.flush()
+    db.add(TransactionAllocation(transaction_id=eur_tx.id, category_id=travel.id, amount=30))
+    db.commit()
+    created = client.post("/api/budgets/", json={
+        "name": "Travel EUR", "amount": 100, "currency": "EUR",
+        "period": "monthly", "category_ids": [travel.id],
+    })
+    assert created.status_code == 201, created.text
+    response = client.get(f"/api/budgets/{created.json()['id']}/summary?year=2026")
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert data["budget"]["currency"] == "EUR"
+    assert data["year_total"]["spent"] == 30
+    november = next(p for p in data["periods"] if p["period_start"].startswith("2026-11"))
+    assert november["spent"] == 30
+    assert len(november["transactions"]) == 1
+    assert november["transactions"][0]["id"] == eur_tx.id
+    assert november["transactions"][0]["budget_amount"] == 30
