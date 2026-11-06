@@ -41,6 +41,23 @@ def _budget_spending(db: Session, budget: Budget, start: date, end: date, catego
     return total
 
 
+
+def _budget_transaction_share(tx: Transaction, category_ids):
+    """Effective amount attributable to the selected budget categories."""
+    if not tx.amount:
+        return 0.0
+    effective = float(tx.effective_amount)
+    factor = effective / float(tx.amount)
+    allocated = sum(float(a.amount) * factor for a in tx.allocations)
+    selected = set(category_ids) if category_ids else None
+    primary = effective - allocated if selected is None or tx.category_id in selected else 0.0
+    extra = sum(
+        float(a.amount) * factor for a in tx.allocations
+        if selected is None or a.category_id in selected
+    )
+    return primary + extra
+
+
 @router.get("/", response_model=List[BudgetResponse])
 def get_budgets(
     current_user: User = Depends(get_current_user),
@@ -456,37 +473,42 @@ def get_budget_transactions(
     category_ids = [bc.category_id for bc in budget.budget_categories]
     period_start, period_end = get_period_dates(budget)
     
-    query = db.query(Transaction).filter(
+    query = db.query(Transaction).join(
+        Account, Transaction.account_id == Account.id
+    ).filter(
         Transaction.user_id == current_user.id,
-        Transaction.type == "expense"
+        Account.user_id == current_user.id,
+        Account.currency == budget.currency,
+        Transaction.type == "expense",
     )
-    
-    if category_ids:
-        query = query.filter(Transaction.category_id.in_(category_ids))
-    
     if period_start:
         query = query.filter(Transaction.date >= period_start)
     if period_end:
         query = query.filter(Transaction.date <= period_end)
-    
-    total = query.count()
-    transactions = query.order_by(Transaction.date.desc()).offset(skip).limit(limit).all()
-    
+
+    # Filter before pagination so count and pages include split-category matches.
+    matching = [
+        (tx, share)
+        for tx in query.order_by(Transaction.date.desc(), Transaction.id.desc()).all()
+        if (share := _budget_transaction_share(tx, category_ids)) != 0
+    ]
+    total = len(matching)
     result = []
-    for tx in transactions:
+    for tx, share in matching[skip:skip + limit]:
         result.append({
             "id": tx.id,
             "date": tx.date,
             "description": tx.description,
             "amount": tx.amount,
+            "budget_amount": round(share, 2),
             "category_id": tx.category_id,
             "category_name": tx.category.name if tx.category else None,
             "category_color": tx.category.color if tx.category else None,
             "account_id": tx.account_id,
             "account_name": tx.account.name if tx.account else None,
-            "notes": tx.notes
+            "notes": tx.notes,
         })
-    
+
     return {
         "items": result,
         "total": total,
