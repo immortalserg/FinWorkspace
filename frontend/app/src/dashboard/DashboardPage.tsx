@@ -776,7 +776,12 @@ export function DashboardPage() {
                   {Array.from(new Set([...Intl.supportedValuesOf('currency'), currencySettings.base])).sort().map(currency =>
                     <option key={currency} value={currency}>{currency}</option>)}
                 </select>
-                <p className="text-xs text-muted-foreground">{ru ? 'Настройки сохраняются в этом браузере.' : 'Settings are saved in this browser.'}</p>
+                {savePreferences.isError && (
+                  <p role="alert" className="text-xs text-destructive">
+                    {ru ? 'Не удалось сохранить настройки. Изменения отменены. Попробуйте ещё раз.' : 'Could not save settings. Changes were reverted. Please try again.'}
+                  </p>
+                )}
+                <p className="text-xs text-muted-foreground">{ru ? 'Настройки сохраняются в вашем профиле и доступны на других устройствах.' : 'Settings are saved to your profile and shared across devices.'}</p>
               </PopoverContent>
             </Popover>
           </div>
