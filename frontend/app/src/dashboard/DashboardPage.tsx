@@ -219,12 +219,17 @@ export function DashboardPage() {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([currency, balance]) => formatBalance(balance, currency, balancesHidden))
   const convertedBalance = Object.entries(balancesByCurrency).reduce((sum, [currency, balance]) => {
+    if (currency === currencySettings.base) return sum + balance
     const rate = fxRates?.rates[currency]
     return rate && rate > 0 ? sum + balance / rate : sum
   }, 0)
   const hasMissingRate = Object.keys(balancesByCurrency).some(currency =>
     currency !== currencySettings.base && !((fxRates?.rates[currency] ?? 0) > 0))
-  const showConvertedBalance = !!fxRates && !hasMissingRate
+  const showConvertedBalance = !hasMissingRate && (!!fxRates || Object.keys(balancesByCurrency).every(currency => currency === currencySettings.base))
+  // The legacy cashflow/spending endpoints return amounts without currency
+  // conversion. Suppress mixed-currency totals until the reports API is upgraded.
+  const mixedCurrencies = Object.keys(balancesByCurrency).length > 1
+  const singleCurrency = Object.keys(balancesByCurrency)[0] ?? currencySettings.base
   const accountCount = accounts?.length ?? 0
 
   const totalSpent = spendingReport?.data.reduce((a, b) => a + b, 0) ?? 0
@@ -679,20 +684,21 @@ export function DashboardPage() {
           <dl className="grid grid-cols-3 gap-x-3 gap-y-4 sm:flex sm:flex-wrap sm:gap-x-8">
             <Figure
               label={t('summary.incomeThisMonth')}
-              value={txnLoading ? '…' : formatCurrency(totalIncome)}
+              value={txnLoading ? '…' : mixedCurrencies ? '—' : formatCurrency(totalIncome, singleCurrency)}
               tone="in"
             />
             <Figure
               label={t('summary.expensesThisMonth')}
-              value={txnLoading ? '…' : formatCurrency(totalExpenses)}
+              value={txnLoading ? '…' : mixedCurrencies ? '—' : formatCurrency(totalExpenses, singleCurrency)}
               tone="out"
             />
             <Figure
               label={t('summary.netSaved')}
-              value={txnLoading ? '…' : formatCurrency(netSaved)}
+              value={txnLoading ? '…' : mixedCurrencies ? '—' : formatCurrency(netSaved, singleCurrency)}
               tone={netSaved >= 0 ? 'in' : 'out'}
             />
           </dl>
+          {mixedCurrencies && <p className="text-xs text-warning">{ru ? 'Доходы и расходы в разных валютах пока не пересчитываются. Смешанные суммы скрыты.' : 'Income and expenses in multiple currencies are not converted yet. Mixed totals are hidden.'}</p>}
         </div>
       </section>
 
