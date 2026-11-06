@@ -502,21 +502,25 @@ export function DashboardPage() {
       key="spending"
       title={t('spending.title')}
       hint={
-        reportLoading
+        spendingPanelLoading || (hasMultipleAccountCurrencies && (currencySettings.mode === 'separate' || spendingMissingRates || !currencySpending))
           ? undefined
           : `${t('spending.hintSummary', {
               amount: formatCurrency(hasMultipleAccountCurrencies ? (displaySpending?.data.reduce((a, b) => a + b, 0) ?? 0) : totalSpent, hasMultipleAccountCurrencies ? currencySettings.base : singleCurrency),
-              count: categoryCount,
-            })}${topCategory ? t('spending.mostOn', { category: topCategory.name }) : ''}`
+              count: displaySpending?.labels.length ?? 0,
+            })}${displaySpending?.labels[0] ? t('spending.mostOn', { category: displaySpending.labels[0] }) : ''}`
       }
       icon={TagIcon}
       to="/reports"
       linkLabel={t('spending.reportsLink')}
     >
-      {reportLoading ? (
+      {spendingPanelLoading ? (
         <Skeleton className="h-[280px] w-full" />
+      ) : hasMultipleAccountCurrencies && (currencySettings.mode === 'separate' || spendingMissingRates || !currencySpending) ? (
+        <p className="py-6 text-sm text-muted-foreground">
+          {ru ? 'Для графика расходов по категориям выберите режим пересчёта и дождитесь загрузки курсов.' : 'Choose a converted display mode and load exchange rates to view category spending.'}
+        </p>
       ) : (
-        <SpendingChart report={spendingReport} colorByLabel={categoryColors} height={280} />
+        <SpendingChart report={displaySpending} colorByLabel={categoryColors} height={280} />
       )}
     </Panel>
   )
