@@ -306,7 +306,10 @@ def get_budget_summary(
         Transaction.date <= effective_end,
     )
     if category_ids:
-        tx_query = tx_query.filter(\n            (Transaction.category_id.in_(category_ids)) |\n            (Transaction.allocations.any(TransactionAllocation.category_id.in_(category_ids)))\n        )
+        tx_query = tx_query.filter(
+            (Transaction.category_id.in_(category_ids)) |
+            (Transaction.allocations.any(TransactionAllocation.category_id.in_(category_ids)))
+        )
 
     all_transactions = tx_query.order_by(Transaction.date.desc()).all()
 
