@@ -583,12 +583,6 @@ export function DashboardPage() {
         </div>
       ) : (budgets?.length ?? 0) === 0 ? (
         <EmptyLine>{t('budgets.empty')}</EmptyLine>
-      ) : hasMultipleAccountCurrencies ? (
-        <p className="py-4 text-sm text-muted-foreground" role="status">
-          {ru
-            ? 'Прогресс бюджетов пока нельзя корректно рассчитать для счетов в разных валютах. Суммы и проценты скрыты до поддержки валютных бюджетов.'
-            : 'Budget progress cannot yet be calculated reliably across accounts in different currencies. Amounts and percentages are hidden until currency-aware budgets are supported.'}
-        </p>
       ) : (
         <ul className="flex flex-col gap-3.5">
           {budgets?.slice(0, 4).map((budget) => (
@@ -596,7 +590,7 @@ export function DashboardPage() {
               <div className="mb-1.5 flex items-baseline justify-between gap-2">
                 <p className="truncate text-sm font-medium">{budget.name}</p>
                 <p className="shrink-0 text-xs tabular-nums text-muted-foreground">
-                  {formatCurrency(budget.spent)} / {formatCurrency(budget.amount)}
+                  {formatCurrency(budget.spent, budget.currency)} / {formatCurrency(budget.amount, budget.currency)}
                 </p>
               </div>
               <ProgressBar
