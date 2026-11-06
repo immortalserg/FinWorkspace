@@ -20,6 +20,7 @@ function createBudgetSchema(t: (key: string) => string) {
     name: z.string().min(1, t('form.validation.nameRequired')).max(100),
     amount: z.coerce.number<number>().positive(t('form.validation.amountPositive')),
     period: z.enum(['monthly', 'yearly', 'custom']),
+    currency: z.string().regex(/^[A-Z]{3}$/),
     start_date: z.string().optional(),
     end_date: z.string().optional(),
     category_ids: z.array(z.number()),
@@ -67,6 +68,7 @@ export function BudgetFormDialog({ open, onOpenChange, budget }: BudgetFormDialo
       name: '',
       amount: 0,
       period: 'monthly',
+      currency: 'EUR',
       start_date: '',
       end_date: '',
       category_ids: [],
@@ -80,6 +82,7 @@ export function BudgetFormDialog({ open, onOpenChange, budget }: BudgetFormDialo
         name: budget.name,
         amount: budget.amount,
         period: budget.period,
+        currency: budget.currency,
         start_date: toDateInput(budget.start_date),
         end_date: toDateInput(budget.end_date),
         category_ids: budget.category_ids ?? [],
@@ -89,6 +92,7 @@ export function BudgetFormDialog({ open, onOpenChange, budget }: BudgetFormDialo
         name: '',
         amount: 0,
         period: 'monthly',
+      currency: 'EUR',
         start_date: '',
         end_date: '',
         category_ids: [],
@@ -108,6 +112,7 @@ export function BudgetFormDialog({ open, onOpenChange, budget }: BudgetFormDialo
       name: data.name,
       amount: data.amount,
       period: data.period,
+      currency: data.currency,
       start_date: data.start_date || null,
       end_date: data.end_date || null,
       category_ids: data.category_ids,
@@ -162,6 +167,16 @@ export function BudgetFormDialog({ open, onOpenChange, budget }: BudgetFormDialo
               )}
             />
           </div>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="budget-currency">Currency / Валюта</Label>
+          <select id="budget-currency" className="w-full rounded-md border bg-background p-2 text-sm" {...register('currency')}>
+            {Array.from(new Set([...Intl.supportedValuesOf('currency'), budget?.currency ?? 'EUR'])).sort().map(currency => (
+              <option key={currency} value={currency}>{currency}</option>
+            ))}
+          </select>
+          {errors.currency && <p className="text-destructive text-sm">{errors.currency.message}</p>}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
