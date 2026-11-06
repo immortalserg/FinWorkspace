@@ -68,7 +68,9 @@
     "validation": {
       "nameRequired": "Budgetname ist erforderlich",
       "amountPositive": "Betrag muss größer als null sein"
-    }
+    },
+    "currency": "Währung",
+    "currencyReviewHint": "Prüfen Sie bei älteren Budgets die Währung. Eine Änderung rechnet den Budgetbetrag nicht um."
   },
   "details": {
     "titleFallback": "Budget-Details",
