@@ -118,7 +118,7 @@ describe('BudgetsPage', () => {
               id: 99,
               date: '2026-07-10',
               description: 'Supermarket',
-              amount: 150,
+              amount: 250,
               budget_amount: 150,
               category_id: 10,
               category_name: 'Food',
@@ -142,6 +142,9 @@ describe('BudgetsPage', () => {
 
     expect(await screen.findByText('Year usage')).toBeInTheDocument()
     expect(screen.getByText('July 2026')).toBeInTheDocument()
+    await userEvent.click(screen.getByText('July 2026'))
+    expect(screen.getByText('Supermarket')).toBeInTheDocument()
+    expect(screen.queryByText(/250[.,]00/)).not.toBeInTheDocument()
     expect(summarySpy).toHaveBeenCalledWith(1, 2026)
 
     await userEvent.click(screen.getByRole('button', { name: 'Next year 2027' }))
