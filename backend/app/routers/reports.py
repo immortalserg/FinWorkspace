@@ -106,12 +106,12 @@ def get_report_types():
 @router.get("/spending", response_model=SpendingReport)
 def get_spending_report(
     start_date: Optional[date] = None,
-    currency: Optional[str] = None,
     end_date: Optional[date] = None,
     account_ids: Optional[str] = None,
     category_ids: Optional[str] = None,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    currency: Optional[str] = None
 ):
     """Get spending report by category."""
     # Default to current month if no dates
@@ -150,13 +150,13 @@ def get_income_report(
 @router.get("/cashflow", response_model=CashflowReport)
 def get_cashflow_report(
     start_date: Optional[date] = None,
-    currency: Optional[str] = None,
     end_date: Optional[date] = None,
     group_by: str = "month",
     account_ids: Optional[str] = None,
     category_ids: Optional[str] = None,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    currency: Optional[str] = None
 ):
     """Get cash flow report (income vs expenses over time)."""
     if not start_date:
