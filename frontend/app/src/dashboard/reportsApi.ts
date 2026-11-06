@@ -7,6 +7,7 @@ export interface SpendingReport {
 }
 
 export interface SpendingReportParams {
+  currency?: string
   start_date?: string
   end_date?: string
   account_ids?: string
@@ -20,6 +21,7 @@ export interface CashflowReport {
 }
 
 export interface CashflowReportParams {
+  currency?: string
   start_date?: string
   end_date?: string
   group_by?: 'day' | 'week' | 'month'
@@ -56,6 +58,7 @@ export function getCashflowReport(params: CashflowReportParams = {}): Promise<Ca
       start_date: params.start_date,
       end_date: params.end_date,
       group_by: params.group_by ?? 'month',
+      currency: params.currency,
     })}`,
   )
 }
