@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -45,6 +45,7 @@ import {
   ItemTitle,
 } from '@/components/ui/item'
 import { getCashflowReport, getCashflowByCurrency, getSpendingReport, getSpendingByCurrency } from './reportsApi'
+import { getCurrencyPreferences, updateCurrencyPreferences } from './currencyPreferencesApi'
 import { listUpcomingDebtPayments, type UpcomingDebtPayment } from '../debts/debtsApi'
 import {
   listUpcomingRecurringPayments,
@@ -123,18 +124,21 @@ function itemKey(item: DashboardAccountItem): string {
 
 export function DashboardPage() {
   const { t, i18n } = useTranslation('dashboard')
-  const settingsKey = 'finworkspace:currency-display'
-  const [currencySettings, setCurrencySettings] = useState<{ mode: 'converted' | 'separate' | 'both'; base: string }>(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem('finworkspace:currency-display') || '{}')
-      return { mode: ['converted', 'separate', 'both'].includes(saved.mode) ? saved.mode : 'both',
-        base: typeof saved.base === 'string' && /^[A-Z]{3}$/.test(saved.base) ? saved.base : 'EUR' }
-    } catch { return { mode: 'both', base: 'EUR' } }
-  })
+  const [currencySettings, setCurrencySettings] = useState<{ mode: 'converted' | 'separate' | 'both'; base: string }>({ mode: 'both', base: 'EUR' })
   const [spendingCurrency, setSpendingCurrency] = useState<string>('')
+  const { data: serverCurrencySettings } = useQuery({
+    queryKey: ['currency-preferences'],
+    queryFn: getCurrencyPreferences,
+    retry: false,
+  })
+  useEffect(() => {
+    if (serverCurrencySettings) setCurrencySettings(serverCurrencySettings)
+  }, [serverCurrencySettings])
   const saveCurrencySettings = (next: typeof currencySettings) => {
     setCurrencySettings(next)
-    localStorage.setItem(settingsKey, JSON.stringify(next))
+    void updateCurrencyPreferences(next).catch(() => {
+      // Retain the current in-memory choice if the server is temporarily unavailable.
+    })
   }
   const { data: fxRates, isError: fxError } = useQuery({
     queryKey: ['fx', 'open-er-api', currencySettings.base],
