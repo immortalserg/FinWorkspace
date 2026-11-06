@@ -137,7 +137,9 @@ def get_spending_by_currency(
             account_ids, category_ids, currency,
         )
         result[currency] = {str(category_id): round(value, 2) for category_id, value in totals.items()}
-    categories = db.query(Category).filter(\n        (Category.user_id == current_user.id) | (Category.is_system.is_(True))\n    ).all()
+    categories = db.query(Category).filter(
+        (Category.user_id == current_user.id) | (Category.is_system.is_(True))
+    ).all()
     return {
         "categories": {str(category.id): category.name for category in categories},
         "currencies": result,
