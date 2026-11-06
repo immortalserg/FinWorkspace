@@ -20,6 +20,14 @@ export interface CashflowReport {
   expenses: number[]
 }
 
+export interface CurrencyCashflowReport {
+  currencies: Record<string, { income: number; expenses: number }>
+}
+
+export function getCashflowByCurrency(params: { start_date?: string; end_date?: string } = {}): Promise<CurrencyCashflowReport> {
+  return apiFetch<CurrencyCashflowReport>(`/reports/cashflow-by-currency${buildQueryString(params)}`)
+}
+
 export interface CashflowReportParams {
   currency?: string
   start_date?: string
