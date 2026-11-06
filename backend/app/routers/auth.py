@@ -62,6 +62,28 @@ def _send_verification_email(db: Session, user: User, request: Request) -> None:
     )
 
 
+class CurrencyPreferences(BaseModel):
+    mode: str = Field(pattern="^(converted|separate|both)$")
+    base: str = Field(pattern="^[A-Z]{3}$")
+
+
+@router.get("/me/currency-preferences", response_model=CurrencyPreferences)
+def get_currency_preferences(current_user: User = Depends(get_current_user_authenticated)):
+    return {"mode": current_user.currency_display_mode, "base": current_user.currency_base}
+
+
+@router.put("/me/currency-preferences", response_model=CurrencyPreferences)
+def update_currency_preferences(
+    preferences: CurrencyPreferences,
+    current_user: User = Depends(get_current_user_authenticated),
+    db: Session = Depends(get_db),
+):
+    current_user.currency_display_mode = preferences.mode
+    current_user.currency_base = preferences.base
+    db.commit()
+    return preferences
+
+
 class InitialAdminInput(BaseModel):
     email: EmailStr
     full_name: str = Field(min_length=1)
