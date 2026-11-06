@@ -131,6 +131,7 @@ export function DashboardPage() {
         base: typeof saved.base === 'string' && /^[A-Z]{3}$/.test(saved.base) ? saved.base : 'EUR' }
     } catch { return { mode: 'both', base: 'EUR' } }
   })
+  const [spendingCurrency, setSpendingCurrency] = useState<string>('')
   const saveCurrencySettings = (next: typeof currencySettings) => {
     setCurrencySettings(next)
     localStorage.setItem(settingsKey, JSON.stringify(next))
@@ -290,7 +291,20 @@ export function DashboardPage() {
     const ids = Object.keys(totals).sort((a, b) => totals[b] - totals[a])
     return { labels: ids.map(id => currencySpending.categories[id] ?? id), data: ids.map(id => totals[id]) }
   })()
-  const displaySpending = hasMultipleAccountCurrencies ? convertedSpending : spendingReport
+  const availableSpendingCurrencies = spendingCurrencyEntries.map(([currency]) => currency).sort()
+  const selectedSpendingCurrency = availableSpendingCurrencies.includes(spendingCurrency)
+    ? spendingCurrency : availableSpendingCurrencies[0] ?? currencySettings.base
+  const separateSpending = (() => {
+    if (!currencySpending) return undefined
+    const values = currencySpending.currencies[selectedSpendingCurrency] ?? {}
+    const ids = Object.keys(values).sort((a, b) => values[b] - values[a])
+    return { labels: ids.map(id => currencySpending.categories[id] ?? id), data: ids.map(id => values[id]) }
+  })()
+  const showSeparateSpending = hasMultipleAccountCurrencies && currencySettings.mode === 'separate'
+  const displaySpending = showSeparateSpending ? separateSpending
+    : hasMultipleAccountCurrencies ? convertedSpending : spendingReport
+  const spendingDisplayCurrency = showSeparateSpending ? selectedSpendingCurrency
+    : hasMultipleAccountCurrencies ? currencySettings.base : singleCurrency
   const spendingPanelLoading = reportLoading || (hasMultipleAccountCurrencies && currencySpendingLoading)
 
   const categoryColors = useMemo(() => {
@@ -497,10 +511,10 @@ export function DashboardPage() {
       key="spending"
       title={t('spending.title')}
       hint={
-        spendingPanelLoading || (hasMultipleAccountCurrencies && (currencySettings.mode === 'separate' || spendingMissingRates || !currencySpending))
+        spendingPanelLoading || (hasMultipleAccountCurrencies && !showSeparateSpending && (spendingMissingRates || !currencySpending))
           ? undefined
           : `${t('spending.hintSummary', {
-              amount: formatCurrency(hasMultipleAccountCurrencies ? (displaySpending?.data.reduce((a, b) => a + b, 0) ?? 0) : totalSpent, hasMultipleAccountCurrencies ? currencySettings.base : singleCurrency),
+              amount: formatCurrency(hasMultipleAccountCurrencies ? (displaySpending?.data.reduce((a, b) => a + b, 0) ?? 0) : totalSpent, spendingDisplayCurrency),
               count: displaySpending?.labels.length ?? 0,
             })}${displaySpending?.labels[0] ? t('spending.mostOn', { category: displaySpending.labels[0] }) : ''}`
       }
@@ -508,11 +522,28 @@ export function DashboardPage() {
       to="/reports"
       linkLabel={t('spending.reportsLink')}
     >
+      {showSeparateSpending && availableSpendingCurrencies.length > 0 && (
+        <div className="mb-3 flex items-center gap-2">
+          <label htmlFor="dashboard-spending-currency" className="text-xs text-muted-foreground">
+            {ru ? 'Валюта графика' : 'Chart currency'}
+          </label>
+          <select
+            id="dashboard-spending-currency"
+            className="rounded-md border border-input bg-background px-2 py-1 text-sm"
+            value={selectedSpendingCurrency}
+            onChange={event => setSpendingCurrency(event.target.value)}
+          >
+            {availableSpendingCurrencies.map(currency => (
+              <option key={currency} value={currency}>{currency}</option>
+            ))}
+          </select>
+        </div>
+      )}
       {spendingPanelLoading ? (
         <Skeleton className="h-[280px] w-full" />
-      ) : hasMultipleAccountCurrencies && (currencySettings.mode === 'separate' || spendingMissingRates || !currencySpending) ? (
+      ) : hasMultipleAccountCurrencies && !showSeparateSpending && (spendingMissingRates || !currencySpending) ? (
         <p className="py-6 text-sm text-muted-foreground">
-          {ru ? 'Для графика расходов по категориям выберите режим пересчёта и дождитесь загрузки курсов.' : 'Choose a converted display mode and load exchange rates to view category spending.'}
+          {ru ? 'Для пересчёта расходов по категориям необходимы обменные курсы.' : 'Exchange rates are required to convert category spending.'}
         </p>
       ) : (
         <SpendingChart report={displaySpending} colorByLabel={categoryColors} height={280} />
