@@ -147,6 +147,44 @@ def get_income_report(
     return {"labels": [names[key] for key in totals if key in names], "data": [round(value, 2) for key, value in totals.items() if key in names]}
 
 
+@router.get("/cashflow-by-currency")
+def get_cashflow_by_currency(
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    account_ids: Optional[str] = None,
+    category_ids: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Return unconverted income/expenses grouped by account currency.
+
+    Unlike the legacy cashflow endpoint, this never adds amounts in
+    different currencies together. Callers may convert using explicit FX rates.
+    """
+    if start_date is None:
+        start_date = date.today().replace(day=1)
+    if end_date is None:
+        end_date = date.today()
+    query = db.query(
+        Account.currency,
+        Transaction.type,
+        func.sum(Transaction.effective_amount).label("total"),
+    ).join(Account, Account.id == Transaction.account_id).filter(
+        Transaction.user_id == current_user.id,
+        Account.user_id == current_user.id,
+        Transaction.type.in_(("income", "expense")),
+        Transaction.date >= start_date,
+        Transaction.date <= end_date,
+    )
+    query = _apply_filters(query, account_ids, category_ids)
+    rows = query.group_by(Account.currency, Transaction.type).all()
+    result = {}
+    for currency, tx_type, total in rows:
+        amounts = result.setdefault(currency, {"income": 0.0, "expenses": 0.0})
+        amounts["income" if tx_type == "income" else "expenses"] = round(float(total or 0), 2)
+    return {"currencies": result}
+
+
 @router.get("/cashflow", response_model=CashflowReport)
 def get_cashflow_report(
     start_date: Optional[date] = None,
