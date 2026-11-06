@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { HugeiconsIcon } from '@hugeicons/react'
@@ -126,19 +126,29 @@ export function DashboardPage() {
   const { t, i18n } = useTranslation('dashboard')
   const [currencySettings, setCurrencySettings] = useState<{ mode: 'converted' | 'separate' | 'both'; base: string }>({ mode: 'both', base: 'EUR' })
   const [spendingCurrency, setSpendingCurrency] = useState<string>('')
-  const { data: serverCurrencySettings } = useQuery({
+  const queryClient = useQueryClient()
+  const { data: serverCurrencySettings, isLoading: preferencesLoading } = useQuery({
     queryKey: ['currency-preferences'],
     queryFn: getCurrencyPreferences,
     retry: false,
+    refetchOnWindowFocus: true,
+  })
+  const savePreferences = useMutation({
+    mutationFn: updateCurrencyPreferences,
+    onSuccess: saved => {
+      queryClient.setQueryData(['currency-preferences'], saved)
+      setCurrencySettings(saved)
+    },
+    onError: () => {
+      setCurrencySettings(queryClient.getQueryData<typeof currencySettings>(['currency-preferences']) ?? { mode: 'both', base: 'EUR' })
+    },
   })
   useEffect(() => {
-    if (serverCurrencySettings) setCurrencySettings(serverCurrencySettings)
-  }, [serverCurrencySettings])
+    if (serverCurrencySettings && !savePreferences.isPending) setCurrencySettings(serverCurrencySettings)
+  }, [serverCurrencySettings, savePreferences.isPending])
   const saveCurrencySettings = (next: typeof currencySettings) => {
     setCurrencySettings(next)
-    void updateCurrencyPreferences(next).catch(() => {
-      // Retain the current in-memory choice if the server is temporarily unavailable.
-    })
+    savePreferences.mutate(next)
   }
   const { data: fxRates, isError: fxError } = useQuery({
     queryKey: ['fx', 'open-er-api', currencySettings.base],
@@ -755,14 +765,14 @@ export function DashboardPage() {
               <PopoverContent align="start" className="w-[min(90vw,330px)] space-y-3">
                 <label className="block text-sm font-medium" htmlFor="currency-display-mode">{ru ? 'Отображение баланса' : 'Balance display'}</label>
                 <select id="currency-display-mode" className="w-full rounded-md border bg-background p-2 text-sm"
-                  value={currencySettings.mode} onChange={e => saveCurrencySettings({ ...currencySettings, mode: e.target.value as typeof currencySettings.mode })}>
+                  disabled={preferencesLoading || savePreferences.isPending} value={currencySettings.mode} onChange={e => saveCurrencySettings({ ...currencySettings, mode: e.target.value as typeof currencySettings.mode })}>
                   <option value="converted">{ru ? 'В основной валюте' : 'Converted to base currency'}</option>
                   <option value="separate">{ru ? 'Отдельно по валютам' : 'Separate by currency'}</option>
                   <option value="both">{ru ? 'Общий баланс и разбивка' : 'Total and breakdown'}</option>
                 </select>
                 <label className="block text-sm font-medium" htmlFor="currency-display-base">{ru ? 'Основная валюта' : 'Base currency'}</label>
                 <select id="currency-display-base" className="w-full rounded-md border bg-background p-2 text-sm"
-                  value={currencySettings.base} onChange={e => saveCurrencySettings({ ...currencySettings, base: e.target.value })}>
+                  disabled={preferencesLoading || savePreferences.isPending} value={currencySettings.base} onChange={e => saveCurrencySettings({ ...currencySettings, base: e.target.value })}>
                   {Array.from(new Set([...Intl.supportedValuesOf('currency'), currencySettings.base])).sort().map(currency =>
                     <option key={currency} value={currency}>{currency}</option>)}
                 </select>
