@@ -148,6 +148,8 @@ export function DashboardPage() {
   }, [serverCurrencySettings, savePreferences.isPending])
   const saveCurrencySettings = (next: typeof currencySettings) => {
     setCurrencySettings(next)
+    // Ignore rapid repeated changes while the previous save is still in flight.
+    if (savePreferences.isPending) return
     savePreferences.mutate(next)
   }
   const { data: fxRates, isError: fxError } = useQuery({
