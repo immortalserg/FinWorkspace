@@ -121,3 +121,52 @@ def test_annual_budget_summary_uses_allocated_shares(client, db, seed_user):
     assert len(november["transactions"]) == 1
     assert november["transactions"][0]["id"] == eur_tx.id
     assert november["transactions"][0]["budget_amount"] == 30
+
+
+def test_budget_progress_matches_transaction_shares_and_annual_summary(client, db, seed_user):
+    """One split purchase must reconcile across the budget endpoints."""
+    eur = Account(user_id=seed_user.id, name="EUR", type="checking", currency="EUR")
+    usd = Account(user_id=seed_user.id, name="USD", type="checking", currency="USD")
+    food = Category(user_id=seed_user.id, name="Food", type="expense")
+    travel = Category(user_id=seed_user.id, name="Travel", type="expense")
+    db.add_all([eur, usd, food, travel])
+    db.flush()
+
+    eur_tx = Transaction(
+        user_id=seed_user.id, account_id=eur.id, category_id=food.id,
+        amount=100, type="expense", description="Shared purchase", date=date(2026, 11, 1),
+    )
+    usd_tx = Transaction(
+        user_id=seed_user.id, account_id=usd.id, category_id=travel.id,
+        amount=500, type="expense", description="Foreign purchase", date=date(2026, 11, 1),
+    )
+    db.add_all([eur_tx, usd_tx])
+    db.flush()
+    db.add(TransactionAllocation(transaction_id=eur_tx.id, category_id=travel.id, amount=30))
+    db.commit()
+
+    created = client.post("/api/budgets/", json={
+        "name": "Combined EUR", "amount": 200, "currency": "EUR",
+        "period": "custom", "start_date": "2026-11-01T00:00:00",
+        "end_date": "2026-11-30T00:00:00",
+        "category_ids": [food.id, travel.id],
+    })
+    assert created.status_code == 201, created.text
+    budget = created.json()
+    assert budget["currency"] == "EUR"
+    assert budget["spent"] == 100
+
+    tx_response = client.get(f"/api/budgets/{budget['id']}/transactions")
+    assert tx_response.status_code == 200, tx_response.text
+    tx_data = tx_response.json()
+    assert tx_data["total"] == 1
+    assert tx_data["items"][0]["id"] == eur_tx.id
+    assert tx_data["items"][0]["budget_amount"] == 100
+
+    summary_response = client.get(f"/api/budgets/{budget['id']}/summary?year=2026")
+    assert summary_response.status_code == 200, summary_response.text
+    summary = summary_response.json()
+    assert summary["budget"]["currency"] == "EUR"
+    assert summary["year_total"]["spent"] == budget["spent"]
+    assert sum(item["budget_amount"] for period in summary["periods"]
+               for item in period["transactions"]) == budget["spent"]
