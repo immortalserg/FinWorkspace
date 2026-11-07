@@ -64,7 +64,9 @@
     "validation": {
       "nameRequired": "De Budgetnumm ass obligatoresch.",
       "amountPositive": "De Betrag muss méi grouss wéi null sinn."
-    }
+    },
+    "currency": "Wärung",
+    "currencyReviewHint": "Iwwerpréift d'Wärung bei ale Budgeten. Eng Ännerung rechent de Budgetsbetrag net ëm."
   },
   "details": {
     "titleFallback": "Budgetdetailer",

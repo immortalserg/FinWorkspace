@@ -13,6 +13,7 @@ class Budget(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     name = Column(String(100), nullable=False)
     amount = Column(Float, nullable=False)
+    currency = Column(String(3), nullable=False, default="EUR")
     period = Column(String(20), nullable=False)  # monthly, yearly, custom
     start_date = Column(Date)
     end_date = Column(Date)

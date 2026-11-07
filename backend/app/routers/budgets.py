@@ -8,9 +8,41 @@ import calendar
 from app.database import get_db
 from app.utils.security import get_current_user_authenticated as get_current_user
 from app.schemas import BudgetCreate, BudgetUpdate, BudgetResponse, BudgetProgress
-from app.models import User, Budget, BudgetCategory, Category, Transaction
+from app.models import User, Budget, BudgetCategory, Category, Transaction, Account, TransactionAllocation
 
 router = APIRouter(prefix="/budgets", tags=["Budgets"])
+
+
+def _budget_spending(db: Session, budget: Budget, start: date, end: date, category_ids=None):
+    """Count effective category shares in the budget currency."""
+    query = db.query(Transaction).join(Account, Transaction.account_id == Account.id).filter(
+        Transaction.user_id == budget.user_id,
+        Account.user_id == budget.user_id,
+        Account.currency == budget.currency,
+        Transaction.type == "expense",
+    )
+    if start:
+        query = query.filter(Transaction.date >= start)
+    if end:
+        query = query.filter(Transaction.date <= end)
+    return sum(_budget_transaction_share(tx, category_ids) for tx in query.all())
+
+
+
+def _budget_transaction_share(tx: Transaction, category_ids):
+    """Effective amount attributable to the selected budget categories."""
+    if not tx.amount:
+        return 0.0
+    effective = float(tx.effective_amount)
+    factor = effective / float(tx.amount)
+    allocated = sum(float(a.amount) * factor for a in tx.allocations)
+    selected = set(category_ids) if category_ids else None
+    primary = effective - allocated if selected is None or tx.category_id in selected else 0.0
+    extra = sum(
+        float(a.amount) * factor for a in tx.allocations
+        if selected is None or a.category_id in selected
+    )
+    return primary + extra
 
 
 @router.get("/", response_model=List[BudgetResponse])
@@ -48,6 +80,7 @@ def create_budget(
         user_id=current_user.id,
         name=budget_data.name,
         amount=budget_data.amount,
+        currency=budget_data.currency,
         period=budget_data.period,
         start_date=budget_data.start_date,
         end_date=budget_data.end_date
@@ -223,19 +256,8 @@ def get_budget_report(
     
     category_breakdown = []
     for bc in budget.budget_categories:
-        spent_query = db.query(func.sum(Transaction.effective_amount)).filter(
-            Transaction.user_id == current_user.id,
-            Transaction.category_id == bc.category_id,
-            Transaction.type == "expense"
-        )
-        
-        if period_start:
-            spent_query = spent_query.filter(Transaction.date >= period_start)
-        if period_end:
-            spent_query = spent_query.filter(Transaction.date <= period_end)
-        
-        spent = spent_query.scalar() or 0
-        
+        spent = _budget_spending(db, budget, period_start, period_end, [bc.category_id])
+
         category_breakdown.append({
             "category_id": bc.category_id,
             "category_name": bc.category.name,
@@ -251,6 +273,7 @@ def get_budget_report(
             "id": budget.id,
             "name": budget.name,
             "amount": budget.amount,
+            "currency": budget.currency,
             "spent": progress.spent,
             "remaining": progress.remaining,
             "percentage": progress.percentage,
@@ -296,6 +319,7 @@ def get_budget_summary(
                 "id": budget.id,
                 "name": budget.name,
                 "amount": budget.amount,
+                "currency": budget.currency,
                 "period": budget.period,
                 "start_date": budget.start_date,
                 "end_date": budget.end_date,
@@ -306,14 +330,21 @@ def get_budget_summary(
         }
 
     # Fetch all matching transactions for the effective range in one query
-    tx_query = db.query(Transaction).filter(
+    tx_query = db.query(Transaction).join(
+        Account, Transaction.account_id == Account.id
+    ).filter(
+        Account.currency == budget.currency,
+        Account.user_id == current_user.id,
         Transaction.user_id == current_user.id,
         Transaction.type == "expense",
         Transaction.date >= effective_start,
         Transaction.date <= effective_end,
     )
     if category_ids:
-        tx_query = tx_query.filter(Transaction.category_id.in_(category_ids))
+        tx_query = tx_query.filter(
+            (Transaction.category_id.in_(category_ids)) |
+            (Transaction.allocations.any(TransactionAllocation.category_id.in_(category_ids)))
+        )
 
     all_transactions = tx_query.order_by(Transaction.date.desc()).all()
 
@@ -325,8 +356,13 @@ def get_budget_summary(
     year_total_budget = 0
 
     for p_start, p_end, label in periods:
-        period_txs = [tx for tx in all_transactions if p_start <= tx.date <= p_end]
-        spent = sum(float(tx.effective_amount) for tx in period_txs)
+        period_txs = [
+            (tx, share)
+            for tx in all_transactions
+            if p_start <= tx.date <= p_end
+            if (share := _budget_transaction_share(tx, category_ids)) != 0
+        ]
+        spent = sum(share for _, share in period_txs)
         remaining = budget.amount - spent
         percentage = (spent / budget.amount * 100) if budget.amount > 0 else 0
 
@@ -344,12 +380,13 @@ def get_budget_summary(
                     "date": tx.date,
                     "description": tx.description,
                     "amount": tx.amount,
+                    "budget_amount": round(share, 2),
                     "category_id": tx.category_id,
                     "category_name": tx.category.name if tx.category else None,
                     "category_color": tx.category.color if tx.category else None,
                     "account_name": tx.account.name if tx.account else None,
                 }
-                for tx in period_txs
+                for tx, share in period_txs
             ],
         })
 
@@ -363,6 +400,7 @@ def get_budget_summary(
             "id": budget.id,
             "name": budget.name,
             "amount": budget.amount,
+            "currency": budget.currency,
             "period": budget.period,
             "start_date": budget.start_date,
             "end_date": budget.end_date,
@@ -429,37 +467,42 @@ def get_budget_transactions(
     category_ids = [bc.category_id for bc in budget.budget_categories]
     period_start, period_end = get_period_dates(budget)
     
-    query = db.query(Transaction).filter(
+    query = db.query(Transaction).join(
+        Account, Transaction.account_id == Account.id
+    ).filter(
         Transaction.user_id == current_user.id,
-        Transaction.type == "expense"
+        Account.user_id == current_user.id,
+        Account.currency == budget.currency,
+        Transaction.type == "expense",
     )
-    
-    if category_ids:
-        query = query.filter(Transaction.category_id.in_(category_ids))
-    
     if period_start:
         query = query.filter(Transaction.date >= period_start)
     if period_end:
         query = query.filter(Transaction.date <= period_end)
-    
-    total = query.count()
-    transactions = query.order_by(Transaction.date.desc()).offset(skip).limit(limit).all()
-    
+
+    # Filter before pagination so count and pages include split-category matches.
+    matching = [
+        (tx, share)
+        for tx in query.order_by(Transaction.date.desc(), Transaction.id.desc()).all()
+        if (share := _budget_transaction_share(tx, category_ids)) != 0
+    ]
+    total = len(matching)
     result = []
-    for tx in transactions:
+    for tx, share in matching[skip:skip + limit]:
         result.append({
             "id": tx.id,
             "date": tx.date,
             "description": tx.description,
             "amount": tx.amount,
+            "budget_amount": round(share, 2),
             "category_id": tx.category_id,
             "category_name": tx.category.name if tx.category else None,
             "category_color": tx.category.color if tx.category else None,
             "account_id": tx.account_id,
             "account_name": tx.account.name if tx.account else None,
-            "notes": tx.notes
+            "notes": tx.notes,
         })
-    
+
     return {
         "items": result,
         "total": total,
@@ -467,6 +510,7 @@ def get_budget_transactions(
             "id": budget.id,
             "name": budget.name,
             "amount": budget.amount,
+            "currency": budget.currency,
             "period": budget.period,
             "start_date": budget.start_date,
             "end_date": budget.end_date,
@@ -614,20 +658,7 @@ def calculate_budget_progress(db: Session, budget: Budget) -> BudgetResponse:
     category_ids = [bc.category_id for bc in budget.budget_categories]
     period_start, period_end = get_period_dates(budget)
 
-    query = db.query(func.sum(Transaction.effective_amount)).filter(
-        Transaction.user_id == budget.user_id,
-        Transaction.type == "expense"
-    )
-
-    if category_ids:
-        query = query.filter(Transaction.category_id.in_(category_ids))
-
-    if period_start:
-        query = query.filter(Transaction.date >= period_start)
-    if period_end:
-        query = query.filter(Transaction.date <= period_end)
-    
-    spent = query.scalar() or 0
+    spent = _budget_spending(db, budget, period_start, period_end, category_ids)
     remaining = budget.amount - spent
     percentage = (spent / budget.amount * 100) if budget.amount > 0 else 0
 
@@ -636,6 +667,7 @@ def calculate_budget_progress(db: Session, budget: Budget) -> BudgetResponse:
         user_id=budget.user_id,
         name=budget.name,
         amount=budget.amount,
+        currency=budget.currency,
         period=budget.period,
         start_date=budget.start_date,
         end_date=budget.end_date,

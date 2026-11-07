@@ -20,6 +20,7 @@ import { Amount, CategoryChip, flowOfType, flowSurface } from '../ui/money'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '../lib/format'
 import type { Transaction } from './transactionsApi'
+import { CategoryIcon } from '../categories/categoryIcons'
 import { TransactionMenuItems, type TransactionRowHandlers } from './TransactionMenuItems'
 
 type Translate = (key: string, options?: Record<string, unknown>) => string
@@ -46,6 +47,7 @@ export function createColumns(
   language = 'en',
   showAllCategories = false,
   categoryColors: Record<number, string | null> = {},
+  categoryIcons: Record<number, string | null> = {},
 ): ColumnDef<Transaction>[] {
   const FLOW_LABEL = {
     in: t('columns.flowLabel.in'),
@@ -137,28 +139,38 @@ export function createColumns(
         <DataTableColumnHeader column={column} title={t('columns.category')} />
       ),
       cell: ({ row }) => {
-        const { category_name, category_color, type } = row.original
-        if (type === 'transfer') {
-          return (
-            <span className="text-xs text-muted-foreground">{t('columns.betweenAccounts')}</span>
-          )
-        }
+        const { category_name, category_color, category_id, type } = row.original
         const allocations = row.original.allocations ?? []
-        if (!showAllCategories || allocations.length === 0) {
-          return <CategoryChip name={category_name} color={category_color} />
+        if (type === 'transfer') {
+          return <span className="text-xs text-muted-foreground">{t('columns.betweenAccounts')}</span>
         }
+        const categoryEntries = [
+          { id: category_id, name: category_name, color: category_color },
+          ...(showAllCategories ? allocations.map(a => ({
+            id: a.category_id,
+            name: a.category_name ?? `#${a.category_id}`,
+            color: categoryColors[a.category_id],
+          })) : []),
+        ]
         return (
           <div className="flex flex-wrap items-center gap-1.5">
-            <CategoryChip name={category_name} color={category_color} />
-            {allocations.map(allocation => (
-              <CategoryChip key={allocation.id}
-                name={allocation.category_name ?? `#${allocation.category_id}`}
-                color={categoryColors[allocation.category_id]} />
+            {categoryEntries.map((entry, index) => (
+              <span key={entry.id ?? `primary-${index}`} title={entry.name ?? undefined} className="inline-flex items-center">
+                <CategoryIcon
+                  icon={entry.id == null ? null : categoryIcons[entry.id]}
+                  color={entry.color || '#64748b'}
+                  className="size-7 sm:size-6"
+                  size={15}
+                />
+                <span className="sr-only sm:not-sr-only sm:ms-1.5">
+                  <CategoryChip name={entry.name} color={entry.color} />
+                </span>
+              </span>
             ))}
           </div>
         )
       },
-      meta: { cellClassName: 'min-w-[6rem] max-w-[18rem]', headerClassName: '' },
+      meta: { cellClassName: 'max-w-[5rem] sm:min-w-[6rem] sm:max-w-[18rem]', headerClassName: '' },
     },
     {
       id: 'imported',

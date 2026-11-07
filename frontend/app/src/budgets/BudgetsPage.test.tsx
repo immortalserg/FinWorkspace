@@ -21,6 +21,7 @@ const groceryBudget: budgetsApi.Budget = {
   user_id: 1,
   name: 'Groceries',
   amount: 400,
+  currency: 'EUR',
   period: 'monthly',
   start_date: '2026-01-01',
   end_date: null,
@@ -97,6 +98,7 @@ describe('BudgetsPage', () => {
         id: 1,
         name: 'Groceries',
         amount: 400,
+        currency: 'EUR',
         period: 'monthly',
         start_date: '2026-01-01',
         end_date: null,
@@ -116,7 +118,8 @@ describe('BudgetsPage', () => {
               id: 99,
               date: '2026-07-10',
               description: 'Supermarket',
-              amount: 150,
+              amount: 250,
+              budget_amount: 150,
               category_id: 10,
               category_name: 'Food',
               category_color: null,
@@ -139,6 +142,11 @@ describe('BudgetsPage', () => {
 
     expect(await screen.findByText('Year usage')).toBeInTheDocument()
     expect(screen.getByText('July 2026')).toBeInTheDocument()
+    await userEvent.click(screen.getByText('July 2026'))
+    const transactionRow = screen.getByText('Supermarket').closest('tr')
+    expect(transactionRow).not.toBeNull()
+    expect(within(transactionRow!).getByText(`−${formatCurrency(150, 'EUR')}`)).toBeInTheDocument()
+    expect(within(transactionRow!).queryByText(`−${formatCurrency(250, 'EUR')}`)).not.toBeInTheDocument()
     expect(summarySpy).toHaveBeenCalledWith(1, 2026)
 
     await userEvent.click(screen.getByRole('button', { name: 'Next year 2027' }))

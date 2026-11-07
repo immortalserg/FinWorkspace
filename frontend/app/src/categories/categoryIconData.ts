@@ -324,6 +324,34 @@ export const ICON_MAP = {
   invoice: Invoice01Icon,
   giftcard: Gif01Icon,
 
+  // Additional category choices (reuse the established HugeIcons set).
+  supermarket: ShoppingBasket01Icon,
+  restaurant: Restaurant02Icon,
+  snacks: StreetFoodIcon,
+  publictransport: BusIcon,
+  carservice: RepairIcon,
+  carinsurance: ShieldIcon,
+  evcharging: EnergyIcon,
+  heating: GasPipeIcon,
+  mobileplan: SmartPhoneIcon,
+  software: ComputerIcon,
+  streaming: Film01Icon,
+  appliances: WashingMachineIcon,
+  cosmetics: HairDryerIcon,
+  dentist: DentalToothIcon,
+  veterinarian: CatIcon,
+  school: GraduationCapIcon,
+  childcare: HouseHeartIcon,
+  vacation: BeachIcon,
+  accommodation: HotelIcon,
+  tickets: CouponIcon,
+  pension: PiggyBankIcon,
+  loan: BankIcon,
+  bankfees: CreditCardIcon,
+  refund: CashbackIcon,
+  sideincome: BriefcaseIcon,
+  scholarship: Award01Icon,
+
   // ═══════════════════════════════════════
   //  GOALS, TAXES & PROTECTION
   // ═══════════════════════════════════════

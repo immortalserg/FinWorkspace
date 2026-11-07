@@ -68,7 +68,9 @@
     "validation": {
       "nameRequired": "Le nom du budget est obligatoire",
       "amountPositive": "Le montant doit être supérieur à zéro"
-    }
+    },
+    "currency": "Devise",
+    "currencyReviewHint": "Pour les budgets créés avant la prise en charge des devises, vérifiez la devise. La modifier ne convertit pas le montant."
   },
   "details": {
     "titleFallback": "Détails du budget",

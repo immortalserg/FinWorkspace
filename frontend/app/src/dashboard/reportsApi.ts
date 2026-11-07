@@ -6,7 +6,17 @@ export interface SpendingReport {
   transaction_count?: number
 }
 
+export interface CurrencySpendingReport {
+  categories: Record<string, string>
+  currencies: Record<string, Record<string, number>>
+}
+
+export function getSpendingByCurrency(params: { start_date?: string; end_date?: string } = {}): Promise<CurrencySpendingReport> {
+  return apiFetch<CurrencySpendingReport>(`/reports/spending-by-currency${buildQueryString(params)}`)
+}
+
 export interface SpendingReportParams {
+  currency?: string
   start_date?: string
   end_date?: string
   account_ids?: string
@@ -19,7 +29,16 @@ export interface CashflowReport {
   expenses: number[]
 }
 
+export interface CurrencyCashflowReport {
+  currencies: Record<string, { income: number; expenses: number }>
+}
+
+export function getCashflowByCurrency(params: { start_date?: string; end_date?: string } = {}): Promise<CurrencyCashflowReport> {
+  return apiFetch<CurrencyCashflowReport>(`/reports/cashflow-by-currency${buildQueryString(params)}`)
+}
+
 export interface CashflowReportParams {
+  currency?: string
   start_date?: string
   end_date?: string
   group_by?: 'day' | 'week' | 'month'
@@ -56,6 +75,7 @@ export function getCashflowReport(params: CashflowReportParams = {}): Promise<Ca
       start_date: params.start_date,
       end_date: params.end_date,
       group_by: params.group_by ?? 'month',
+      currency: params.currency,
     })}`,
   )
 }

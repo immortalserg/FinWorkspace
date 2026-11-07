@@ -68,7 +68,9 @@
     "validation": {
       "nameRequired": "Il nome del budget è obbligatorio",
       "amountPositive": "L'importo deve essere maggiore di zero"
-    }
+    },
+    "currency": "Valuta",
+    "currencyReviewHint": "Per i budget creati prima del supporto multivaluta, verifica la valuta. Modificarla non converte l'importo."
   },
   "details": {
     "titleFallback": "Dettagli Budget",

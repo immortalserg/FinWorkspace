@@ -7,6 +7,7 @@ export interface Budget {
   user_id: number
   name: string
   amount: number
+  currency: string
   period: BudgetPeriod
   start_date: string | null
   end_date: string | null
@@ -23,6 +24,7 @@ export interface Budget {
 export interface BudgetInput {
   name: string
   amount: number
+  currency: string
   period: BudgetPeriod
   start_date?: string | null
   end_date?: string | null
@@ -34,6 +36,7 @@ export interface BudgetSummaryTransaction {
   date: string
   description: string
   amount: number
+  budget_amount: number
   category_id: number | null
   category_name: string | null
   category_color: string | null
@@ -56,6 +59,7 @@ export interface BudgetSummary {
     id: number
     name: string
     amount: number
+    currency: string
     period: BudgetPeriod
     start_date: string | null
     end_date: string | null

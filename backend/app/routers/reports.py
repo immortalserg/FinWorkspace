@@ -46,7 +46,7 @@ def _apply_filters(query, account_ids: Optional[str], category_ids: Optional[str
 
 
 
-def _category_totals(db, user_id, tx_type, start_date, end_date, account_ids=None, category_ids=None):
+def _category_totals(db, user_id, tx_type, start_date, end_date, account_ids=None, category_ids=None, currency=None):
     """Category distribution, counting the original transaction only once.
 
     Reimbursements reduce effective totals. Additional allocations take their
@@ -62,6 +62,10 @@ def _category_totals(db, user_id, tx_type, start_date, end_date, account_ids=Non
         Transaction.date >= start_date,
         Transaction.date <= end_date,
     )
+    if currency:
+        query = query.join(Account, Account.id == Transaction.account_id).filter(
+            Account.user_id == user_id, Account.currency == currency
+        )
     account_filter = _parse_id_list(account_ids)
     category_filter = _parse_id_list(category_ids)
     if account_filter:
@@ -99,6 +103,49 @@ def get_report_types():
     }
 
 
+@router.get("/spending-by-currency")
+def get_spending_by_currency(
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    account_ids: Optional[str] = None,
+    category_ids: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Category spending separated by currency, including allocations and reimbursements."""
+    if start_date is None:
+        start_date = date.today().replace(day=1)
+    if end_date is None:
+        end_date = date.today()
+    query = db.query(Account.currency).join(
+        Transaction, Transaction.account_id == Account.id
+    ).filter(
+        Account.user_id == current_user.id,
+        Transaction.user_id == current_user.id,
+        Transaction.type == "expense",
+        Transaction.date >= start_date,
+        Transaction.date <= end_date,
+    )
+    selected_accounts = _parse_id_list(account_ids)
+    if selected_accounts:
+        query = query.filter(Account.id.in_(selected_accounts))
+    currencies = sorted({row[0] for row in query.distinct().all()})
+    result = {}
+    for currency in currencies:
+        totals, _ = _category_totals(
+            db, current_user.id, "expense", start_date, end_date,
+            account_ids, category_ids, currency,
+        )
+        result[currency] = {str(category_id): round(value, 2) for category_id, value in totals.items()}
+    categories = db.query(Category).filter(
+        (Category.user_id == current_user.id) | (Category.is_system.is_(True))
+    ).all()
+    return {
+        "categories": {str(category.id): category.name for category in categories},
+        "currencies": result,
+    }
+
+
 @router.get("/spending", response_model=SpendingReport)
 def get_spending_report(
     start_date: Optional[date] = None,
@@ -106,7 +153,8 @@ def get_spending_report(
     account_ids: Optional[str] = None,
     category_ids: Optional[str] = None,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    currency: Optional[str] = None
 ):
     """Get spending report by category."""
     # Default to current month if no dates
@@ -115,7 +163,7 @@ def get_spending_report(
     if not end_date:
         end_date = date.today()
     
-    totals, _ = _category_totals(db, current_user.id, "expense", start_date, end_date, account_ids, category_ids)
+    totals, _ = _category_totals(db, current_user.id, "expense", start_date, end_date, account_ids, category_ids, currency)
     categories = db.query(Category).filter(Category.user_id == current_user.id, Category.id.in_(list(totals))).all()
     names = {category.id: category.name for category in categories}
     return SpendingReport(labels=[names[key] for key in totals if key in names], data=[round(value, 2) for key, value in totals.items() if key in names])
@@ -142,6 +190,44 @@ def get_income_report(
     return {"labels": [names[key] for key in totals if key in names], "data": [round(value, 2) for key, value in totals.items() if key in names]}
 
 
+@router.get("/cashflow-by-currency")
+def get_cashflow_by_currency(
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    account_ids: Optional[str] = None,
+    category_ids: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Return unconverted income/expenses grouped by account currency.
+
+    Unlike the legacy cashflow endpoint, this never adds amounts in
+    different currencies together. Callers may convert using explicit FX rates.
+    """
+    if start_date is None:
+        start_date = date.today().replace(day=1)
+    if end_date is None:
+        end_date = date.today()
+    query = db.query(
+        Account.currency,
+        Transaction.type,
+        func.sum(Transaction.effective_amount).label("total"),
+    ).join(Account, Account.id == Transaction.account_id).filter(
+        Transaction.user_id == current_user.id,
+        Account.user_id == current_user.id,
+        Transaction.type.in_(("income", "expense")),
+        Transaction.date >= start_date,
+        Transaction.date <= end_date,
+    )
+    query = _apply_filters(query, account_ids, category_ids)
+    rows = query.group_by(Account.currency, Transaction.type).all()
+    result = {}
+    for currency, tx_type, total in rows:
+        amounts = result.setdefault(currency, {"income": 0.0, "expenses": 0.0})
+        amounts["income" if tx_type == "income" else "expenses"] = round(float(total or 0), 2)
+    return {"currencies": result}
+
+
 @router.get("/cashflow", response_model=CashflowReport)
 def get_cashflow_report(
     start_date: Optional[date] = None,
@@ -150,7 +236,8 @@ def get_cashflow_report(
     account_ids: Optional[str] = None,
     category_ids: Optional[str] = None,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    currency: Optional[str] = None
 ):
     """Get cash flow report (income vs expenses over time)."""
     if not start_date:
@@ -182,6 +269,8 @@ def get_cashflow_report(
         Transaction.date >= start_date,
         Transaction.date <= end_date
     )
+    if currency:
+        income_query = income_query.join(Account, Account.id == Transaction.account_id).filter(Account.user_id == current_user.id, Account.currency == currency)
     income_query = _apply_filters(income_query, account_ids, category_ids)
     income_results = income_query.group_by("period").order_by("period").all()
 
@@ -195,6 +284,8 @@ def get_cashflow_report(
         Transaction.date >= start_date,
         Transaction.date <= end_date
     )
+    if currency:
+        expense_query = expense_query.join(Account, Account.id == Transaction.account_id).filter(Account.user_id == current_user.id, Account.currency == currency)
     expense_query = _apply_filters(expense_query, account_ids, category_ids)
     expense_results = expense_query.group_by("period").order_by("period").all()
 

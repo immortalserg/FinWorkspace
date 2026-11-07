@@ -79,6 +79,7 @@ describe('DashboardPage', () => {
         user_id: 1,
         name: 'Food',
         amount: 300,
+        currency: 'EUR',
         period: 'monthly',
         start_date: null,
         end_date: null,

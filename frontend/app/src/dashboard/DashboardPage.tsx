@@ -1,5 +1,5 @@
-import { useMemo, type ReactNode } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { HugeiconsIcon } from '@hugeicons/react'
@@ -12,6 +12,7 @@ import {
   TagIcon,
   TargetIcon,
   WalletIcon,
+  Settings02Icon,
 } from '@hugeicons/core-free-icons'
 import { useActiveAccounts } from '../accounts/useAccounts'
 import { useBankConnections } from '../bank-sync/useBankSync'
@@ -31,6 +32,7 @@ import { useMediaQuery } from '../ui/useMediaQuery'
 import { useBalanceVisibility } from '../ui/BalanceVisibilityContext'
 import { Amount, CategoryChip, flowOfType, flowRail } from '../ui/money'
 import { Button } from '@/components/ui/button'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
@@ -42,7 +44,8 @@ import {
   ItemMedia,
   ItemTitle,
 } from '@/components/ui/item'
-import { getCashflowReport, getSpendingReport } from './reportsApi'
+import { getCashflowReport, getCashflowByCurrency, getSpendingReport, getSpendingByCurrency } from './reportsApi'
+import { getCurrencyPreferences, updateCurrencyPreferences } from './currencyPreferencesApi'
 import { listUpcomingDebtPayments, type UpcomingDebtPayment } from '../debts/debtsApi'
 import {
   listUpcomingRecurringPayments,
@@ -120,7 +123,51 @@ function itemKey(item: DashboardAccountItem): string {
 }
 
 export function DashboardPage() {
-  const { t } = useTranslation('dashboard')
+  const { t, i18n } = useTranslation('dashboard')
+  const [currencySettings, setCurrencySettings] = useState<{ mode: 'converted' | 'separate' | 'both'; base: string }>({ mode: 'both', base: 'EUR' })
+  const [spendingCurrency, setSpendingCurrency] = useState<string>('')
+  const queryClient = useQueryClient()
+  const { data: serverCurrencySettings, isLoading: preferencesLoading } = useQuery({
+    queryKey: ['currency-preferences'],
+    queryFn: getCurrencyPreferences,
+    retry: false,
+    refetchOnWindowFocus: true,
+  })
+  const savePreferences = useMutation({
+    mutationFn: updateCurrencyPreferences,
+    onSuccess: saved => {
+      queryClient.setQueryData(['currency-preferences'], saved)
+      setCurrencySettings(saved)
+    },
+    onError: () => {
+      setCurrencySettings(queryClient.getQueryData<typeof currencySettings>(['currency-preferences']) ?? { mode: 'both', base: 'EUR' })
+    },
+  })
+  useEffect(() => {
+    if (serverCurrencySettings && !savePreferences.isPending) setCurrencySettings(serverCurrencySettings)
+  }, [serverCurrencySettings, savePreferences.isPending])
+  const saveCurrencySettings = (next: typeof currencySettings) => {
+    setCurrencySettings(next)
+    // Ignore rapid repeated changes while the previous save is still in flight.
+    if (savePreferences.isPending) return
+    savePreferences.mutate(next)
+  }
+  const { data: fxRates, isError: fxError } = useQuery({
+    queryKey: ['fx', 'open-er-api', currencySettings.base],
+    queryFn: async (): Promise<{ rates: Record<string, number>; time_last_update_utc: string }> => {
+      const response = await fetch(`https://open.er-api.com/v6/latest/${currencySettings.base}`)
+      if (!response.ok) throw new Error('Exchange rates unavailable')
+      const result = await response.json()
+      if (result.result !== 'success' || !result.rates) throw new Error('Invalid exchange rates')
+      return result
+    },
+    enabled: currencySettings.mode !== 'separate',
+    staleTime: 60 * 60 * 1000,
+    retry: 1,
+  })
+  const ru = i18n.resolvedLanguage === 'ru'
+  const isConverted = currencySettings.mode !== 'separate'
+  const isSplit = currencySettings.mode !== 'converted'
   const isDesktop = useMediaQuery('(min-width: 1024px)')
   const { hidden: balancesHidden } = useBalanceVisibility()
   const monthRange = currentMonthRange()
@@ -153,6 +200,12 @@ export function DashboardPage() {
     queryFn: () => getCashflowReport({ ...monthRange, group_by: 'month' }),
   })
 
+  const { data: currencyCashflow, isLoading: currencyCashflowLoading } = useQuery({
+    queryKey: ['cashflow-by-currency', monthRange],
+    queryFn: () => getCashflowByCurrency(monthRange),
+    enabled: (accounts?.length ?? 0) > 0 && new Set(accounts?.map(account => account.currency)).size > 1,
+  })
+
   const { data: recentTxnData, isLoading: recentTxnLoading } = useTransactions({
     page: 1,
     per_page: 6,
@@ -161,6 +214,13 @@ export function DashboardPage() {
   const { data: spendingReport, isLoading: reportLoading } = useQuery({
     queryKey: queryKeys.spendingReport(monthRange),
     queryFn: () => getSpendingReport(monthRange),
+  })
+
+  const hasMultipleAccountCurrencies = new Set((accounts ?? []).map(account => account.currency || 'EUR')).size > 1
+  const { data: currencySpending, isLoading: currencySpendingLoading } = useQuery({
+    queryKey: ['spending-by-currency', monthRange],
+    queryFn: () => getSpendingByCurrency(monthRange),
+    enabled: hasMultipleAccountCurrencies,
   })
 
   const { data: upcomingDebts, isLoading: debtsLoading } = useQuery({
@@ -177,15 +237,91 @@ export function DashboardPage() {
   const totalExpenses = monthCashflow?.expenses.reduce((a, b) => a + b, 0) ?? 0
   const netSaved = totalIncome - totalExpenses
 
-  const totalBalance = accounts?.reduce((sum, acc) => sum + (acc.balance ?? 0), 0) ?? 0
+  // Never add balances in different currencies without an exchange rate.
+  const balancesByCurrency = (accounts ?? []).reduce<Record<string, number>>((totals, account) => {
+    const currency = account.currency || 'EUR'
+    totals[currency] = (totals[currency] ?? 0) + (account.balance ?? 0)
+    return totals
+  }, {})
+  const balanceSummary = Object.entries(balancesByCurrency)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([currency, balance]) => formatBalance(balance, currency, balancesHidden))
+  const convertedBalance = Object.entries(balancesByCurrency).reduce((sum, [currency, balance]) => {
+    if (currency === currencySettings.base) return sum + balance
+    const rate = fxRates?.rates[currency]
+    return rate && rate > 0 ? sum + balance / rate : sum
+  }, 0)
+  const hasMissingRate = Object.keys(balancesByCurrency).some(currency =>
+    currency !== currencySettings.base && !((fxRates?.rates[currency] ?? 0) > 0))
+  const showConvertedBalance = !hasMissingRate && (!!fxRates || Object.keys(balancesByCurrency).every(currency => currency === currencySettings.base))
+  // The legacy cashflow/spending endpoints return amounts without currency
+  // conversion. Suppress mixed-currency totals until the reports API is upgraded.
+  const mixedCurrencies = Object.keys(balancesByCurrency).length > 1
+  const singleCurrency = Object.keys(balancesByCurrency)[0] ?? currencySettings.base
+  const cashflowEntries = Object.entries(currencyCashflow?.currencies ?? {})
+  const cashflowHasMissingRate = cashflowEntries.some(([currency]) =>
+    currency !== currencySettings.base && !((fxRates?.rates[currency] ?? 0) > 0))
+  const convertedCashflow = cashflowEntries.reduce((totals, [currency, amounts]) => {
+    const rate = currency === currencySettings.base ? 1 : fxRates?.rates[currency]
+    if (rate && rate > 0) {
+      totals.income += amounts.income / rate
+      totals.expenses += amounts.expenses / rate
+    }
+    return totals
+  }, { income: 0, expenses: 0 })
+  const cashflowDisplay = (field: 'income' | 'expenses' | 'net') => {
+    if (!mixedCurrencies) {
+      return formatCurrency(field === 'income' ? totalIncome : field === 'expenses' ? totalExpenses : netSaved, singleCurrency)
+    }
+    if (!currencyCashflow) return '—'
+    const amountFor = (amounts: { income: number; expenses: number }) =>
+      field === 'income' ? amounts.income : field === 'expenses' ? amounts.expenses : amounts.income - amounts.expenses
+    const separate = cashflowEntries
+      .filter(([, amounts]) => amountFor(amounts) !== 0)
+      .map(([currency, amounts]) => formatCurrency(amountFor(amounts), currency))
+      .join(' · ') || formatCurrency(0, currencySettings.base)
+    if (currencySettings.mode === 'separate') return separate
+    if (cashflowHasMissingRate) return '—'
+    const converted = formatCurrency(amountFor(convertedCashflow), currencySettings.base)
+    return currencySettings.mode === 'both' ? `${converted} (${separate})` : converted
+  }
   const accountCount = accounts?.length ?? 0
 
   const totalSpent = spendingReport?.data.reduce((a, b) => a + b, 0) ?? 0
-  const topCategory =
-    spendingReport && spendingReport.labels.length > 0
-      ? { name: spendingReport.labels[0], amount: spendingReport.data[0] }
-      : null
-  const categoryCount = spendingReport?.labels.length ?? 0
+
+  const spendingCurrencyEntries = Object.entries(currencySpending?.currencies ?? {})
+  const spendingMissingRates = spendingCurrencyEntries.some(([currency, values]) =>
+    Object.values(values).some(value => value !== 0) &&
+    currency !== currencySettings.base && !((fxRates?.rates[currency] ?? 0) > 0))
+  const convertedSpending = (() => {
+    if (!hasMultipleAccountCurrencies) return spendingReport
+    if (!currencySpending || spendingMissingRates) return undefined
+    const totals: Record<string, number> = {}
+    for (const [currency, values] of spendingCurrencyEntries) {
+      const rate = currency === currencySettings.base ? 1 : fxRates?.rates[currency]
+      if (!rate || rate <= 0) continue
+      for (const [categoryId, amount] of Object.entries(values)) {
+        totals[categoryId] = (totals[categoryId] ?? 0) + amount / rate
+      }
+    }
+    const ids = Object.keys(totals).sort((a, b) => totals[b] - totals[a])
+    return { labels: ids.map(id => currencySpending.categories[id] ?? id), data: ids.map(id => totals[id]) }
+  })()
+  const availableSpendingCurrencies = spendingCurrencyEntries.map(([currency]) => currency).sort()
+  const selectedSpendingCurrency = availableSpendingCurrencies.includes(spendingCurrency)
+    ? spendingCurrency : availableSpendingCurrencies[0] ?? currencySettings.base
+  const separateSpending = (() => {
+    if (!currencySpending) return undefined
+    const values = currencySpending.currencies[selectedSpendingCurrency] ?? {}
+    const ids = Object.keys(values).sort((a, b) => values[b] - values[a])
+    return { labels: ids.map(id => currencySpending.categories[id] ?? id), data: ids.map(id => values[id]) }
+  })()
+  const showSeparateSpending = hasMultipleAccountCurrencies && currencySettings.mode === 'separate'
+  const displaySpending = showSeparateSpending ? separateSpending
+    : hasMultipleAccountCurrencies ? convertedSpending : spendingReport
+  const spendingDisplayCurrency = showSeparateSpending ? selectedSpendingCurrency
+    : hasMultipleAccountCurrencies ? currencySettings.base : singleCurrency
+  const spendingPanelLoading = reportLoading || (hasMultipleAccountCurrencies && currencySpendingLoading)
 
   const categoryColors = useMemo(() => {
     const map: Record<string, string> = {}
@@ -391,21 +527,42 @@ export function DashboardPage() {
       key="spending"
       title={t('spending.title')}
       hint={
-        reportLoading
+        spendingPanelLoading || (hasMultipleAccountCurrencies && !showSeparateSpending && (spendingMissingRates || !currencySpending))
           ? undefined
           : `${t('spending.hintSummary', {
-              amount: formatCurrency(totalSpent),
-              count: categoryCount,
-            })}${topCategory ? t('spending.mostOn', { category: topCategory.name }) : ''}`
+              amount: formatCurrency(hasMultipleAccountCurrencies ? (displaySpending?.data.reduce((a, b) => a + b, 0) ?? 0) : totalSpent, spendingDisplayCurrency),
+              count: displaySpending?.labels.length ?? 0,
+            })}${displaySpending?.labels[0] ? t('spending.mostOn', { category: displaySpending.labels[0] }) : ''}`
       }
       icon={TagIcon}
       to="/reports"
       linkLabel={t('spending.reportsLink')}
     >
-      {reportLoading ? (
+      {showSeparateSpending && availableSpendingCurrencies.length > 0 && (
+        <div className="mb-3 flex items-center gap-2">
+          <label htmlFor="dashboard-spending-currency" className="text-xs text-muted-foreground">
+            {ru ? 'Валюта графика' : 'Chart currency'}
+          </label>
+          <select
+            id="dashboard-spending-currency"
+            className="rounded-md border border-input bg-background px-2 py-1 text-sm"
+            value={selectedSpendingCurrency}
+            onChange={event => setSpendingCurrency(event.target.value)}
+          >
+            {availableSpendingCurrencies.map(currency => (
+              <option key={currency} value={currency}>{currency}</option>
+            ))}
+          </select>
+        </div>
+      )}
+      {spendingPanelLoading ? (
         <Skeleton className="h-[280px] w-full" />
+      ) : hasMultipleAccountCurrencies && !showSeparateSpending && (spendingMissingRates || !currencySpending) ? (
+        <p className="py-6 text-sm text-muted-foreground">
+          {ru ? 'Для пересчёта расходов по категориям необходимы обменные курсы.' : 'Exchange rates are required to convert category spending.'}
+        </p>
       ) : (
-        <SpendingChart report={spendingReport} colorByLabel={categoryColors} height={280} />
+        <SpendingChart report={displaySpending} colorByLabel={categoryColors} height={280} />
       )}
     </Panel>
   )
@@ -433,7 +590,7 @@ export function DashboardPage() {
               <div className="mb-1.5 flex items-baseline justify-between gap-2">
                 <p className="truncate text-sm font-medium">{budget.name}</p>
                 <p className="shrink-0 text-xs tabular-nums text-muted-foreground">
-                  {formatCurrency(budget.spent)} / {formatCurrency(budget.amount)}
+                  {formatCurrency(budget.spent, budget.currency)} / {formatCurrency(budget.amount, budget.currency)}
                 </p>
               </div>
               <ProgressBar
@@ -586,11 +743,49 @@ export function DashboardPage() {
               {t('summary.totalBalance')}
             </p>
             <p className={`mt-1 font-heading text-3xl font-bold tabular-nums tracking-tight sm:text-4xl ${isDesktop ? 'text-white' : 'text-muted-foreground'}`}>
-              {accountsLoading ? '…' : formatBalance(totalBalance, undefined, balancesHidden)}
+              {accountsLoading ? '…' : isConverted
+                ? (showConvertedBalance ? formatBalance(convertedBalance, currencySettings.base, balancesHidden) : '—')
+                : (balanceSummary.length ? balanceSummary.join(' · ') : formatBalance(0, currencySettings.base, balancesHidden))}
             </p>
             <p className={`mt-0.5 text-xs ${isDesktop ? 'text-white' : 'text-muted-foreground'}`}>
               {t('summary.accountsCount', { count: accountCount })}
             </p>
+            {isSplit && isConverted && balanceSummary.length > 1 && <p className="mt-1 text-xs text-muted-foreground">{balanceSummary.join(' · ')}</p>}
+            {isConverted && (fxError || hasMissingRate) && (
+              <p className="mt-1 text-xs text-warning">{ru ? 'Нет доступного курса для всех валют. Общий баланс не рассчитан.' : 'Exchange rates unavailable for all currencies. Total not calculated.'}</p>
+            )}
+            {isConverted && fxRates?.time_last_update_utc && (
+              <p className="mt-1 text-[10px] text-muted-foreground">{ru ? 'Курс на' : 'Rates updated'}: {fxRates.time_last_update_utc}</p>
+            )}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="mt-2 gap-1.5">
+                  <HugeiconsIcon icon={Settings02Icon} className="size-4" />
+                  {ru ? 'Настройки валют' : 'Currency settings'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="w-[min(90vw,330px)] space-y-3">
+                <label className="block text-sm font-medium" htmlFor="currency-display-mode">{ru ? 'Отображение баланса' : 'Balance display'}</label>
+                <select id="currency-display-mode" className="w-full rounded-md border bg-background p-2 text-sm"
+                  disabled={preferencesLoading || savePreferences.isPending} value={currencySettings.mode} onChange={e => saveCurrencySettings({ ...currencySettings, mode: e.target.value as typeof currencySettings.mode })}>
+                  <option value="converted">{ru ? 'В основной валюте' : 'Converted to base currency'}</option>
+                  <option value="separate">{ru ? 'Отдельно по валютам' : 'Separate by currency'}</option>
+                  <option value="both">{ru ? 'Общий баланс и разбивка' : 'Total and breakdown'}</option>
+                </select>
+                <label className="block text-sm font-medium" htmlFor="currency-display-base">{ru ? 'Основная валюта' : 'Base currency'}</label>
+                <select id="currency-display-base" className="w-full rounded-md border bg-background p-2 text-sm"
+                  disabled={preferencesLoading || savePreferences.isPending} value={currencySettings.base} onChange={e => saveCurrencySettings({ ...currencySettings, base: e.target.value })}>
+                  {Array.from(new Set([...Intl.supportedValuesOf('currency'), currencySettings.base])).sort().map(currency =>
+                    <option key={currency} value={currency}>{currency}</option>)}
+                </select>
+                {savePreferences.isError && (
+                  <p role="alert" className="text-xs text-destructive">
+                    {ru ? 'Не удалось сохранить настройки. Изменения отменены. Попробуйте ещё раз.' : 'Could not save settings. Changes were reverted. Please try again.'}
+                  </p>
+                )}
+                <p className="text-xs text-muted-foreground">{ru ? 'Настройки сохраняются в вашем профиле и доступны на других устройствах.' : 'Settings are saved to your profile and shared across devices.'}</p>
+              </PopoverContent>
+            </Popover>
           </div>
           {/* A 3-column grid on a phone instead of `flex-wrap`: three roughly
               equal figures wrapping freely could split 2-then-1 or crowd
@@ -599,20 +794,21 @@ export function DashboardPage() {
           <dl className="grid grid-cols-3 gap-x-3 gap-y-4 sm:flex sm:flex-wrap sm:gap-x-8">
             <Figure
               label={t('summary.incomeThisMonth')}
-              value={txnLoading ? '…' : formatCurrency(totalIncome)}
+              value={txnLoading || (mixedCurrencies && currencyCashflowLoading) ? '…' : cashflowDisplay('income')}
               tone="in"
             />
             <Figure
               label={t('summary.expensesThisMonth')}
-              value={txnLoading ? '…' : formatCurrency(totalExpenses)}
+              value={txnLoading || (mixedCurrencies && currencyCashflowLoading) ? '…' : cashflowDisplay('expenses')}
               tone="out"
             />
             <Figure
               label={t('summary.netSaved')}
-              value={txnLoading ? '…' : formatCurrency(netSaved)}
+              value={txnLoading || (mixedCurrencies && currencyCashflowLoading) ? '…' : cashflowDisplay('net')}
               tone={netSaved >= 0 ? 'in' : 'out'}
             />
           </dl>
+          {mixedCurrencies && !currencyCashflowLoading && (!currencyCashflow || (isConverted && cashflowHasMissingRate)) && <p className="text-xs text-warning">{ru ? 'Нет данных или обменного курса для корректного пересчёта.' : 'Currency data or exchange rates are unavailable.'}</p>}
         </div>
       </section>
 

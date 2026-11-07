@@ -11,6 +11,7 @@ class BudgetCategoryAllocation(BaseModel):
 class BudgetBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     amount: float = Field(..., gt=0)
+    currency: str = Field(default="EUR", pattern="^[A-Z]{3}$")
     period: str = Field(..., pattern="^(monthly|yearly|custom)$")
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
@@ -24,6 +25,7 @@ class BudgetCreate(BudgetBase):
 class BudgetUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=100)
     amount: Optional[float] = Field(None, gt=0)
+    currency: Optional[str] = Field(None, pattern="^[A-Z]{3}$")
     period: Optional[str] = Field(None, pattern="^(monthly|yearly|custom)$")
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
