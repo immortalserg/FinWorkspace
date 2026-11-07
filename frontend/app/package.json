@@ -1,7 +1,7 @@
 {
   "name": "finworkspace",
   "private": true,
-  "version": "1.6.2",
+  "version": "1.6.3",
   "license": "ISC",
   "type": "module",
   "scripts": {

@@ -774,7 +774,7 @@ wheels = [
 
 [[package]]
 name = "finworkspace"
-version = "1.6.2"
+version = "1.6.3"
 source = { virtual = "." }
 dependencies = [
     { name = "alembic" },

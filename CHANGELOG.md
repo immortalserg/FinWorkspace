@@ -6,6 +6,16 @@ Releases that add database migrations or new `.env` settings say so, so you know
 
 ## [Unreleased]
 
+## [1.6.3] - 2026-11-07
+
+### Added
+- Multi-currency dashboard with selectable currency display modes and base currency.
+- Budget currency support and improved category allocations.
+- Additional tests for currency settings and financial calculations.
+
+### Notes
+- Includes database migrations 029 and 030. Back up the database before upgrading.
+
 ## [1.6.2] - 2026-11-06
 
 ### Added
@@ -157,7 +167,8 @@ First public release.
 - The Privacy Policy and Terms pages read the operator's name, contact email and jurisdiction from the server instead of compiled-in values. **Action required:** set `LEGAL_OPERATOR_NAME`, `LEGAL_CONTACT_EMAIL` and `LEGAL_JURISDICTION` in `.env`. Until you do, those pages show a "not configured" notice. See [Configuration](docs/configuration.md#legal-pages).
 - `docker-compose.yml` now names the published image. `docker compose pull && docker compose up -d` updates without building.
 
-[Unreleased]: https://github.com/immortalserg/FinWorkspace/compare/v1.3.1...HEAD
+[Unreleased]: https://github.com/immortalserg/FinWorkspace/compare/v1.6.3...HEAD
+[1.6.3]: https://github.com/immortalserg/FinWorkspace/compare/v1.6.2...v1.6.3
 [1.3.1]: https://github.com/immortalserg/FinWorkspace/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/immortalserg/FinWorkspace/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/immortalserg/FinWorkspace/compare/v1.1.0...v1.2.0
