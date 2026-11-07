@@ -170,3 +170,50 @@ def test_budget_progress_matches_transaction_shares_and_annual_summary(client, d
     assert summary["year_total"]["spent"] == budget["spent"]
     assert sum(item["budget_amount"] for period in summary["periods"]
                for item in period["transactions"]) == budget["spent"]
+
+
+def test_budget_spending_counts_allocations_without_primary_category(db, seed_user):
+    """An uncategorized transaction still contributes its allocated share."""
+    eur = Account(user_id=seed_user.id, name="EUR", type="checking", currency="EUR")
+    food = Category(user_id=seed_user.id, name="Food", type="expense")
+    db.add_all([eur, food])
+    db.flush()
+    tx = Transaction(
+        user_id=seed_user.id, account_id=eur.id, category_id=None,
+        amount=100, type="expense", description="Uncategorized split", date=date(2026, 11, 2),
+    )
+    db.add(tx)
+    db.flush()
+    db.add(TransactionAllocation(transaction_id=tx.id, category_id=food.id, amount=25))
+    budget = Budget(user_id=seed_user.id, name="Food EUR", amount=100, currency="EUR", period="monthly")
+    db.add(budget)
+    db.commit()
+
+    assert _budget_spending(db, budget, date(2026, 11, 1), date(2026, 11, 30), [food.id]) == 25
+    assert _budget_spending(db, budget, date(2026, 11, 1), date(2026, 11, 30), None) == 100
+
+
+def test_budget_spending_counts_multiple_allocations_in_same_category(db, seed_user):
+    """Two allocations to the same selected category are counted exactly once each."""
+    eur = Account(user_id=seed_user.id, name="EUR", type="checking", currency="EUR")
+    food = Category(user_id=seed_user.id, name="Food", type="expense")
+    travel = Category(user_id=seed_user.id, name="Travel", type="expense")
+    db.add_all([eur, food, travel])
+    db.flush()
+    tx = Transaction(
+        user_id=seed_user.id, account_id=eur.id, category_id=food.id,
+        amount=100, type="expense", description="Multiple splits", date=date(2026, 11, 3),
+    )
+    db.add(tx)
+    db.flush()
+    db.add_all([
+        TransactionAllocation(transaction_id=tx.id, category_id=travel.id, amount=20),
+        TransactionAllocation(transaction_id=tx.id, category_id=travel.id, amount=15),
+    ])
+    budget = Budget(user_id=seed_user.id, name="Travel EUR", amount=100, currency="EUR", period="monthly")
+    db.add(budget)
+    db.commit()
+
+    assert _budget_spending(db, budget, date(2026, 11, 1), date(2026, 11, 30), [food.id]) == 65
+    assert _budget_spending(db, budget, date(2026, 11, 1), date(2026, 11, 30), [travel.id]) == 35
+    assert _budget_spending(db, budget, date(2026, 11, 1), date(2026, 11, 30), None) == 100
