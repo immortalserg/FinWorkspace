@@ -143,8 +143,10 @@ describe('BudgetsPage', () => {
     expect(await screen.findByText('Year usage')).toBeInTheDocument()
     expect(screen.getByText('July 2026')).toBeInTheDocument()
     await userEvent.click(screen.getByText('July 2026'))
-    expect(screen.getByText('Supermarket')).toBeInTheDocument()
-    expect(screen.queryByText(/250[.,]00/)).not.toBeInTheDocument()
+    const transactionRow = screen.getByText('Supermarket').closest('tr')
+    expect(transactionRow).not.toBeNull()
+    expect(within(transactionRow!).getByText(`−${formatCurrency(150, 'EUR')}`)).toBeInTheDocument()
+    expect(within(transactionRow!).queryByText(`−${formatCurrency(250, 'EUR')}`)).not.toBeInTheDocument()
     expect(summarySpy).toHaveBeenCalledWith(1, 2026)
 
     await userEvent.click(screen.getByRole('button', { name: 'Next year 2027' }))
