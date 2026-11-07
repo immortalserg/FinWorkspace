@@ -25,20 +25,7 @@ def _budget_spending(db: Session, budget: Budget, start: date, end: date, catego
         query = query.filter(Transaction.date >= start)
     if end:
         query = query.filter(Transaction.date <= end)
-    selected = set(category_ids) if category_ids else None
-    total = 0.0
-    for tx in query.all():
-        if not tx.amount:
-            continue
-        effective = float(tx.effective_amount)
-        factor = effective / float(tx.amount)
-        allocated = sum(float(a.amount) * factor for a in tx.allocations)
-        if selected is None or tx.category_id in selected:
-            total += effective - allocated
-        for allocation in tx.allocations:
-            if selected is None or allocation.category_id in selected:
-                total += float(allocation.amount) * factor
-    return total
+    return sum(_budget_transaction_share(tx, category_ids) for tx in query.all())
 
 
 
@@ -347,6 +334,7 @@ def get_budget_summary(
         Account, Transaction.account_id == Account.id
     ).filter(
         Account.currency == budget.currency,
+        Account.user_id == current_user.id,
         Transaction.user_id == current_user.id,
         Transaction.type == "expense",
         Transaction.date >= effective_start,
